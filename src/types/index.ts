@@ -158,4 +158,18 @@ export interface LicenseContract {
   status: 'active' | 'expired' | 'suspended';
 }
 
+export interface AuthenticityTagRecord {
+  tagCode: string; // e.g. 'DEMO-TAG-2026' or 'ATM-2026-F1-8819A'
+  serialNumber: string; // e.g. 'SN-RBR-00001'
+  productId: string;
+  productName: string;
+  brandName: string;
+  sku: string;
+  size?: string;
+  status: 'active' | 'flagged' | 'revoked';
+  issuedAt: string;
+  orderNumber?: string;
+}
+
+
 
