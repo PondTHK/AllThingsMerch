@@ -8,6 +8,7 @@ import { getProductBySlug, getAllProducts } from '@/lib/repositories/mock-data';
 import { formatTHB } from '@/lib/money';
 import { ShieldCheck, Check, ArrowLeft, ShoppingBag } from 'lucide-react';
 import { ProductCard } from '@/components/products/ProductCard';
+import { useCartStore } from '@/lib/cart/useCartStore';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -17,6 +18,7 @@ export default function ProductDetailPage() {
   const [selectedVariant, setSelectedVariant] = useState(product?.variants[0]);
   const [quantity, setQuantity] = useState(1);
   const [addedMessage, setAddedMessage] = useState(false);
+  const addItem = useCartStore((s) => s.addItem);
 
   if (!product) {
     return (
@@ -36,7 +38,8 @@ export default function ProductDetailPage() {
   }
 
   const handleAddToCart = () => {
-    if (!selectedVariant || selectedVariant.stockQuantity <= 0) return;
+    if (!selectedVariant || selectedVariant.stockQuantity <= 0 || !product) return;
+    addItem(selectedVariant, product, quantity);
     setAddedMessage(true);
     setTimeout(() => {
       setAddedMessage(false);
