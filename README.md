@@ -52,7 +52,14 @@ Built as a digital platform portfolio project demonstrating full-stack developme
 
 ---
 
-## 4. Available Scripts
+## 4. Database & Supabase Setup
+
+For detailed instructions on provisioning your Supabase project, executing PostgreSQL schema migrations (`0001_initial_schema.sql`, `0002_rls_policies.sql`), seeding data (`seed.sql`), and configuring live database mode, please refer to:
+👉 **[SUPABASE_SETUP.md](file:///Users/thanakron/Documents/GitHub/AllThingsMerch/SUPABASE_SETUP.md)**
+
+---
+
+## 5. Available Scripts
 
 - `npm run dev` — Run development server
 - `npm run build` — Create production build
@@ -63,7 +70,7 @@ Built as a digital platform portfolio project demonstrating full-stack developme
 
 ---
 
-## 5. Development Milestones
+## 6. Development Milestones
 
 - **Milestone 1**: Project Foundation (Next.js, TypeScript, Tailwind, ESLint, Scripts, Unit Testing setup)
 - **Milestone 2**: Design System & Storefront Shell
