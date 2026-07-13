@@ -124,3 +124,19 @@ export interface Order {
   isDemoOrder: boolean;
   createdAt: string;
 }
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  fullName: string;
+  phone?: string;
+  role: 'customer' | 'admin';
+  createdAt: string;
+}
+
+export interface SavedAddress extends ShippingAddress {
+  id: string;
+  label: string;
+  isDefault: boolean;
+}
+

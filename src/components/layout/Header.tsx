@@ -2,9 +2,10 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Search, ShoppingBag, User, Menu, X, ShieldCheck } from 'lucide-react';
+import { Search, ShoppingBag, User, Menu, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/lib/cart/useCartStore';
+import { useAuthStore } from '@/lib/auth/useAuthStore';
 import { useHydrated } from '@/lib/cart/useHydrated';
 
 export function Header() {
@@ -15,7 +16,10 @@ export function Header() {
 
   const isHydrated = useHydrated();
   const items = useCartStore((s) => s.items);
+  const storedUser = useAuthStore((s) => s.user);
+
   const cartCount = isHydrated ? items.reduce((sum, i) => sum + i.quantity, 0) : 0;
+  const user = isHydrated ? storedUser : null;
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,17 +30,21 @@ export function Header() {
     }
   };
 
-  const navLinks = [
+  const baseLinks = [
     { label: 'Home', href: '/' },
     { label: 'Shop', href: '/products' },
     { label: 'Collection', href: '/products?category=formula-1' },
     { label: 'Verify TAG', href: '/verify/DEMO-TAG-2026' },
   ];
 
+  const navLinks = user?.role === 'admin'
+    ? [...baseLinks, { label: 'Admin', href: '/admin' }]
+    : baseLinks;
+
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-neutral-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
-        {/* Left: Brand Logo matching prototype */}
+    <header className="sticky top-0 z-50 bg-white border-b border-neutral-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        {/* Left: Brand */}
         <Link href="/" className="flex items-center gap-1 group">
           <span className="font-black tracking-tight text-black text-xl sm:text-2xl">
             AllThingsMerch
@@ -70,11 +78,16 @@ export function Header() {
 
           {/* User Account */}
           <Link
-            href="/login"
+            href={user ? '/account' : '/login'}
             aria-label="User Account"
-            className="p-2 text-neutral-700 hover:text-black transition-colors hidden sm:inline-block"
+            className="p-2 text-neutral-700 hover:text-black transition-colors hidden sm:flex items-center gap-1.5"
           >
             <User className="w-5 h-5" />
+            {user && (
+              <span className="text-xs font-bold text-black uppercase tracking-wider">
+                {user.fullName.split(' ')[0]}
+              </span>
+            )}
           </Link>
 
           {/* Shopping Cart Button */}
@@ -158,12 +171,12 @@ export function Header() {
               </Link>
             ))}
             <Link
-              href="/admin"
+              href={user ? '/account' : '/login'}
               onClick={() => setMobileMenuOpen(false)}
-              className="px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-600 hover:bg-neutral-100 flex items-center gap-2"
+              className="px-3 py-2.5 rounded-lg text-sm font-bold uppercase tracking-wider text-black hover:bg-neutral-100 flex items-center gap-2"
             >
-              <ShieldCheck className="w-4 h-4" />
-              <span>Admin Dashboard (Demo)</span>
+              <User className="w-4 h-4" />
+              <span>{user ? `My Account (${user.fullName.split(' ')[0]})` : 'Sign In / Register'}</span>
             </Link>
           </nav>
         </div>
