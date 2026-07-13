@@ -72,3 +72,55 @@ export interface Collection {
   imageUrl: string;
   itemCount: number;
 }
+
+export interface CartItem {
+  id: string; // unique cart line id
+  productId: string;
+  variantId: string;
+  productName: string;
+  productSlug: string;
+  sku: string;
+  size?: string;
+  color?: string;
+  unitPrice: number;
+  quantity: number;
+  imageUrl: string;
+  brandName?: string;
+}
+
+export interface ShippingAddress {
+  fullName: string;
+  email: string;
+  phone: string;
+  street: string;
+  city: string;
+  postalCode: string;
+}
+
+export interface OrderItem {
+  id: string;
+  productId: string;
+  variantId: string;
+  productName: string;
+  sku: string;
+  size?: string;
+  unitPrice: number;
+  quantity: number;
+  totalPrice: number;
+  authenticityTagCode?: string;
+  serialNumber?: string;
+}
+
+export interface Order {
+  id: string;
+  orderNumber: string;
+  status: 'pending' | 'processing' | 'fulfilled' | 'cancelled';
+  items: OrderItem[];
+  subtotal: number;
+  shippingFee: number;
+  totalAmount: number;
+  shippingAddress: ShippingAddress;
+  paymentMethod: string;
+  isDemoOrder: boolean;
+  createdAt: string;
+}
