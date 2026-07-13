@@ -140,3 +140,22 @@ export interface SavedAddress extends ShippingAddress {
   isDefault: boolean;
 }
 
+export interface LicenseHolder {
+  id: string;
+  name: string;
+  contactEmail: string;
+  status: 'active' | 'suspended';
+}
+
+export interface LicenseContract {
+  id: string;
+  licenseHolderId: string;
+  holderName: string;
+  contractReference: string;
+  royaltyRate: number; // percentage e.g. 12.5
+  startsAt: string;
+  expiresAt: string;
+  status: 'active' | 'expired' | 'suspended';
+}
+
+
