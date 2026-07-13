@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Search, ShoppingBag, User, Menu, X, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { Search, ShoppingBag, User, Menu, X, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export function Header() {
@@ -21,76 +21,52 @@ export function Header() {
   };
 
   const navLinks = [
-    { label: 'Catalog', href: '/products' },
-    { label: 'Formula 1', href: '/products?category=formula-1' },
-    { label: 'Artist Merch', href: '/products?category=music-merch' },
-    { label: 'Football Kits', href: '/products?category=football-kits' },
-    { label: 'Collectibles', href: '/products?category=collectibles' },
-    { label: 'Verify TAG', href: '/verify/DEMO-TAG-2026', highlight: true },
+    { label: 'Home', href: '/' },
+    { label: 'Shop', href: '/products' },
+    { label: 'Collection', href: '/products?category=formula-1' },
+    { label: 'Verify TAG', href: '/verify/DEMO-TAG-2026' },
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-neutral-950/90 backdrop-blur-md border-b border-white/10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-        {/* Brand Logo */}
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center font-black text-black text-lg shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform">
-            AM
-          </div>
-          <div className="flex flex-col">
-            <span className="font-extrabold tracking-tight text-white text-lg leading-tight">
-              AllThings<span className="text-emerald-400">Merch</span>
-            </span>
-            <span className="text-[10px] uppercase tracking-widest text-neutral-400 font-semibold -mt-1">
-              Licensed & Authenticated
-            </span>
-          </div>
+    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-neutral-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+        {/* Left: Brand Logo matching prototype */}
+        <Link href="/" className="flex items-center gap-1 group">
+          <span className="font-black tracking-tight text-black text-xl sm:text-2xl">
+            AllThingsMerch
+          </span>
         </Link>
 
-        {/* Desktop Nav */}
-        <nav className="hidden lg:flex items-center gap-6">
+        {/* Center: Clean Nav matching prototype */}
+        <nav className="hidden md:flex items-center gap-8">
           {navLinks.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className={`text-sm font-medium transition-colors ${
-                item.highlight
-                  ? 'flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20'
-                  : 'text-neutral-300 hover:text-white'
-              }`}
+              className="text-sm font-medium text-neutral-600 hover:text-black transition-colors"
             >
-              {item.highlight && <ShieldCheck className="w-4 h-4" />}
               {item.label}
             </Link>
           ))}
         </nav>
 
-        {/* Action Controls */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        {/* Right: Action Controls matching prototype */}
+        <div className="flex items-center gap-3">
           {/* Quick Search Trigger */}
           <button
             type="button"
             onClick={() => setSearchOpen(!searchOpen)}
             aria-label="Search products"
-            className="p-2 rounded-full text-neutral-300 hover:text-white hover:bg-neutral-900 transition-colors"
+            className="p-2 text-neutral-700 hover:text-black transition-colors"
           >
             <Search className="w-5 h-5" />
           </button>
 
-          {/* Admin Demo Link */}
-          <Link
-            href="/admin"
-            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-xs text-neutral-300 transition-colors font-medium"
-          >
-            <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
-            <span>Admin</span>
-          </Link>
-
-          {/* Account */}
+          {/* User Account */}
           <Link
             href="/login"
             aria-label="User Account"
-            className="p-2 rounded-full text-neutral-300 hover:text-white hover:bg-neutral-900 transition-colors"
+            className="p-2 text-neutral-700 hover:text-black transition-colors hidden sm:inline-block"
           >
             <User className="w-5 h-5" />
           </Link>
@@ -99,10 +75,10 @@ export function Header() {
           <Link
             href="/cart"
             aria-label="Shopping Cart"
-            className="relative p-2 rounded-full text-neutral-300 hover:text-white hover:bg-neutral-900 transition-colors"
+            className="relative p-2 text-neutral-700 hover:text-black transition-colors"
           >
             <ShoppingBag className="w-5 h-5" />
-            <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-emerald-500 text-black font-extrabold text-[10px] flex items-center justify-center">
+            <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-black text-white font-bold text-[10px] flex items-center justify-center">
               0
             </span>
           </Link>
@@ -112,7 +88,7 @@ export function Header() {
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle Navigation Menu"
-            className="lg:hidden p-2 rounded-lg text-neutral-300 hover:text-white hover:bg-neutral-900"
+            className="md:hidden p-2 text-neutral-700 hover:text-black"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -121,22 +97,22 @@ export function Header() {
 
       {/* Expandable Search Bar Modal/Drawer */}
       {searchOpen && (
-        <div className="border-t border-white/10 bg-neutral-900/95 px-4 py-3">
+        <div className="border-t border-neutral-200 bg-neutral-50 px-4 py-3">
           <form onSubmit={handleSearchSubmit} className="max-w-3xl mx-auto relative flex items-center">
             <Search className="w-5 h-5 absolute left-3 text-neutral-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="ค้นหาสินค้า เช่น Ferrari, Travis Scott, Real Madrid, KAWS..."
-              className="w-full pl-10 pr-24 py-2.5 rounded-xl bg-neutral-950 border border-white/10 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:border-emerald-500"
+              placeholder="Search merchandise, F1 apparel, artist drops..."
+              className="w-full pl-10 pr-24 py-2.5 rounded-xl bg-white border border-neutral-300 text-sm text-black placeholder:text-neutral-400 focus:outline-none focus:border-black"
               autoFocus
             />
             <button
               type="submit"
-              className="absolute right-1.5 px-4 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs transition-colors"
+              className="absolute right-1.5 px-4 py-1.5 rounded-lg bg-black hover:bg-neutral-800 text-white font-bold text-xs transition-colors"
             >
-              ค้นหา
+              Search
             </button>
           </form>
         </div>
@@ -144,21 +120,21 @@ export function Header() {
 
       {/* Responsive Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-white/10 bg-neutral-950 px-4 py-6 space-y-4">
+        <div className="md:hidden border-t border-neutral-200 bg-white px-4 py-6 space-y-4">
           <form onSubmit={handleSearchSubmit} className="relative flex items-center">
             <Search className="w-4 h-4 absolute left-3 text-neutral-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="ค้นหาสินค้า..."
-              className="w-full pl-9 pr-20 py-2 rounded-lg bg-neutral-900 border border-white/10 text-sm text-white focus:outline-none focus:border-emerald-500"
+              placeholder="Search merchandise..."
+              className="w-full pl-9 pr-20 py-2 rounded-lg bg-neutral-100 border border-neutral-300 text-sm text-black focus:outline-none focus:border-black"
             />
             <button
               type="submit"
-              className="absolute right-1.5 px-3 py-1 rounded bg-emerald-500 text-black text-xs font-bold"
+              className="absolute right-1.5 px-3 py-1 rounded bg-black text-white text-xs font-bold"
             >
-              ค้นหา
+              Search
             </button>
           </form>
 
@@ -168,11 +144,7 @@ export function Header() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`px-3 py-2.5 rounded-lg text-sm font-medium ${
-                  item.highlight
-                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                    : 'text-neutral-300 hover:bg-neutral-900'
-                }`}
+                className="px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-800 hover:bg-neutral-100"
               >
                 {item.label}
               </Link>
@@ -180,9 +152,9 @@ export function Header() {
             <Link
               href="/admin"
               onClick={() => setMobileMenuOpen(false)}
-              className="px-3 py-2.5 rounded-lg text-sm font-medium text-amber-400 hover:bg-neutral-900 flex items-center gap-2"
+              className="px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-600 hover:bg-neutral-100 flex items-center gap-2"
             >
-              <ShieldAlert className="w-4 h-4" />
+              <ShieldCheck className="w-4 h-4" />
               <span>Admin Dashboard (Demo)</span>
             </Link>
           </nav>
