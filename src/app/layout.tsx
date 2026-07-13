@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'AllThingsMerch — Licensed Merchandise & Collectibles',
+  title: 'AllThingsMerch — Official Licensed Merchandise',
   description:
     'Authentic streetwear, Formula 1 apparel, music artist merch, football kits, and collectibles with verified Authenticity TAGs.',
 };
@@ -29,9 +29,9 @@ export default function RootLayout({
   return (
     <html
       lang="th"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-neutral-950 text-neutral-100 selection:bg-emerald-500 selection:text-black">
+      <body className="min-h-full flex flex-col bg-white text-black selection:bg-black selection:text-white">
         <AnnouncementBar />
         <Header />
         <main className="flex-1 flex flex-col">{children}</main>

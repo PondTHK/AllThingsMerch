@@ -1,5 +1,26 @@
 import { Brand, Category, Collection, Product } from '@/types';
 
+// Helper to generate clean, minimalist studio product SVG data URL
+function createStudioImage(title: string, subtitle: string = '', theme: 'dark' | 'light' = 'light'): string {
+  const bg = theme === 'dark' ? '#18181b' : '#f4f4f5';
+  const fg = theme === 'dark' ? '#ffffff' : '#09090b';
+  const subFg = theme === 'dark' ? '#a1a1aa' : '#71717a';
+  const border = theme === 'dark' ? '#27272a' : '#e4e4e7';
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
+    <rect width="800" height="800" fill="${bg}"/>
+    <rect x="40" y="40" width="720" height="720" rx="32" fill="none" stroke="${border}" stroke-width="2"/>
+    <circle cx="400" cy="340" r="140" fill="${theme === 'dark' ? '#27272a' : '#e4e4e7'}" opacity="0.6"/>
+    <!-- Stylized Apparel Silhouette -->
+    <path d="M280 260 L330 220 L470 220 L520 260 L560 380 L480 390 L480 560 L320 560 L320 390 L240 380 Z" fill="${fg}" opacity="0.12"/>
+    <text x="400" y="470" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="800" fill="${fg}" text-anchor="middle">${title}</text>
+    ${subtitle ? `<text x="400" y="510" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="500" fill="${subFg}" text-anchor="middle">${subtitle}</text>` : ''}
+    <text x="400" y="710" font-family="monospace" font-size="13" font-weight="600" fill="${subFg}" text-anchor="middle" letter-spacing="3">ALLTHINGSMERCH OFFICIAL</text>
+  </svg>`;
+
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
 export const MOCK_BRANDS: Brand[] = [
   {
     id: 'brand-f1-ferrari',
@@ -72,8 +93,8 @@ export const MOCK_COLLECTIONS: Collection[] = [
     title: 'F1 Grand Prix 2026 Drops',
     slug: 'f1-grand-prix-2026',
     subtitle: 'Trackside Authentic Gear',
-    description: 'Official driver hoodies, technical polos, and championship caps with integrated Authenticity TAGs.',
-    imageUrl: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=800&q=80',
+    description: 'Official driver polos, jackets, and championship caps with integrated Authenticity TAGs.',
+    imageUrl: createStudioImage('F1 GRAND PRIX 2026', 'Trackside Authentic Gear', 'light'),
     itemCount: 8,
   },
   {
@@ -82,7 +103,7 @@ export const MOCK_COLLECTIONS: Collection[] = [
     slug: 'stadium-tour-essentials',
     subtitle: 'Limited Artist Merch',
     description: 'Heavyweight vintage wash tees and boxy hoodies from sold-out arena tours worldwide.',
-    imageUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80',
+    imageUrl: createStudioImage('STADIUM TOUR ESSENTIALS', 'Limited Artist Merch', 'light'),
     itemCount: 6,
   },
   {
@@ -91,13 +112,39 @@ export const MOCK_COLLECTIONS: Collection[] = [
     slug: 'heritage-club-match-kits',
     subtitle: 'Player Issue Authentic',
     description: 'Engineered authentic player jerseys and pre-match anthems verified for licensing royalty.',
-    imageUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80',
+    imageUrl: createStudioImage('HERITAGE MATCH KITS', 'Player Issue Authentic', 'light'),
     itemCount: 5,
   },
 ];
 
 export const MOCK_PRODUCTS: Product[] = [
   // --- Formula 1 ---
+  {
+    id: 'prod-f1-redbull-polo',
+    brandId: 'brand-f1-redbull',
+    categoryId: 'cat-f1',
+    name: 'Red Bull Racing 2026 Team Polo',
+    slug: 'red-bull-racing-2026-team-polo',
+    description:
+      'Official Oracle Red Bull Racing team polo shirt engineered with breathable performance fabric, featuring championship team and sponsor branding across chest and sleeves. Integrated Authenticity TAG verification.',
+    status: 'active',
+    isPreorder: false,
+    createdAt: '2026-06-01T10:00:00Z',
+    updatedAt: '2026-07-01T10:00:00Z',
+    tagline: 'Official Team Issue Polo',
+    featuredImage: createStudioImage('RED BULL RACING POLO', '2026 Official Teamwear', 'light'),
+    minPrice: 3990,
+    maxPrice: 3990,
+    variants: [
+      { id: 'var-rbr-p-s', productId: 'prod-f1-redbull-polo', sku: 'RBR-POLO26-S', size: 'S', color: 'Night Navy', price: 3990, stockQuantity: 10, lowStockThreshold: 3, isActive: true },
+      { id: 'var-rbr-p-m', productId: 'prod-f1-redbull-polo', sku: 'RBR-POLO26-M', size: 'M', color: 'Night Navy', price: 3990, stockQuantity: 15, lowStockThreshold: 3, isActive: true },
+      { id: 'var-rbr-p-l', productId: 'prod-f1-redbull-polo', sku: 'RBR-POLO26-L', size: 'L', color: 'Night Navy', price: 3990, stockQuantity: 8, lowStockThreshold: 3, isActive: true },
+    ],
+    images: [
+      { id: 'img-rbr-p1', productId: 'prod-f1-redbull-polo', storagePath: createStudioImage('RED BULL RACING POLO', 'Front View', 'light'), altText: 'Red Bull Racing Team Polo Front', sortOrder: 1 },
+      { id: 'img-rbr-p2', productId: 'prod-f1-redbull-polo', storagePath: createStudioImage('RED BULL RACING POLO', 'Back View', 'light'), altText: 'Red Bull Racing Team Polo Back', sortOrder: 2 },
+    ],
+  },
   {
     id: 'prod-f1-ferrari-jacket',
     brandId: 'brand-f1-ferrari',
@@ -108,10 +155,10 @@ export const MOCK_PRODUCTS: Product[] = [
       'Official Scuderia Ferrari team softshell jacket crafted with water-resistant stretch polyester, featuring high-density team and sponsor logos across the chest and arms. Equipped with an internal encrypted Authenticity TAG embedded at the hem.',
     status: 'active',
     isPreorder: false,
-    createdAt: '2026-06-01T10:00:00Z',
+    createdAt: '2026-06-02T10:00:00Z',
     updatedAt: '2026-07-01T10:00:00Z',
     tagline: 'Trackside Championship Edition',
-    featuredImage: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=800&q=80',
+    featuredImage: createStudioImage('SCUDERIA FERRARI JACKET', 'Softshell Team Edition', 'light'),
     minPrice: 6490,
     maxPrice: 6490,
     variants: [
@@ -120,31 +167,7 @@ export const MOCK_PRODUCTS: Product[] = [
       { id: 'var-ferrari-j-xl', productId: 'prod-f1-ferrari-jacket', sku: 'FER-J26-XL', size: 'XL', color: 'Rosso Corsa Red', price: 6490, stockQuantity: 2, lowStockThreshold: 3, isActive: true },
     ],
     images: [
-      { id: 'img-ferrari-1', productId: 'prod-f1-ferrari-jacket', storagePath: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=800&q=80', altText: 'Ferrari Softshell Jacket Front', sortOrder: 1 },
-    ],
-  },
-  {
-    id: 'prod-f1-redbull-hoodie',
-    brandId: 'brand-f1-redbull',
-    categoryId: 'cat-f1',
-    name: 'Oracle Red Bull Racing Driver Graphic Hoodie',
-    slug: 'oracle-red-bull-racing-driver-graphic-hoodie',
-    description:
-      'Heavyweight 450GSM French Terry cotton pullover hoodie featuring bold Oracle Red Bull Racing driver number artwork and reflective night-track detailing. Every piece carries an official royalty tracking Authenticity TAG.',
-    status: 'active',
-    isPreorder: false,
-    createdAt: '2026-06-05T10:00:00Z',
-    updatedAt: '2026-07-02T10:00:00Z',
-    tagline: '450GSM Heavyweight French Terry',
-    featuredImage: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=800&q=80',
-    minPrice: 4290,
-    maxPrice: 4290,
-    variants: [
-      { id: 'var-rbr-h-m', productId: 'prod-f1-redbull-hoodie', sku: 'RBR-H26-M', size: 'M', color: 'Night Navy', price: 4290, stockQuantity: 18, lowStockThreshold: 5, isActive: true },
-      { id: 'var-rbr-h-l', productId: 'prod-f1-redbull-hoodie', sku: 'RBR-H26-L', size: 'L', color: 'Night Navy', price: 4290, stockQuantity: 8, lowStockThreshold: 5, isActive: true },
-    ],
-    images: [
-      { id: 'img-rbr-1', productId: 'prod-f1-redbull-hoodie', storagePath: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=800&q=80', altText: 'Red Bull Racing Hoodie Front', sortOrder: 1 },
+      { id: 'img-ferrari-1', productId: 'prod-f1-ferrari-jacket', storagePath: createStudioImage('SCUDERIA FERRARI JACKET', 'Front View', 'light'), altText: 'Ferrari Softshell Jacket Front', sortOrder: 1 },
     ],
   },
   {
@@ -160,14 +183,14 @@ export const MOCK_PRODUCTS: Product[] = [
     createdAt: '2026-06-10T10:00:00Z',
     updatedAt: '2026-07-03T10:00:00Z',
     tagline: 'Monaco GP Driver Issue',
-    featuredImage: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&w=800&q=80',
+    featuredImage: createStudioImage('FERRARI LECLERC CAP', 'Special Edition #16', 'light'),
     minPrice: 1890,
     maxPrice: 1890,
     variants: [
       { id: 'var-ferrari-c-one', productId: 'prod-f1-ferrari-cap', sku: 'FER-C26-ONE', size: 'One Size', color: 'Monaco White / Red', price: 1890, stockQuantity: 24, lowStockThreshold: 5, isActive: true },
     ],
     images: [
-      { id: 'img-ferrari-c1', productId: 'prod-f1-ferrari-cap', storagePath: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&w=800&q=80', altText: 'Leclerc Special Edition Cap', sortOrder: 1 },
+      { id: 'img-ferrari-c1', productId: 'prod-f1-ferrari-cap', storagePath: createStudioImage('FERRARI LECLERC CAP', 'Front View', 'light'), altText: 'Leclerc Special Edition Cap', sortOrder: 1 },
     ],
   },
 
@@ -185,7 +208,7 @@ export const MOCK_PRODUCTS: Product[] = [
     createdAt: '2026-06-02T10:00:00Z',
     updatedAt: '2026-07-04T10:00:00Z',
     tagline: 'Official World Tour Drop',
-    featuredImage: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=800&q=80',
+    featuredImage: createStudioImage('UTOPIA CIRCUS MAXIMUS', 'Heavyweight Vintage Tee', 'light'),
     minPrice: 2890,
     maxPrice: 2890,
     variants: [
@@ -193,7 +216,7 @@ export const MOCK_PRODUCTS: Product[] = [
       { id: 'var-utopia-l', productId: 'prod-music-utopia-tee', sku: 'UTP-TEE-L', size: 'L', color: 'Charcoal Vintage Wash', price: 2890, stockQuantity: 1, lowStockThreshold: 4, isActive: true },
     ],
     images: [
-      { id: 'img-utopia-1', productId: 'prod-music-utopia-tee', storagePath: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=800&q=80', altText: 'Utopia Circus Maximus Tee Front', sortOrder: 1 },
+      { id: 'img-utopia-1', productId: 'prod-music-utopia-tee', storagePath: createStudioImage('UTOPIA CIRCUS MAXIMUS', 'Front View', 'light'), altText: 'Utopia Circus Maximus Tee Front', sortOrder: 1 },
     ],
   },
   {
@@ -209,7 +232,7 @@ export const MOCK_PRODUCTS: Product[] = [
     createdAt: '2026-06-04T10:00:00Z',
     updatedAt: '2026-07-05T10:00:00Z',
     tagline: '500GSM Brushed Fleece',
-    featuredImage: 'https://images.unsplash.com/photo-1509967419530-da38b4704bc6?auto=format&fit=crop&w=800&q=80',
+    featuredImage: createStudioImage('AFTER HOURS STADIUM HOODIE', 'XO Official Tour Drop', 'light'),
     minPrice: 4590,
     maxPrice: 4590,
     variants: [
@@ -217,7 +240,7 @@ export const MOCK_PRODUCTS: Product[] = [
       { id: 'var-xo-h-xl', productId: 'prod-music-afterhours-hoodie', sku: 'XO-H26-XL', size: 'XL', color: 'Midnight Black', price: 4590, stockQuantity: 0, lowStockThreshold: 3, isActive: true },
     ],
     images: [
-      { id: 'img-xo-1', productId: 'prod-music-afterhours-hoodie', storagePath: 'https://images.unsplash.com/photo-1509967419530-da38b4704bc6?auto=format&fit=crop&w=800&q=80', altText: 'After Hours Hoodie Front', sortOrder: 1 },
+      { id: 'img-xo-1', productId: 'prod-music-afterhours-hoodie', storagePath: createStudioImage('AFTER HOURS STADIUM HOODIE', 'Front View', 'light'), altText: 'After Hours Hoodie Front', sortOrder: 1 },
     ],
   },
   {
@@ -233,14 +256,14 @@ export const MOCK_PRODUCTS: Product[] = [
     createdAt: '2026-06-08T10:00:00Z',
     updatedAt: '2026-07-06T10:00:00Z',
     tagline: 'Collab Exclusive Drop',
-    featuredImage: 'https://images.unsplash.com/photo-1576871337632-b9aef4c17ab9?auto=format&fit=crop&w=800&q=80',
+    featuredImage: createStudioImage('CACTUS JACK TRUCKER', 'Fragment Heritage Cap', 'light'),
     minPrice: 2190,
     maxPrice: 2190,
     variants: [
       { id: 'var-cj-hat-1', productId: 'prod-music-travis-cap', sku: 'CJ-FRG-HAT', size: 'One Size', color: 'Mocha / Royal Blue', price: 2190, stockQuantity: 14, lowStockThreshold: 4, isActive: true },
     ],
     images: [
-      { id: 'img-cj-h1', productId: 'prod-music-travis-cap', storagePath: 'https://images.unsplash.com/photo-1576871337632-b9aef4c17ab9?auto=format&fit=crop&w=800&q=80', altText: 'Cactus Jack Trucker Cap', sortOrder: 1 },
+      { id: 'img-cj-h1', productId: 'prod-music-travis-cap', storagePath: createStudioImage('CACTUS JACK TRUCKER', 'Front View', 'light'), altText: 'Cactus Jack Trucker Cap', sortOrder: 1 },
     ],
   },
 
@@ -258,7 +281,7 @@ export const MOCK_PRODUCTS: Product[] = [
     createdAt: '2026-06-03T10:00:00Z',
     updatedAt: '2026-07-07T10:00:00Z',
     tagline: 'Official Player Issue Kit',
-    featuredImage: 'https://images.unsplash.com/photo-1516257984-b1b4d707412e?auto=format&fit=crop&w=800&q=80',
+    featuredImage: createStudioImage('REAL MADRID HOME KIT', '26/27 Authentic Jersey', 'light'),
     minPrice: 4890,
     maxPrice: 4890,
     variants: [
@@ -266,7 +289,7 @@ export const MOCK_PRODUCTS: Product[] = [
       { id: 'var-rma-j-l', productId: 'prod-football-real-home', sku: 'RMA-H26-L', size: 'L', color: 'Royal White / Gold', price: 4890, stockQuantity: 11, lowStockThreshold: 5, isActive: true },
     ],
     images: [
-      { id: 'img-rma-1', productId: 'prod-football-real-home', storagePath: 'https://images.unsplash.com/photo-1516257984-b1b4d707412e?auto=format&fit=crop&w=800&q=80', altText: 'Real Madrid Jersey Front', sortOrder: 1 },
+      { id: 'img-rma-1', productId: 'prod-football-real-home', storagePath: createStudioImage('REAL MADRID HOME KIT', 'Front View', 'light'), altText: 'Real Madrid Jersey Front', sortOrder: 1 },
     ],
   },
   {
@@ -282,7 +305,7 @@ export const MOCK_PRODUCTS: Product[] = [
     createdAt: '2026-06-06T10:00:00Z',
     updatedAt: '2026-07-08T10:00:00Z',
     tagline: 'Heritage Woven Edition',
-    featuredImage: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=800&q=80',
+    featuredImage: createStudioImage('ARSENAL ANTHEM JACKET', 'Pre-Match Heritage Edition', 'light'),
     minPrice: 3890,
     maxPrice: 3890,
     variants: [
@@ -290,7 +313,7 @@ export const MOCK_PRODUCTS: Product[] = [
       { id: 'var-ars-j-l', productId: 'prod-football-arsenal-anthem', sku: 'ARS-JKT-L', size: 'L', color: 'Highbury Red / Navy', price: 3890, stockQuantity: 4, lowStockThreshold: 3, isActive: true },
     ],
     images: [
-      { id: 'img-ars-1', productId: 'prod-football-arsenal-anthem', storagePath: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=800&q=80', altText: 'Arsenal Anthem Jacket', sortOrder: 1 },
+      { id: 'img-ars-1', productId: 'prod-football-arsenal-anthem', storagePath: createStudioImage('ARSENAL ANTHEM JACKET', 'Front View', 'light'), altText: 'Arsenal Anthem Jacket', sortOrder: 1 },
     ],
   },
   {
@@ -307,7 +330,7 @@ export const MOCK_PRODUCTS: Product[] = [
     createdAt: '2026-06-11T10:00:00Z',
     updatedAt: '2026-07-09T10:00:00Z',
     tagline: 'Pre-Order Drop • Releases Aug 15',
-    featuredImage: 'https://images.unsplash.com/photo-1577733966973-d680bffd2e80?auto=format&fit=crop&w=800&q=80',
+    featuredImage: createStudioImage('REAL MADRID 1998 RETRO', 'Centenary Heritage Kit', 'light'),
     minPrice: 3990,
     maxPrice: 3990,
     variants: [
@@ -315,7 +338,7 @@ export const MOCK_PRODUCTS: Product[] = [
       { id: 'var-rma-retro-l', productId: 'prod-football-real-retro', sku: 'RMA-98-L', size: 'L', color: 'Vintage White', price: 3990, stockQuantity: 50, lowStockThreshold: 10, isActive: true },
     ],
     images: [
-      { id: 'img-rma-retro1', productId: 'prod-football-real-retro', storagePath: 'https://images.unsplash.com/photo-1577733966973-d680bffd2e80?auto=format&fit=crop&w=800&q=80', altText: 'Real Madrid 1998 Retro Kit', sortOrder: 1 },
+      { id: 'img-rma-retro1', productId: 'prod-football-real-retro', storagePath: createStudioImage('REAL MADRID 1998 RETRO', 'Front View', 'light'), altText: 'Real Madrid 1998 Retro Kit', sortOrder: 1 },
     ],
   },
 
@@ -333,14 +356,14 @@ export const MOCK_PRODUCTS: Product[] = [
     createdAt: '2026-06-01T10:00:00Z',
     updatedAt: '2026-07-10T10:00:00Z',
     tagline: 'Verified Authentic Art Sculpture',
-    featuredImage: 'https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=800&q=80',
+    featuredImage: createStudioImage('KAWS COMPANION FLAYED', 'Open Edition 11-Inch', 'light'),
     minPrice: 14900,
     maxPrice: 14900,
     variants: [
       { id: 'var-kaws-comp-grey', productId: 'prod-collect-kaws-companion', sku: 'KAWS-FLAY-GRY', size: '11 Inch', color: 'Monotone Grey', price: 14900, stockQuantity: 3, lowStockThreshold: 2, isActive: true },
     ],
     images: [
-      { id: 'img-kaws-1', productId: 'prod-collect-kaws-companion', storagePath: 'https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=800&q=80', altText: 'KAWS Companion Figure', sortOrder: 1 },
+      { id: 'img-kaws-1', productId: 'prod-collect-kaws-companion', storagePath: createStudioImage('KAWS COMPANION FLAYED', 'Front View', 'light'), altText: 'KAWS Companion Figure', sortOrder: 1 },
     ],
   },
   {
@@ -356,14 +379,14 @@ export const MOCK_PRODUCTS: Product[] = [
     createdAt: '2026-06-07T10:00:00Z',
     updatedAt: '2026-07-11T10:00:00Z',
     tagline: 'Collector 400% Twin Pack',
-    featuredImage: 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=800&q=80',
+    featuredImage: createStudioImage('BE@RBRICK DAFT PUNK', 'Discovery 400% Twin Set', 'light'),
     minPrice: 19500,
     maxPrice: 19500,
     variants: [
       { id: 'var-bb-daft-400', productId: 'prod-collect-bearbrick-daftpunk', sku: 'BB-DP-400', size: '400% (28cm)', color: 'Gold / Chrome', price: 19500, stockQuantity: 2, lowStockThreshold: 2, isActive: true },
     ],
     images: [
-      { id: 'img-bb-1', productId: 'prod-collect-bearbrick-daftpunk', storagePath: 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=800&q=80', altText: 'Daft Punk BE@RBRICK 400%', sortOrder: 1 },
+      { id: 'img-bb-1', productId: 'prod-collect-bearbrick-daftpunk', storagePath: createStudioImage('BE@RBRICK DAFT PUNK', 'Front View', 'light'), altText: 'Daft Punk BE@RBRICK 400%', sortOrder: 1 },
     ],
   },
   {
@@ -379,19 +402,18 @@ export const MOCK_PRODUCTS: Product[] = [
     createdAt: '2026-06-09T10:00:00Z',
     updatedAt: '2026-07-12T10:00:00Z',
     tagline: 'Exhibition Exclusive',
-    featuredImage: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=800&q=80',
+    featuredImage: createStudioImage('KAWS:HOLIDAY FUJI', 'Pink Vinyl Edition', 'light'),
     minPrice: 11900,
     maxPrice: 11900,
     variants: [
       { id: 'var-kaws-fuji-p', productId: 'prod-collect-kaws-holiday', sku: 'KAWS-FUJI-PNK', size: '8.5 Inch', color: 'Sakura Pink', price: 11900, stockQuantity: 4, lowStockThreshold: 2, isActive: true },
     ],
     images: [
-      { id: 'img-kaws-f1', productId: 'prod-collect-kaws-holiday', storagePath: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=800&q=80', altText: 'KAWS Holiday Fuji Figure', sortOrder: 1 },
+      { id: 'img-kaws-f1', productId: 'prod-collect-kaws-holiday', storagePath: createStudioImage('KAWS:HOLIDAY FUJI', 'Front View', 'light'), altText: 'KAWS Holiday Fuji Figure', sortOrder: 1 },
     ],
   },
 ];
 
-// Helper functions for mock data query
 export function getAllProducts(): Product[] {
   return MOCK_PRODUCTS.map((prod) => ({
     ...prod,
