@@ -8,7 +8,7 @@ test.describe('AllThingsMerch Core Storefront Journey Smoke Test', () => {
 
     // 2. Navigate to Catalog / Shop
     await page.goto('/products');
-    await expect(page.locator('h1')).toContainText(/Curated Catalog|Catalog/i);
+    await expect(page.locator('h1')).toContainText(/All Merchandise|Catalog/i);
 
     // 3. Visit Product Detail page
     await page.goto('/products/red-bull-racing-2026-team-polo');
