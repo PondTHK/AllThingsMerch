@@ -12,6 +12,7 @@ import {
   Layers,
   ClipboardList,
   FileText,
+  ShieldCheck,
   ArrowLeft,
   ShieldAlert,
 } from 'lucide-react';
@@ -67,6 +68,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { label: 'Catalog Products', href: '/admin/products', icon: Package },
     { label: 'Inventory & Stock', href: '/admin/inventory', icon: Layers },
     { label: 'Customer Orders', href: '/admin/orders', icon: ClipboardList },
+    { label: 'Authenticity TAGs', href: '/admin/tags', icon: ShieldCheck },
     { label: 'License Contracts', href: '/admin/contracts', icon: FileText },
   ];
 
