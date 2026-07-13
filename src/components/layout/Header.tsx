@@ -34,7 +34,7 @@ export function Header() {
     { label: 'Home', href: '/' },
     { label: 'Shop', href: '/products' },
     { label: 'Collection', href: '/products?category=formula-1' },
-    { label: 'Verify TAG', href: '/verify/DEMO-TAG-2026' },
+    { label: 'Verify TAG', href: '/verify' },
   ];
 
   const navLinks = user?.role === 'admin'
