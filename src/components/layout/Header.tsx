@@ -4,12 +4,18 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Search, ShoppingBag, User, Menu, X, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useCartStore } from '@/lib/cart/useCartStore';
+import { useHydrated } from '@/lib/cart/useHydrated';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const router = useRouter();
+
+  const isHydrated = useHydrated();
+  const items = useCartStore((s) => s.items);
+  const cartCount = isHydrated ? items.reduce((sum, i) => sum + i.quantity, 0) : 0;
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,9 +84,11 @@ export function Header() {
             className="relative p-2 text-neutral-700 hover:text-black transition-colors"
           >
             <ShoppingBag className="w-5 h-5" />
-            <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-black text-white font-bold text-[10px] flex items-center justify-center">
-              0
-            </span>
+            {cartCount > 0 && (
+              <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-black text-white font-bold text-[10px] flex items-center justify-center">
+                {cartCount}
+              </span>
+            )}
           </Link>
 
           {/* Mobile Menu Toggle */}
