@@ -139,6 +139,65 @@
 4. ระบบบัญชีเต็มรูปแบบขององค์กร
 5. ระบบจัดการคลังสินค้าขนาดใหญ่หลายสาขา
 
+### 4.4 แผนภาพยูสเคส (Use Case Diagram)
+
+```mermaid
+graph TD
+    classDef actor fill:#f9f9f9,stroke:#333,stroke-width:2px;
+    classDef usecase fill:#fff,stroke:#333,stroke-width:1.5px;
+
+    %% Actors
+    Customer["Customer (ลูกค้า)"]:::actor
+    Admin["Admin (ผู้ดูแลระบบ)"]:::actor
+    LicenseHolder["License Holder (ผู้ถือลิขสิทธิ์)"]:::actor
+
+    subgraph Boundary [AllThingsMerch System Boundary]
+        %% Customer Use Cases
+        BrowseCatalog["ค้นหา & กรอง Catalog"]:::usecase
+        ManageCart["จัดการตะกร้า (เพิ่ม/ลด/ลบ)"]:::usecase
+        StockLock["ล็อกสต็อกชั่วคราว 15 นาที"]:::usecase
+        ApplyCoupon["ใช้คูปองส่วนลด"]:::usecase
+        Checkout["ชำระเงิน (Mock Checkout)"]:::usecase
+        TrackOrder["ติดตามสถานะคำสั่งซื้อ"]:::usecase
+        VerifyTag["ตรวจสอบสินค้าแท้ (Verify TAG)"]:::usecase
+        WriteReview["รีวิว & ให้คะแนนสินค้า"]:::usecase
+
+        %% Admin Use Cases
+        ManageProducts["จัดการสินค้า (CRUD / Variants)"]:::usecase
+        AdjustStock["ปรับสต็อก (Draft -> Bulk Commit)"]:::usecase
+        ManageContracts["จัดการสัญญาลิขสิทธิ์"]:::usecase
+        ManageCoupons["จัดการคูปอง (กำหนดโควต้าสิทธิ์)"]:::usecase
+        UpdateOrderStatus["อัปเดตสถานะออเดอร์ (ยกเลิกเพื่อคืนสต็อก)"]:::usecase
+        ViewRoyaltyReports["ดูรายงานยอดขาย & ค่าลิขสิทธิ์"]:::usecase
+        ManageReviews["ซ่อน/แสดงความคิดเห็นรีวิว"]:::usecase
+    end
+
+    %% Customer relationships
+    Customer --> BrowseCatalog
+    Customer --> ManageCart
+    Customer --> ApplyCoupon
+    Customer --> Checkout
+    Customer --> TrackOrder
+    Customer --> VerifyTag
+    Customer --> WriteReview
+
+    %% Automated / System Actions triggers
+    ManageCart -.-> StockLock
+    Checkout -.-> StockLock
+
+    %% Admin relationships
+    Admin --> ManageProducts
+    Admin --> AdjustStock
+    Admin --> ManageContracts
+    Admin --> ManageCoupons
+    Admin --> UpdateOrderStatus
+    Admin --> ViewRoyaltyReports
+    Admin --> ManageReviews
+
+    %% License Holder relationships
+    LicenseHolder --> ViewRoyaltyReports
+```
+
 ---
 
 ## 5. ความต้องการเชิงฟังก์ชัน
