@@ -1,5 +1,6 @@
 import { CartItem, Order, OrderItem, ShippingAddress, Coupon } from '@/types';
 import { getProductBySlug } from '@/lib/repositories/mock-data';
+import { useAdminStore } from '@/lib/admin/useAdminStore';
 
 // Server-side / adapter price verification: ensures prices match official catalog
 export function validateAndRecalculateCart(items: CartItem[], coupon?: Coupon | null): {
@@ -27,7 +28,11 @@ export function validateAndRecalculateCart(items: CartItem[], coupon?: Coupon | 
   let subtotal = 0;
 
   for (const item of items) {
-    const product = getProductBySlug(item.productSlug);
+    const adminProducts = useAdminStore.getState().products;
+    let product = adminProducts.find((p) => p.slug === item.productSlug);
+    if (!product) {
+      product = getProductBySlug(item.productSlug);
+    }
     if (!product) {
       return {
         verifiedItems: [],
