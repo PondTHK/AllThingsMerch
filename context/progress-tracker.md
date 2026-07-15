@@ -38,7 +38,7 @@ description: Project development progress tracker, milestones, in-progress tasks
 - **Feature: Address Storefront Logic & Integrity Flaws** — แก้ไขช่องโหว่ความสมเหตุสมผลและบูรณภาพข้อมูลทั้ง 5 ข้อใน `corrent_issues.md` (ห้ามผสมตะกร้า, มี Audit Trail สำหรับสต็อก, คืนสต็อกเมื่อยกเลิกออเดอร์, ล็อกสต็อกชั่วคราว 15 นาที, ตรวจสอบลิมิตคูปอง)
 - **Feature: Inventory Stock Audit UI & Draft Confirm** — เพิ่มตาราง Stock Audit Ledger แสดงประวัติการย้ายสต็อก และอัปเดตระบบปรับสต็อกหน้าแอดมินเป็นแบบบันทึกร่างและกดยืนยันทีเดียวเพื่อลดบันทึกรอยต่อที่ซ้ำซ้อน
 - **Feature: Stock Audit Ledger Pagination** — เพิ่มระบบแบ่งหน้า (Pagination) หน้าละ 10 แถวให้กับประวัติการย้ายสต็อก เพื่อประสิทธิภาพการเรนเดอร์และความสวยงามของเลย์เอาต์
-- **Feature: SADS Diagrams** — พัฒนาแผนภาพการออกแบบซอฟต์แวร์ 3 ชนิด (Use Case Diagram, Sequence Diagram และ Class Diagram) ครบถ้วนโดยไร้อิโมจิตามข้อกำหนดของเอกสาร SADS 1.2
+- **Feature: SADS Diagrams** — พัฒนาแผนภาพการออกแบบซอฟต์แวร์ 3 ชนิด (Use Case Diagram, Sequence Diagram และ Class Diagram) ครบถ้วนโดยระบุพารามิเตอร์และประเภทข้อมูลการส่งกลับ (Parameter & Return types) อย่างละเอียด และไร้อิโมจิตามข้อกำหนดของเอกสาร SADS 1.2
 
 <!-- เพิ่ม bullet ใหม่ที่นี่ทุกครั้งที่ทำ Feature เสร็จ -->
 
