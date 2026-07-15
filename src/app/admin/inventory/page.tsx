@@ -10,6 +10,8 @@ export default function AdminInventoryPage() {
   const stockMovements = useAdminStore((state) => state.stockMovements) || [];
 
   const [draftChanges, setDraftChanges] = useState<Record<string, number>>({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const getVariantCurrentStock = (variantId: string) => {
     for (const p of products) {
@@ -46,6 +48,7 @@ export default function AdminInventoryPage() {
       }
     });
     setDraftChanges({});
+    setCurrentPage(1);
   };
 
   const getVariantSkuDetails = (variantId: string) => {
@@ -61,6 +64,12 @@ export default function AdminInventoryPage() {
     }
     return null;
   };
+
+  const totalPages = Math.ceil(stockMovements.length / itemsPerPage) || 1;
+  const paginatedMovements = stockMovements.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
     <div className="space-y-8">
@@ -223,14 +232,14 @@ export default function AdminInventoryPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-200 font-medium text-black">
-                {stockMovements.length === 0 ? (
+                {paginatedMovements.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="py-8 text-center text-neutral-500">
                       No stock movement logs recorded yet.
                     </td>
                   </tr>
                 ) : (
-                  stockMovements.map((move) => {
+                  paginatedMovements.map((move) => {
                     const details = getVariantSkuDetails(move.productVariantId);
                     const isPositive = move.quantity > 0;
                     const formattedQty = `${isPositive ? '+' : ''}${move.quantity}`;
@@ -284,6 +293,36 @@ export default function AdminInventoryPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination Controls */}
+          {stockMovements.length > itemsPerPage && (
+            <div className="bg-neutral-50 border-t border-neutral-200 px-4 py-3 flex items-center justify-between gap-4">
+              <span className="text-[11px] text-neutral-500 font-medium">
+                Showing {Math.min(stockMovements.length, (currentPage - 1) * itemsPerPage + 1)}-{Math.min(stockMovements.length, currentPage * itemsPerPage)} of {stockMovements.length} logs
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  className="px-3 py-1.5 rounded-lg border border-neutral-300 bg-white text-xs font-bold hover:bg-neutral-100 disabled:opacity-50 disabled:hover:bg-white"
+                >
+                  Previous
+                </button>
+                <span className="text-xs font-semibold text-black font-mono">
+                  {currentPage} / {totalPages}
+                </span>
+                <button
+                  type="button"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  className="px-3 py-1.5 rounded-lg border border-neutral-300 bg-white text-xs font-bold hover:bg-neutral-100 disabled:opacity-50 disabled:hover:bg-white"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
