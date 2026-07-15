@@ -105,13 +105,75 @@ export function validateAndRecalculateCart(items: CartItem[], coupon?: Coupon | 
   }
 
   let discountAmount = 0;
-  if (coupon && coupon.isActive) {
+  if (coupon) {
+    if (!coupon.isActive) {
+      return {
+        verifiedItems: [],
+        subtotal: 0,
+        discountAmount: 0,
+        shippingFee: 0,
+        totalAmount: 0,
+        isValid: false,
+        errorMessage: 'The applied coupon is inactive.',
+      };
+    }
+
+    if (coupon.expiresAt && new Date().getTime() > new Date(coupon.expiresAt).getTime()) {
+      return {
+        verifiedItems: [],
+        subtotal: 0,
+        discountAmount: 0,
+        shippingFee: 0,
+        totalAmount: 0,
+        isValid: false,
+        errorMessage: 'The applied coupon has expired.',
+      };
+    }
+
+    if (coupon.maxGlobalUses !== undefined && coupon.currentGlobalUses >= coupon.maxGlobalUses) {
+      return {
+        verifiedItems: [],
+        subtotal: 0,
+        discountAmount: 0,
+        shippingFee: 0,
+        totalAmount: 0,
+        isValid: false,
+        errorMessage: 'This coupon code has reached its maximum global usage limit.',
+      };
+    }
+
+    if (coupon.maxUsesPerUser !== undefined) {
+      const history = getOrderHistory();
+      const userCouponUses = history.filter((o) => o.couponCode === coupon.code).length;
+      if (userCouponUses >= coupon.maxUsesPerUser) {
+        return {
+          verifiedItems: [],
+          subtotal: 0,
+          discountAmount: 0,
+          shippingFee: 0,
+          totalAmount: 0,
+          isValid: false,
+          errorMessage: 'You have reached the usage limit for this coupon code.',
+        };
+      }
+    }
+
     if (!coupon.minOrderValue || subtotal >= coupon.minOrderValue) {
       if (coupon.discountType === 'percentage') {
         discountAmount = Math.floor(subtotal * (coupon.discountValue / 100));
       } else {
         discountAmount = Math.min(subtotal, coupon.discountValue);
       }
+    } else {
+      return {
+        verifiedItems: [],
+        subtotal: 0,
+        discountAmount: 0,
+        shippingFee: 0,
+        totalAmount: 0,
+        isValid: false,
+        errorMessage: `Minimum order value of ${coupon.minOrderValue} THB required to use this coupon.`,
+      };
     }
   }
 
