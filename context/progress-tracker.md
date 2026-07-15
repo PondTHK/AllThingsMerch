@@ -36,6 +36,7 @@ description: Project development progress tracker, milestones, in-progress tasks
 - **Feature: Reviews & Ratings** — ระบบรีวิวสินค้าหลังได้รับสินค้า (fulfilled) พร้อมแสดงดาวเฉลี่ยในหน้ารายละเอียดสินค้า และมีระบบซ่อน/แสดงรีวิวหลังบ้านสำหรับผู้ดูแลระบบ ปลอดภัยจากการกรอกซ้ำหรือแอบรีวิวโดยไม่ได้ซื้อตาม SADS
 - **Feature: Pre-order System** — ระบบพรีออเดอร์สินค้าสำหรับผู้ใช้และการจัดการผ่านระบบแอดมิน
 - **Feature: Address Storefront Logic & Integrity Flaws** — แก้ไขช่องโหว่ความสมเหตุสมผลและบูรณภาพข้อมูลทั้ง 5 ข้อใน `corrent_issues.md` (ห้ามผสมตะกร้า, มี Audit Trail สำหรับสต็อก, คืนสต็อกเมื่อยกเลิกออเดอร์, ล็อกสต็อกชั่วคราว 15 นาที, ตรวจสอบลิมิตคูปอง)
+- **Feature: Inventory Stock Audit UI & Draft Confirm** — เพิ่มตาราง Stock Audit Ledger แสดงประวัติการย้ายสต็อก และอัปเดตระบบปรับสต็อกหน้าแอดมินเป็นแบบบันทึกร่างและกดยืนยันทีเดียวเพื่อลดบันทึกรอยต่อที่ซ้ำซ้อน
 
 <!-- เพิ่ม bullet ใหม่ที่นี่ทุกครั้งที่ทำ Feature เสร็จ -->
 
