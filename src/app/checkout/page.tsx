@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useCartStore } from '@/lib/cart/useCartStore';
+import { useAdminStore } from '@/lib/admin/useAdminStore';
 import { useHydrated } from '@/lib/cart/useHydrated';
 import { fulfillMockOrder, validateAndRecalculateCart } from '@/lib/orders/mock-checkout';
 import { formatTHB } from '@/lib/money';
@@ -16,7 +17,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const isHydrated = useHydrated();
   const items = useCartStore((s) => s.items);
-  const clearCart = useCartStore((s) => s.clearCart);
+  const clearCartWithoutRelease = useCartStore((s) => s.clearCartWithoutRelease);
   const appliedCoupon = useCartStore((s) => s.appliedCoupon);
   const applyCoupon = useCartStore((s) => s.applyCoupon);
   const removeCoupon = useCartStore((s) => s.removeCoupon);
@@ -90,7 +91,22 @@ export default function CheckoutPage() {
         }).catch(err => console.error('Failed to increment coupon use count:', err));
       }
 
-      clearCart();
+      // Transition reservation to sale in Admin Store
+      items.forEach((item) => {
+        // 1. Release the reservation (positive delta)
+        useAdminStore.getState().adjustVariantStock(item.variantId, item.quantity, 'release', 'cart');
+        // 2. Log as permanent sale (negative delta)
+        useAdminStore.getState().adjustVariantStock(
+          item.variantId,
+          -item.quantity,
+          'sale',
+          'order',
+          order.id,
+          `Order ${order.orderNumber} purchased`
+        );
+      });
+
+      clearCartWithoutRelease();
       router.push(`/checkout/success?orderNumber=${encodeURIComponent(order.orderNumber)}`);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to complete mock checkout.';

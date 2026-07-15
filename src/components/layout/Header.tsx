@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Search, ShoppingBag, User, Menu, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -17,6 +17,17 @@ export function Header() {
   const isHydrated = useHydrated();
   const items = useCartStore((s) => s.items);
   const storedUser = useAuthStore((s) => s.user);
+  const releaseExpiredReservation = useCartStore((s) => s.releaseExpiredReservation);
+
+  useEffect(() => {
+    if (isHydrated) {
+      releaseExpiredReservation();
+      const interval = setInterval(() => {
+        releaseExpiredReservation();
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [isHydrated, releaseExpiredReservation]);
 
   const cartCount = isHydrated ? items.reduce((sum, i) => sum + i.quantity, 0) : 0;
   const user = isHydrated ? storedUser : null;
