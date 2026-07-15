@@ -57,6 +57,36 @@ export function validateAndRecalculateCart(items: CartItem[], coupon?: Coupon | 
     const lineTotal = officialPrice * item.quantity;
     subtotal += lineTotal;
 
+    // Map brand to royalty rate and contract ID
+    let royaltyRateSnapshot = 10.0;
+    let licenseContractId = undefined;
+
+    if (product.brandId === 'brand-f1-redbull') {
+      royaltyRateSnapshot = 12.5;
+      licenseContractId = 'contract-rbr-01';
+    } else if (product.brandId === 'brand-f1-ferrari') {
+      royaltyRateSnapshot = 14.0;
+      licenseContractId = 'contract-sf-01';
+    } else if (product.brandId === 'brand-music-travis') {
+      royaltyRateSnapshot = 10.0;
+      licenseContractId = 'contract-travis-01';
+    } else if (product.brandId === 'brand-music-weeknd') {
+      royaltyRateSnapshot = 10.0;
+      licenseContractId = 'contract-weeknd-01';
+    } else if (product.brandId === 'brand-football-real') {
+      royaltyRateSnapshot = 15.0;
+      licenseContractId = 'contract-real-01';
+    } else if (product.brandId === 'brand-football-arsenal') {
+      royaltyRateSnapshot = 15.0;
+      licenseContractId = 'contract-arsenal-01';
+    } else if (product.brandId === 'brand-collect-kaws') {
+      royaltyRateSnapshot = 8.0;
+      licenseContractId = 'contract-kaws-01';
+    } else if (product.brandId === 'brand-collect-bearbrick') {
+      royaltyRateSnapshot = 8.0;
+      licenseContractId = 'contract-bearbrick-01';
+    }
+
     verifiedItems.push({
       id: `order-item-${Math.random().toString(36).substring(2, 9)}`,
       productId: product.id,
@@ -67,6 +97,8 @@ export function validateAndRecalculateCart(items: CartItem[], coupon?: Coupon | 
       unitPrice: officialPrice,
       quantity: item.quantity,
       totalPrice: lineTotal,
+      royaltyRateSnapshot,
+      licenseContractId,
     });
   }
 

@@ -124,6 +124,8 @@ export interface OrderItem {
   totalPrice: number;
   authenticityTagCode?: string;
   serialNumber?: string;
+  royaltyRateSnapshot: number; // percentage e.g. 12.5
+  licenseContractId?: string;
 }
 
 export interface Order {
