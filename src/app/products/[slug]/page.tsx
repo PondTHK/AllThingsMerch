@@ -1,14 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getProductBySlug, getAllProducts } from '@/lib/repositories/mock-data';
 import { formatTHB } from '@/lib/money';
-import { ShieldCheck, Check, ArrowLeft, ShoppingBag } from 'lucide-react';
+import { ShieldCheck, Check, ArrowLeft, ShoppingBag, Star } from 'lucide-react';
 import { ProductCard } from '@/components/products/ProductCard';
 import { useCartStore } from '@/lib/cart/useCartStore';
+import { useReviewStore } from '@/lib/reviews/useReviewStore';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -19,6 +20,18 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [addedMessage, setAddedMessage] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
+
+  const allReviews = useReviewStore((s) => s.reviews);
+  const publishedReviews = useMemo(() => {
+    if (!product) return [];
+    return allReviews.filter((r) => r.productId === product.id && r.status === 'published');
+  }, [allReviews, product]);
+
+  const avgRating = useMemo(() => {
+    if (publishedReviews.length === 0) return 0;
+    const sum = publishedReviews.reduce((acc, curr) => acc + curr.rating, 0);
+    return sum / publishedReviews.length;
+  }, [publishedReviews]);
 
   if (!product) {
     return (
@@ -111,6 +124,27 @@ export default function ProductDetailPage() {
               <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500 mt-1">
                 {product.tagline}
               </p>
+            )}
+            {publishedReviews.length > 0 && (
+              <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center gap-0.5">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star 
+                      key={star} 
+                      className={`w-3.5 h-3.5 ${
+                        star <= Math.round(avgRating) 
+                          ? 'text-black fill-black' 
+                          : 'text-neutral-300'
+                      }`} 
+                    />
+                  ))}
+                </div>
+                <span className="text-xs font-bold text-black">{avgRating.toFixed(1)}</span>
+                <span className="text-neutral-400 text-xs">&bull;</span>
+                <span className="text-neutral-500 text-xs font-semibold uppercase tracking-wider">
+                  {publishedReviews.length} review{publishedReviews.length !== 1 ? 's' : ''}
+                </span>
+              </div>
             )}
           </div>
 
@@ -250,6 +284,89 @@ export default function ProductDetailPage() {
               {product.description}
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* Reviews & Ratings Section */}
+      <div className="pt-16 border-t border-neutral-200 grid grid-cols-1 lg:grid-cols-12 gap-12 mb-20">
+        <div className="lg:col-span-4 space-y-4">
+          <h3 className="text-xl font-black uppercase tracking-wider text-black">
+            Customer Reviews
+          </h3>
+          <div className="flex items-center gap-4 bg-neutral-100 p-6 rounded-2xl border border-neutral-200">
+            <div className="text-center shrink-0">
+              <div className="text-4xl font-black text-black">
+                {avgRating > 0 ? avgRating.toFixed(1) : '0.0'}
+              </div>
+              <div className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider mt-1">
+                Out of 5
+              </div>
+            </div>
+            <div className="h-10 w-px bg-neutral-300"></div>
+            <div>
+              <div className="flex items-center gap-0.5">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star 
+                    key={star} 
+                    className={`w-4 h-4 ${
+                      star <= Math.round(avgRating) 
+                        ? 'text-black fill-black' 
+                        : 'text-neutral-300'
+                    }`} 
+                  />
+                ))}
+              </div>
+              <div className="text-xs text-neutral-500 mt-1 font-semibold uppercase tracking-wider">
+                Based on {publishedReviews.length} review{publishedReviews.length !== 1 ? 's' : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="lg:col-span-8 space-y-6">
+          {publishedReviews.length === 0 ? (
+            <div className="p-8 rounded-2xl border border-neutral-200 border-dashed text-center text-neutral-500 text-xs font-bold uppercase tracking-wider">
+              No reviews have been written for this product yet. Buy this item and share your verification experience!
+            </div>
+          ) : (
+            <div className="space-y-6 divide-y divide-neutral-200">
+              {publishedReviews.map((review, idx) => (
+                <div key={review.id} className={`space-y-2 ${idx > 0 ? 'pt-6' : ''}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-0.5">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star 
+                          key={star} 
+                          className={`w-3.5 h-3.5 ${
+                            star <= review.rating 
+                              ? 'text-black fill-black' 
+                              : 'text-neutral-300'
+                          }`} 
+                        />
+                      ))}
+                    </div>
+                    <span className="text-xs text-neutral-500 font-medium">
+                      {new Date(review.createdAt).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </span>
+                  </div>
+                  <p className="text-sm text-neutral-800 leading-relaxed font-semibold">
+                    "{review.comment}"
+                  </p>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="font-bold text-black">{review.userName || 'Verified Buyer'}</span>
+                    <span className="text-neutral-400">&bull;</span>
+                    <span className="text-green-650 font-bold uppercase tracking-wider text-[10px] flex items-center gap-1">
+                      <ShieldCheck className="w-3.5 h-3.5" /> Verified Purchase
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

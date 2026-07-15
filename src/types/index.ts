@@ -190,5 +190,18 @@ export interface AuthenticityTagRecord {
   orderNumber?: string;
 }
 
+export interface Review {
+  id: string;
+  productId: string;
+  userId: string;
+  orderItemId: string;
+  rating: number; // 1-5
+  comment: string;
+  status: 'pending' | 'published' | 'hidden';
+  createdAt: string;
+  userName?: string;
+  productName?: string;
+}
+
 
 

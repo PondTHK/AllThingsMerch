@@ -8,7 +8,7 @@
 
 ## Current Goal
 
-- พัฒนาระบบรายงานส่วนแบ่งลิขสิทธิ์และรายงานยอดขาย (Royalty & Sales Reports Dashboard)
+- ระบบรีวิวและให้คะแนนสินค้า (Reviews & Ratings System)
 
 ## Completed
 
@@ -28,6 +28,7 @@
 - **Merge priest's seed update** — Merge `origin/priest` เข้า `bew` เพื่อรับ Supabase seed script ที่อัปเดตข้อมูล brands, categories, products (`supabase/seed.sql`)
 - **Feature: Coupon System** — เพิ่มช่องกรอก Coupon Code ในหน้า Checkout, เขียน Logic ตรวจสอบและคำนวณส่วนลด, สร้างหน้า Admin Coupon CRUD (`/admin/coupons`), รองรับการกำหนด Max global uses และ Max uses per user, รวมทั้งเขียน SQL migration สำหรับ Supabase และอัปเดตโมเดล DemoRepository
 - **Feature: Royalty & Sales Reports Dashboard** — พัฒนาระบบรายงานยอดขายและส่วนแบ่งลิขสิทธิ์ฝั่ง Admin รวมถึงการ Snapshot อัตราลิขสิทธิ์ตอนสั่งซื้อสินค้า โดยมีระบบ Reversal ย้อนธุรกรรมเมื่อยกเลิกออเดอร์ตามคู่มือ SADS
+- **Feature: Reviews & Ratings** — ระบบรีวิวสินค้าหลังได้รับสินค้า (fulfilled) พร้อมแสดงดาวเฉลี่ยในหน้ารายละเอียดสินค้า และมีระบบซ่อน/แสดงรีวิวหลังบ้านสำหรับผู้ดูแลระบบ ปลอดภัยจากการกรอกซ้ำหรือแอบรีวิวโดยไม่ได้ซื้อตาม SADS
 
 <!-- เพิ่ม bullet ใหม่ที่นี่ทุกครั้งที่ทำ Feature เสร็จ -->
 
@@ -37,11 +38,11 @@
 
 ## Next Up
 
-- **Feature: Reviews & Ratings** — ระบบรีวิวสินค้าหลัง Order ถูก Delivered, แสดงคะแนนดาว in Product Detail, Admin Review Moderation
+- ไม่มี (ครบถ้วนตามแผน SADS ปัจจุบัน)
 
 ## Open Questions
 
-- Reviews: ต้องการ Moderation (Admin approve ก่อน publish) หรือ Auto-publish ทันที?
+- ไม่มี
 
 ## Architecture Decisions
 
