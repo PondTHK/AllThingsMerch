@@ -34,6 +34,19 @@ export const useCartStore = create<CartState>()(
 
       addItem: (variant, product, quantity = 1) => {
         const existingItems = get().items;
+
+        if (existingItems.length > 0) {
+          const cartIsPreorder = existingItems[0].isPreorder || false;
+          const incomingIsPreorder = product.isPreorder || false;
+          if (cartIsPreorder !== incomingIsPreorder) {
+            throw new Error(
+              incomingIsPreorder
+                ? 'Cannot add a pre-order item to a cart containing in-stock items.'
+                : 'Cannot add an in-stock item to a cart containing pre-order items.'
+            );
+          }
+        }
+
         const existingIndex = existingItems.findIndex(
           (item) => item.variantId === variant.id
         );

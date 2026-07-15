@@ -19,6 +19,7 @@ export default function ProductDetailPage() {
   const [selectedVariant, setSelectedVariant] = useState(product?.variants[0]);
   const [quantity, setQuantity] = useState(1);
   const [addedMessage, setAddedMessage] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
   const addItem = useCartStore((s) => s.addItem);
 
   const allReviews = useReviewStore((s) => s.reviews);
@@ -52,11 +53,19 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = () => {
     if (!selectedVariant || selectedVariant.stockQuantity <= 0 || !product) return;
-    addItem(selectedVariant, product, quantity);
-    setAddedMessage(true);
-    setTimeout(() => {
-      setAddedMessage(false);
-    }, 3000);
+    try {
+      addItem(selectedVariant, product, quantity);
+      setAddedMessage(true);
+      setErrorMsg('');
+      setTimeout(() => {
+        setAddedMessage(false);
+      }, 3000);
+    } catch (e: any) {
+      setErrorMsg(e.message);
+      setTimeout(() => {
+        setErrorMsg('');
+      }, 5000);
+    }
   };
 
   const relatedProducts = getAllProducts()
@@ -275,6 +284,12 @@ export default function ProductDetailPage() {
               <div className="p-3 rounded-xl bg-black text-white text-xs font-bold flex items-center justify-center gap-2">
                 <Check className="w-4 h-4" />
                 <span>Added to Shopping Cart ({quantity} item{quantity > 1 ? 's' : ''})</span>
+              </div>
+            )}
+
+            {errorMsg && (
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs font-bold flex items-center justify-center text-center">
+                <span>{errorMsg}</span>
               </div>
             )}
           </div>
