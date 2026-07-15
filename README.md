@@ -369,46 +369,76 @@ sequenceDiagram
 classDiagram
     class Repository {
         <<interface>>
-        +getProducts() Product[]
-        +getProductBySlug(slug) Product
-        +createOrder(orderData) Order
-        +getOrders() Order[]
-        +verifyTag(code) AuthenticityTag
+        +getProducts() Promise~Product[]~
+        +getProductBySlug(string slug) Promise~Product_or_undefined~
+        +getBrands() Promise~Brand[]~
+        +getCategories() Promise~Category[]~
+        +getCoupons() Promise~Coupon[]~
+        +getCouponByCode(string code) Promise~Coupon_or_undefined~
+        +createCoupon(Coupon coupon) Promise~Coupon~
+        +updateCoupon(string id, Coupon updates) Promise~Coupon~
+        +deleteCoupon(string id) Promise~void~
     }
 
     class DemoRepository {
-        -localState: any
-        +getProducts() Product[]
-        +createOrder(orderData) Order
+        +mode string
+        +getProducts() Promise~Product[]~
+        +getProductBySlug(string slug) Promise~Product_or_undefined~
+        +getBrands() Promise~Brand[]~
+        +getCategories() Promise~Category[]~
+        +getCoupons() Promise~Coupon[]~
+        +getCouponByCode(string code) Promise~Coupon_or_undefined~
+        +createCoupon(Coupon coupon) Promise~Coupon~
+        +updateCoupon(string id, Coupon updates) Promise~Coupon~
+        +deleteCoupon(string id) Promise~void~
     }
 
     class SupabaseRepository {
-        -supabaseClient: any
-        +getProducts() Product[]
-        +createOrder(orderData) Order
+        +mode string
+        +getProducts() Promise~Product[]~
+        +getProductBySlug(string slug) Promise~Product_or_undefined~
+        +getBrands() Promise~Brand[]~
+        +getCategories() Promise~Category[]~
+        +getCoupons() Promise~Coupon[]~
+        +getCouponByCode(string code) Promise~Coupon_or_undefined~
+        +createCoupon(Coupon coupon) Promise~Coupon~
+        +updateCoupon(string id, Coupon updates) Promise~Coupon~
+        +deleteCoupon(string id) Promise~void~
     }
 
     Repository <|.. DemoRepository : implements
     Repository <|.. SupabaseRepository : implements
 
     class useCartStore {
-        +items: CartItem[]
-        +appliedCoupon: Coupon
-        +cartReservedUntil: string
-        +addItem(variant, product, qty)
-        +removeItem(variantId)
-        +updateQuantity(variantId, qty)
-        +clearCartWithoutRelease()
-        +releaseExpiredReservations()
+        +items CartItem[]
+        +cartReservedUntil string
+        +appliedCoupon Coupon
+        +addItem(ProductVariant variant, Product product, int quantity) void
+        +updateQuantity(string variantId, int quantity) void
+        +removeItem(string variantId) void
+        +clearCart() void
+        +clearCartWithoutRelease() void
+        +releaseExpiredReservation() void
+        +applyCoupon(Coupon coupon) void
+        +removeCoupon() void
+        +getTotalCount() number
+        +getSubtotal() number
+        +getShippingFee() number
+        +getDiscountAmount() number
+        +getTotalAmount() number
     }
 
     class useAdminStore {
-        +products: Product[]
-        +orders: Order[]
-        +stockMovements: StockMovement[]
-        +adjustVariantStock(varId, qty, type, refType, refId, note)
-        +updateOrderStatus(orderId, status)
-        +createProduct(productData)
+        +products Product[]
+        +orders Order[]
+        +contracts LicenseContract[]
+        +stockMovements StockMovement[]
+        +syncOrdersFromStorage() void
+        +addProduct(ProductData data) Product
+        +toggleProductStatus(string productId) void
+        +adjustVariantStock(string variantId, int deltaAmount, string movementType, string referenceType, string referenceId, string note) void
+        +updateOrderStatus(string orderNumber, string status) void
+        +addContract(ContractData data) LicenseContract
     }
 
     class Product {
