@@ -206,6 +206,4 @@ export interface Review {
   userName?: string;
   productName?: string;
 }
-
-
-
+export * from './stock';

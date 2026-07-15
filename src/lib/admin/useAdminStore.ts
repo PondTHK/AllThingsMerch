@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Product, Order, LicenseContract, ProductVariant } from '@/types';
+import { Product, Order, LicenseContract, ProductVariant, StockMovement } from '@/types';
 import { MOCK_PRODUCTS } from '@/lib/repositories/mock-data';
 import { getOrderHistory } from '@/lib/orders/mock-checkout';
 
@@ -10,6 +10,7 @@ export interface AdminState {
   products: Product[];
   orders: Order[];
   contracts: LicenseContract[];
+  stockMovements: StockMovement[];
   syncOrdersFromStorage: () => void;
   addProduct: (data: {
     name: string;
@@ -25,7 +26,14 @@ export interface AdminState {
     preorderReleaseAt?: string;
   }) => Product;
   toggleProductStatus: (productId: string) => void;
-  adjustVariantStock: (variantId: string, deltaAmount: number) => void;
+  adjustVariantStock: (
+    variantId: string,
+    deltaAmount: number,
+    movementType?: StockMovement['movementType'],
+    referenceType?: string,
+    referenceId?: string,
+    note?: string
+  ) => void;
   updateOrderStatus: (orderNumber: string, status: Order['status']) => void;
   addContract: (data: Omit<LicenseContract, 'id'>) => LicenseContract;
 }
@@ -119,6 +127,7 @@ export const useAdminStore = create<AdminState>()(
       products: MOCK_PRODUCTS,
       orders: [],
       contracts: DEFAULT_CONTRACTS,
+      stockMovements: [],
 
       syncOrdersFromStorage: () => {
         const localHistory = getOrderHistory();
@@ -180,16 +189,31 @@ export const useAdminStore = create<AdminState>()(
         });
       },
 
-      adjustVariantStock: (variantId, deltaAmount) => {
+      adjustVariantStock: (variantId, deltaAmount, movementType = 'adjustment', referenceType, referenceId, note) => {
+        let actualDelta = deltaAmount;
         set({
           products: get().products.map((prod) => ({
             ...prod,
             variants: prod.variants.map((v) => {
               if (v.id !== variantId) return v;
               const newQty = Math.max(0, v.stockQuantity + deltaAmount);
+              actualDelta = newQty - v.stockQuantity;
               return { ...v, stockQuantity: newQty };
             }),
           })),
+          stockMovements: [
+            {
+              id: `mov-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+              productVariantId: variantId,
+              movementType,
+              quantity: actualDelta,
+              referenceType,
+              referenceId,
+              note: note || `Stock adjustment: ${deltaAmount > 0 ? '+' : ''}${deltaAmount}`,
+              createdAt: new Date().toISOString(),
+            },
+            ...get().stockMovements,
+          ],
         });
       },
 
