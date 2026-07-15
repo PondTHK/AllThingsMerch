@@ -35,6 +35,7 @@ description: Project development progress tracker, milestones, in-progress tasks
 - **Feature: Royalty & Sales Reports Dashboard** — พัฒนาระบบรายงานยอดขายและส่วนแบ่งลิขสิทธิ์ฝั่ง Admin รวมถึงการ Snapshot อัตราลิขสิทธิ์ตอนสั่งซื้อสินค้า โดยมีระบบ Reversal ย้อนธุรกรรมเมื่อยกเลิกออเดอร์ตามคู่มือ SADS
 - **Feature: Reviews & Ratings** — ระบบรีวิวสินค้าหลังได้รับสินค้า (fulfilled) พร้อมแสดงดาวเฉลี่ยในหน้ารายละเอียดสินค้า และมีระบบซ่อน/แสดงรีวิวหลังบ้านสำหรับผู้ดูแลระบบ ปลอดภัยจากการกรอกซ้ำหรือแอบรีวิวโดยไม่ได้ซื้อตาม SADS
 - **Feature: Pre-order System** — ระบบพรีออเดอร์สินค้าสำหรับผู้ใช้และการจัดการผ่านระบบแอดมิน
+- **Feature: Address Storefront Logic & Integrity Flaws** — แก้ไขช่องโหว่ความสมเหตุสมผลและบูรณภาพข้อมูลทั้ง 5 ข้อใน `corrent_issues.md` (ห้ามผสมตะกร้า, มี Audit Trail สำหรับสต็อก, คืนสต็อกเมื่อยกเลิกออเดอร์, ล็อกสต็อกชั่วคราว 15 นาที, ตรวจสอบลิมิตคูปอง)
 
 <!-- เพิ่ม bullet ใหม่ที่นี่ทุกครั้งที่ทำ Feature เสร็จ -->
 
