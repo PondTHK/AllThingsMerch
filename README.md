@@ -318,6 +318,178 @@ graph TD
     SupabaseRepo --> S_Storage
 ```
 
+### 7.4 แผนภาพลำดับการทำงาน (Sequence Diagram)
+
+แผนภาพแสดงขั้นตอนการสั่งซื้อสินค้า, ตรวจสอบคูปอง, ล็อกสต็อกชั่วคราว 15 นาที และออก Tag ยืนยันสินค้าแท้ (Checkout & Stock Lock Flow):
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Customer as Customer Client
+    participant Cart as useCartStore
+    participant Checkout as Checkout UI
+    participant Server as Mock Checkout Engine
+    participant Admin as useAdminStore (Catalog)
+
+    %% 1. Cart Add and Stock Reservation
+    Customer->>Cart: Add Product Variant to Bag
+    Note over Cart: Check local stock availability
+    Cart->>Admin: adjustVariantStock(varId, -qty, 'reserve')
+    Note over Admin: Write StockMovement (type: reserve)<br/>Deduct catalog stock
+    Admin-->>Cart: Reservation Confirmed
+    Note over Cart: Set cartReservedUntil (15 mins)
+
+    %% 2. Checkout & Validation
+    Customer->>Checkout: Proceed to Checkout & Apply Coupon
+    Checkout->>Server: validateAndRecalculateCart(items, coupon)
+    Note over Server: Check coupon expiration & limits<br/>Verify pricing on server side
+    Server-->>Checkout: Calculation Results (Subtotal, Discount, Shipping, Total)
+
+    %% 3. Confirm Order & Fulfillment
+    Customer->>Checkout: Click Place Order
+    Checkout->>Server: handleConfirmOrder()
+    Note over Server: Create Order & Order Items Snapshot<br/>(Stores SKU, Price, Royalty Snapshot)
+    Server->>Admin: adjustVariantStock(varId, qty, 'release')
+    Note over Admin: Release temporary reservation
+    Server->>Admin: adjustVariantStock(varId, -qty, 'sale')
+    Note over Admin: Write permanent StockMovement (type: sale)
+    Note over Server: Generate Authenticity Tag<br/>(Random serial & public code)
+    Note over Server: Create Royalty Transaction<br/>(Computes revenue share)
+    Server-->>Checkout: Order Fulfilled (Order Number)
+    Checkout->>Cart: clearCartWithoutRelease()
+    Note over Cart: Cart cleared without releasing stock back
+    Checkout->>Customer: Redirect to Success & Display Authenticity TAG
+```
+
+### 7.5 แผนภาพคลาส (Class Diagram)
+
+แผนภาพแสดงความสัมพันธ์ของ Component หลัก, Zustand Store และ Repository Data Model ต่างๆ ภายในระบบ:
+
+```mermaid
+classDiagram
+    class Repository {
+        <<interface>>
+        +getProducts() Product[]
+        +getProductBySlug(slug) Product
+        +createOrder(orderData) Order
+        +getOrders() Order[]
+        +verifyTag(code) AuthenticityTag
+    }
+
+    class DemoRepository {
+        -localState: any
+        +getProducts() Product[]
+        +createOrder(orderData) Order
+    }
+
+    class SupabaseRepository {
+        -supabaseClient: any
+        +getProducts() Product[]
+        +createOrder(orderData) Order
+    }
+
+    Repository <|.. DemoRepository : implements
+    Repository <|.. SupabaseRepository : implements
+
+    class useCartStore {
+        +items: CartItem[]
+        +appliedCoupon: Coupon
+        +cartReservedUntil: string
+        +addItem(variant, product, qty)
+        +removeItem(variantId)
+        +updateQuantity(variantId, qty)
+        +clearCartWithoutRelease()
+        +releaseExpiredReservations()
+    }
+
+    class useAdminStore {
+        +products: Product[]
+        +orders: Order[]
+        +stockMovements: StockMovement[]
+        +adjustVariantStock(varId, qty, type, refType, refId, note)
+        +updateOrderStatus(orderId, status)
+        +createProduct(productData)
+    }
+
+    class Product {
+        +uuid id
+        +string name
+        +string slug
+        +string description
+        +boolean isPreorder
+        +datetime preorderReleaseAt
+        +ProductVariant[] variants
+    }
+
+    class ProductVariant {
+        +uuid id
+        +uuid productId
+        +string sku
+        +string size
+        +decimal price
+        +int stockQuantity
+        +int lowStockThreshold
+    }
+
+    class Order {
+        +uuid id
+        +string orderNumber
+        +string status
+        +decimal subtotal
+        +decimal discountAmount
+        +decimal totalAmount
+        +uuid couponId
+        +datetime createdAt
+    }
+
+    class OrderItem {
+        +uuid id
+        +uuid orderId
+        +uuid productVariantId
+        +string productName
+        +decimal unitPrice
+        +int quantity
+        +decimal royaltyRateSnapshot
+    }
+
+    class StockMovement {
+        +uuid id
+        +uuid productVariantId
+        +string movementType
+        +int quantity
+        +string referenceType
+        +uuid referenceId
+        +string note
+        +datetime createdAt
+    }
+
+    class AuthenticityTag {
+        +uuid id
+        +string publicCode
+        +string serialNumber
+        +uuid orderItemId
+        +string status
+        +datetime issuedAt
+    }
+
+    class Coupon {
+        +uuid id
+        +string code
+        +string discountType
+        +decimal discountValue
+        +decimal minOrderValue
+        +int maxGlobalUses
+        +int currentGlobalUses
+        +int maxUsesPerUser
+        +boolean isActive
+    }
+
+    Product "1" *-- "many" ProductVariant : contains
+    Order "1" *-- "many" OrderItem : contains
+    ProductVariant "1" --o "many" StockMovement : logs
+    OrderItem "1" --|| "1" AuthenticityTag : has
+```
+
 ---
 
 ## 8. การออกแบบโครงสร้างข้อมูล
