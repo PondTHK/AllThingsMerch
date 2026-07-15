@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAdminStore } from '@/lib/admin/useAdminStore';
 import { Plus, Minus, AlertTriangle } from 'lucide-react';
 
@@ -8,6 +8,45 @@ export default function AdminInventoryPage() {
   const products = useAdminStore((state) => state.products);
   const adjustStock = useAdminStore((state) => state.adjustVariantStock);
   const stockMovements = useAdminStore((state) => state.stockMovements) || [];
+
+  const [draftChanges, setDraftChanges] = useState<Record<string, number>>({});
+
+  const getVariantCurrentStock = (variantId: string) => {
+    for (const p of products) {
+      const v = p.variants.find((v) => v.id === variantId);
+      if (v) return v.stockQuantity;
+    }
+    return 0;
+  };
+
+  const handleAdjustDraft = (variantId: string, amount: number) => {
+    const currentStock = getVariantCurrentStock(variantId);
+    setDraftChanges((prev) => {
+      const currentDelta = prev[variantId] || 0;
+      const newDelta = currentDelta + amount;
+
+      if (currentStock + newDelta < 0) {
+        return { ...prev, [variantId]: -currentStock };
+      }
+      return { ...prev, [variantId]: newDelta };
+    });
+  };
+
+  const handleConfirmSave = () => {
+    Object.entries(draftChanges).forEach(([variantId, delta]) => {
+      if (delta !== 0) {
+        adjustStock(
+          variantId,
+          delta,
+          'adjustment',
+          'admin',
+          undefined,
+          `Admin manual stock adjustment of ${delta > 0 ? '+' : ''}${delta}`
+        );
+      }
+    });
+    setDraftChanges({});
+  };
 
   const getVariantSkuDetails = (variantId: string) => {
     for (const p of products) {
@@ -72,19 +111,29 @@ export default function AdminInventoryPage() {
                       </div>
 
                       <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
-                        <div className="text-center">
+                        <div className="text-center flex flex-col items-center">
                           <span className="text-[10px] uppercase tracking-wider text-neutral-500 block">
                             In Stock
                           </span>
-                          <span className="font-black text-black text-base">
-                            {variant.stockQuantity}
-                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <span className={`font-black text-base ${draftChanges[variant.id] !== undefined ? 'text-neutral-400 line-through' : 'text-black'}`}>
+                              {variant.stockQuantity}
+                            </span>
+                            {draftChanges[variant.id] !== undefined && (
+                              <>
+                                <span className="text-xs text-neutral-400">&rarr;</span>
+                                <span className="font-black text-base text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-mono">
+                                  {variant.stockQuantity + draftChanges[variant.id]}
+                                </span>
+                              </>
+                            )}
+                          </div>
                         </div>
 
                         <div className="flex items-center gap-1.5">
                           <button
                             type="button"
-                            onClick={() => adjustStock(variant.id, -5)}
+                            onClick={() => handleAdjustDraft(variant.id, -5)}
                             className="px-2.5 py-1.5 rounded-lg border border-neutral-300 bg-white text-xs font-bold hover:bg-neutral-100"
                             title="Subtract 5"
                           >
@@ -92,7 +141,7 @@ export default function AdminInventoryPage() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => adjustStock(variant.id, -1)}
+                            onClick={() => handleAdjustDraft(variant.id, -1)}
                             className="p-1.5 rounded-lg border border-neutral-300 bg-white text-xs font-bold hover:bg-neutral-100"
                             title="Subtract 1"
                           >
@@ -100,7 +149,7 @@ export default function AdminInventoryPage() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => adjustStock(variant.id, 1)}
+                            onClick={() => handleAdjustDraft(variant.id, 1)}
                             className="p-1.5 rounded-lg border border-black bg-black text-white text-xs font-bold hover:bg-neutral-800"
                             title="Add 1"
                           >
@@ -108,7 +157,7 @@ export default function AdminInventoryPage() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => adjustStock(variant.id, 10)}
+                            onClick={() => handleAdjustDraft(variant.id, 10)}
                             className="px-2.5 py-1.5 rounded-lg border border-black bg-black text-white text-xs font-bold hover:bg-neutral-800"
                             title="Add 10"
                           >
@@ -124,6 +173,31 @@ export default function AdminInventoryPage() {
           ))}
         </div>
       </div>
+
+      {Object.keys(draftChanges).length > 0 && (
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 bg-black text-white px-6 py-4 rounded-2xl border border-neutral-850 shadow-2xl flex items-center justify-between gap-8">
+          <div className="text-xs">
+            <span className="font-black uppercase tracking-wider block">Unsaved Stock Adjustments</span>
+            <span className="text-neutral-400 mt-0.5 block">You have adjusted stock for {Object.keys(draftChanges).length} SKU(s).</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setDraftChanges({})}
+              className="px-4 py-2 rounded-xl bg-neutral-900 border border-neutral-800 text-white font-bold text-xs uppercase tracking-wider hover:bg-neutral-800 transition-colors"
+            >
+              Discard
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmSave}
+              className="px-4 py-2 rounded-xl bg-white text-black font-bold text-xs uppercase tracking-wider hover:bg-neutral-100 transition-colors"
+            >
+              Confirm &amp; Save
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Stock Audit Ledger */}
       <div className="space-y-4 pt-6 border-t border-neutral-200">
