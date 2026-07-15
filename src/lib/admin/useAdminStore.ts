@@ -218,6 +218,19 @@ export const useAdminStore = create<AdminState>()(
       },
 
       updateOrderStatus: (orderNumber, status) => {
+        const order = get().orders.find((o) => o.orderNumber === orderNumber);
+        if (order && status === 'cancelled' && order.status !== 'cancelled') {
+          order.items.forEach((item) => {
+            get().adjustVariantStock(
+              item.variantId,
+              item.quantity,
+              'return',
+              'order',
+              order.id,
+              `Order ${order.orderNumber} cancelled`
+            );
+          });
+        }
         set({
           orders: get().orders.map((o) => (o.orderNumber === orderNumber ? { ...o, status } : o)),
         });
