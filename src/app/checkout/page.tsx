@@ -17,6 +17,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const isHydrated = useHydrated();
   const items = useCartStore((s) => s.items);
+  const hasPreorder = items.some((item) => item.isPreorder);
   const clearCartWithoutRelease = useCartStore((s) => s.clearCartWithoutRelease);
   const appliedCoupon = useCartStore((s) => s.appliedCoupon);
   const applyCoupon = useCartStore((s) => s.applyCoupon);
@@ -138,6 +139,20 @@ export default function CheckoutPage() {
           <span>Back to Bag</span>
         </Link>
       </div>
+
+      {hasPreorder && (
+        <div className="mb-8 p-4 rounded-2xl bg-neutral-100 border border-neutral-300 flex items-start gap-3">
+          <ShieldAlert className="w-5 h-5 text-black shrink-0 mt-0.5" />
+          <div className="text-xs">
+            <span className="font-bold text-black uppercase tracking-wider block">
+              Pre-Order Combined Shipment Notice (ข้อควรทราบสำหรับการรวมส่งสินค้าพรีออเดอร์)
+            </span>
+            <span className="text-neutral-600 leading-relaxed mt-1 block">
+              เนื่องจากคำสั่งซื้อของคุณมีสินค้าพรีออเดอร์รวมอยู่ด้วย สินค้าทั้งหมดในออเดอร์นี้จะถูกจัดส่งพร้อมกันเมื่อสินค้าพรีออเดอร์พร้อมจัดส่ง (อ้างอิงตามวันวางจำหน่ายของสินค้าพรีออเดอร์)
+            </span>
+          </div>
+        </div>
+      )}
 
       <h1 className="text-3xl sm:text-4xl font-black text-black mb-10">Checkout</h1>
 

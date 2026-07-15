@@ -74,17 +74,18 @@ describe('Storefront Logic & Data Integrity', () => {
     });
   });
 
-  it('blocks mixing pre-order and in-stock items in the same cart (Issue 1)', () => {
+  it('allows mixing pre-order and in-stock items in the same cart (Issue 1 UX Update)', () => {
     // Add in-stock product
     useCartStore.getState().addItem(inStockProduct.variants[0], inStockProduct, 1);
     expect(useCartStore.getState().items.length).toBe(1);
 
-    // Try adding pre-order product -> should throw Error
-    expect(() => {
-      useCartStore.getState().addItem(preOrderProduct.variants[0], preOrderProduct, 1);
-    }).toThrow(/Cannot add a pre-order item/);
-    
-    expect(useCartStore.getState().items.length).toBe(1);
+    // Adding pre-order product -> should succeed
+    useCartStore.getState().addItem(preOrderProduct.variants[0], preOrderProduct, 1);
+    expect(useCartStore.getState().items.length).toBe(2);
+
+    const calc = validateAndRecalculateCart(useCartStore.getState().items, null);
+    expect(calc.isValid).toBe(true);
+    expect(calc.totalAmount).toBe(2600); // 1000 + 1500 + 100 shipping (subtotal 2500 < 3000)
   });
 
   it('creates stock reservation movements on cart add and releases on item removal (Issues 2 & 4)', () => {
