@@ -1,10 +1,11 @@
-import { CartItem, Order, OrderItem, ShippingAddress } from '@/types';
+import { CartItem, Order, OrderItem, ShippingAddress, Coupon } from '@/types';
 import { getProductBySlug } from '@/lib/repositories/mock-data';
 
 // Server-side / adapter price verification: ensures prices match official catalog
-export function validateAndRecalculateCart(items: CartItem[]): {
+export function validateAndRecalculateCart(items: CartItem[], coupon?: Coupon | null): {
   verifiedItems: OrderItem[];
   subtotal: number;
+  discountAmount: number;
   shippingFee: number;
   totalAmount: number;
   isValid: boolean;
@@ -14,6 +15,7 @@ export function validateAndRecalculateCart(items: CartItem[]): {
     return {
       verifiedItems: [],
       subtotal: 0,
+      discountAmount: 0,
       shippingFee: 0,
       totalAmount: 0,
       isValid: false,
@@ -30,6 +32,7 @@ export function validateAndRecalculateCart(items: CartItem[]): {
       return {
         verifiedItems: [],
         subtotal: 0,
+        discountAmount: 0,
         shippingFee: 0,
         totalAmount: 0,
         isValid: false,
@@ -42,6 +45,7 @@ export function validateAndRecalculateCart(items: CartItem[]): {
       return {
         verifiedItems: [],
         subtotal: 0,
+        discountAmount: 0,
         shippingFee: 0,
         totalAmount: 0,
         isValid: false,
@@ -66,12 +70,24 @@ export function validateAndRecalculateCart(items: CartItem[]): {
     });
   }
 
+  let discountAmount = 0;
+  if (coupon && coupon.isActive) {
+    if (!coupon.minOrderValue || subtotal >= coupon.minOrderValue) {
+      if (coupon.discountType === 'percentage') {
+        discountAmount = Math.floor(subtotal * (coupon.discountValue / 100));
+      } else {
+        discountAmount = Math.min(subtotal, coupon.discountValue);
+      }
+    }
+  }
+
   const shippingFee = subtotal >= 3000 ? 0 : 100;
-  const totalAmount = subtotal + shippingFee;
+  const totalAmount = Math.max(0, subtotal - discountAmount) + shippingFee;
 
   return {
     verifiedItems,
     subtotal,
+    discountAmount,
     shippingFee,
     totalAmount,
     isValid: true,
@@ -82,9 +98,10 @@ export function validateAndRecalculateCart(items: CartItem[]): {
 export function fulfillMockOrder(
   items: CartItem[],
   shippingAddress: ShippingAddress,
-  paymentMethod: string
+  paymentMethod: string,
+  coupon?: Coupon | null
 ): Order {
-  const calculation = validateAndRecalculateCart(items);
+  const calculation = validateAndRecalculateCart(items, coupon);
   if (!calculation.isValid) {
     throw new Error(calculation.errorMessage || 'Invalid checkout calculation');
   }
@@ -108,6 +125,8 @@ export function fulfillMockOrder(
     items: fulfilledItems,
     subtotal: calculation.subtotal,
     shippingFee: calculation.shippingFee,
+    discountAmount: calculation.discountAmount > 0 ? calculation.discountAmount : undefined,
+    couponCode: coupon && calculation.discountAmount > 0 ? coupon.code : undefined,
     totalAmount: calculation.totalAmount,
     shippingAddress,
     paymentMethod,

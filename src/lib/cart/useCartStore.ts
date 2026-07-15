@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { CartItem, Product, ProductVariant } from '@/types';
+import { CartItem, Product, ProductVariant, Coupon } from '@/types';
 
 interface CartState {
   items: CartItem[];
@@ -8,9 +8,13 @@ interface CartState {
   updateQuantity: (variantId: string, quantity: number) => void;
   removeItem: (variantId: string) => void;
   clearCart: () => void;
+  appliedCoupon: Coupon | null;
+  applyCoupon: (coupon: Coupon) => void;
+  removeCoupon: () => void;
   getTotalCount: () => number;
   getSubtotal: () => number;
   getShippingFee: () => number;
+  getDiscountAmount: () => number;
   getTotalAmount: () => number;
 }
 
@@ -18,6 +22,15 @@ export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
+      appliedCoupon: null,
+
+      applyCoupon: (coupon) => {
+        set({ appliedCoupon: coupon });
+      },
+
+      removeCoupon: () => {
+        set({ appliedCoupon: null });
+      },
 
       addItem: (variant, product, quantity = 1) => {
         const existingItems = get().items;
@@ -71,7 +84,7 @@ export const useCartStore = create<CartState>()(
       },
 
       clearCart: () => {
-        set({ items: [] });
+        set({ items: [], appliedCoupon: null });
       },
 
       getTotalCount: () => {
@@ -88,8 +101,31 @@ export const useCartStore = create<CartState>()(
         return 100;
       },
 
+      getDiscountAmount: () => {
+        const coupon = get().appliedCoupon;
+        if (!coupon) return 0;
+
+        const subtotal = get().getSubtotal();
+        
+        // Check minimum order value
+        if (coupon.minOrderValue && subtotal < coupon.minOrderValue) {
+          return 0; // Or we could automatically remove it, but returning 0 is safer for state
+        }
+
+        if (coupon.discountType === 'percentage') {
+          return Math.floor(subtotal * (coupon.discountValue / 100));
+        } else {
+          return Math.min(subtotal, coupon.discountValue); // Discount shouldn't exceed subtotal
+        }
+      },
+
       getTotalAmount: () => {
-        return get().getSubtotal() + get().getShippingFee();
+        const subtotal = get().getSubtotal();
+        const discount = get().getDiscountAmount();
+        const shipping = get().getShippingFee();
+        
+        // Discount is applied before shipping in most ecommerce logic
+        return Math.max(0, subtotal - discount) + shipping;
       },
     }),
     {

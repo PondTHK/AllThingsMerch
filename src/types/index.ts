@@ -2,6 +2,21 @@ export type UserRole = 'customer' | 'admin' | 'license_holder';
 
 export type ProductStatus = 'draft' | 'active' | 'archived';
 
+export interface Coupon {
+  id: string;
+  code: string;
+  description?: string;
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+  minOrderValue?: number;
+  maxGlobalUses?: number;
+  currentGlobalUses: number;
+  maxUsesPerUser?: number;
+  isActive: boolean;
+  expiresAt?: string;
+  createdAt: string;
+}
+
 export interface Brand {
   id: string;
   name: string;
@@ -118,6 +133,8 @@ export interface Order {
   items: OrderItem[];
   subtotal: number;
   shippingFee: number;
+  discountAmount?: number;
+  couponCode?: string;
   totalAmount: number;
   shippingAddress: ShippingAddress;
   paymentMethod: string;
