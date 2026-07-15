@@ -7,6 +7,21 @@ import { Plus, Minus, AlertTriangle } from 'lucide-react';
 export default function AdminInventoryPage() {
   const products = useAdminStore((state) => state.products);
   const adjustStock = useAdminStore((state) => state.adjustVariantStock);
+  const stockMovements = useAdminStore((state) => state.stockMovements) || [];
+
+  const getVariantSkuDetails = (variantId: string) => {
+    for (const p of products) {
+      const v = p.variants.find((v) => v.id === variantId);
+      if (v) {
+        return {
+          productName: p.name,
+          size: v.size || 'ONE SIZE',
+          sku: v.sku,
+        };
+      }
+    }
+    return null;
+  };
 
   return (
     <div className="space-y-8">
@@ -107,6 +122,94 @@ export default function AdminInventoryPage() {
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Stock Audit Ledger */}
+      <div className="space-y-4 pt-6 border-t border-neutral-200">
+        <div>
+          <h3 className="text-sm font-black uppercase tracking-wider text-black">
+            Stock Audit Ledger
+          </h3>
+          <p className="text-[11px] text-neutral-500 mt-0.5">
+            Live chronological log of all stock reservations, sales, adjustments, and returns.
+          </p>
+        </div>
+
+        <div className="bg-white border border-neutral-200 rounded-2xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-neutral-100 border-b border-neutral-200 text-neutral-500 font-bold uppercase tracking-wider">
+                  <th className="py-3 px-4">Date</th>
+                  <th className="py-3 px-4">Product Variant</th>
+                  <th className="py-3 px-4 text-center">Type</th>
+                  <th className="py-3 px-4 text-center">Change</th>
+                  <th className="py-3 px-4">Reference &amp; Note</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-200 font-medium text-black">
+                {stockMovements.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-8 text-center text-neutral-500">
+                      No stock movement logs recorded yet.
+                    </td>
+                  </tr>
+                ) : (
+                  stockMovements.map((move) => {
+                    const details = getVariantSkuDetails(move.productVariantId);
+                    const isPositive = move.quantity > 0;
+                    const formattedQty = `${isPositive ? '+' : ''}${move.quantity}`;
+
+                    // Color coding for movement types
+                    let badgeStyle = 'bg-neutral-100 text-neutral-600';
+                    if (move.movementType === 'reserve') badgeStyle = 'bg-amber-100 text-amber-800';
+                    else if (move.movementType === 'sale') badgeStyle = 'bg-black text-white';
+                    else if (move.movementType === 'release') badgeStyle = 'bg-blue-100 text-blue-800';
+                    else if (move.movementType === 'return') badgeStyle = 'bg-emerald-100 text-emerald-800';
+                    else if (move.movementType === 'adjustment') badgeStyle = 'bg-red-100 text-red-800';
+
+                    return (
+                      <tr key={move.id} className="hover:bg-neutral-50">
+                        <td className="py-3 px-4 text-neutral-500 font-mono text-[10px]">
+                          {new Date(move.createdAt).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit',
+                          })}
+                        </td>
+                        <td className="py-3 px-4">
+                          {details ? (
+                            <div>
+                              <div className="font-bold">{details.productName}</div>
+                              <div className="text-[10px] text-neutral-500 mt-0.5">
+                                Size: {details.size} &bull; SKU: <span className="font-mono">{details.sku}</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="text-neutral-400 italic">Unknown Variant ({move.productVariantId})</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <span className={`inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${badgeStyle}`}>
+                            {move.movementType}
+                          </span>
+                        </td>
+                        <td className={`py-3 px-4 text-center font-bold ${isPositive ? 'text-emerald-600' : move.quantity < 0 ? 'text-red-600' : 'text-neutral-500'}`}>
+                          {formattedQty}
+                        </td>
+                        <td className="py-3 px-4 font-normal text-neutral-600 max-w-xs truncate" title={move.note}>
+                          {move.note || '-'}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
