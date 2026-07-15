@@ -37,6 +37,7 @@ description: Project development progress tracker, milestones, in-progress tasks
 - **Feature: Pre-order System** — ระบบพรีออเดอร์สินค้าสำหรับผู้ใช้และการจัดการผ่านระบบแอดมิน
 - **Feature: Address Storefront Logic & Integrity Flaws** — แก้ไขช่องโหว่ความสมเหตุสมผลและบูรณภาพข้อมูลทั้ง 5 ข้อใน `corrent_issues.md` (ห้ามผสมตะกร้า, มี Audit Trail สำหรับสต็อก, คืนสต็อกเมื่อยกเลิกออเดอร์, ล็อกสต็อกชั่วคราว 15 นาที, ตรวจสอบลิมิตคูปอง)
 - **Feature: Inventory Stock Audit UI & Draft Confirm** — เพิ่มตาราง Stock Audit Ledger แสดงประวัติการย้ายสต็อก และอัปเดตระบบปรับสต็อกหน้าแอดมินเป็นแบบบันทึกร่างและกดยืนยันทีเดียวเพื่อลดบันทึกรอยต่อที่ซ้ำซ้อน
+- **Feature: Stock Audit Ledger Pagination** — เพิ่มระบบแบ่งหน้า (Pagination) หน้าละ 10 แถวให้กับประวัติการย้ายสต็อก เพื่อประสิทธิภาพการเรนเดอร์และความสวยงามของเลย์เอาต์
 
 <!-- เพิ่ม bullet ใหม่ที่นี่ทุกครั้งที่ทำ Feature เสร็จ -->
 
