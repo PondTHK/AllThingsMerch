@@ -296,19 +296,19 @@ graph TD
     
     subgraph Frontend [Frontend Layer]
         UI[User Interface Components]
-        State[Zustand State & LocalStorage]
+        State["Zustand State & LocalStorage"]
     end
 
     subgraph Backend [Backend Services]
         NextJS --> Repo[Repository Pattern Adapter]
-        Repo --> DemoRepo[DemoRepository (In-Memory / LocalState)]
-        Repo --> SupabaseRepo[SupabaseRepository (Cloud API)]
+        Repo --> DemoRepo["DemoRepository (In-Memory / LocalState)"]
+        Repo --> SupabaseRepo["SupabaseRepository (Cloud API)"]
     end
 
     subgraph Database [Database Layer]
-        S_Auth[Supabase Auth]
-        S_DB[(Supabase PostgreSQL + RLS)]
-        S_Storage[Supabase Storage]
+        S_Auth["Supabase Auth"]
+        S_DB[("Supabase PostgreSQL + RLS")]
+        S_Storage["Supabase Storage"]
     end
 
     Client --> UI
@@ -487,7 +487,7 @@ classDiagram
     Product "1" *-- "many" ProductVariant : contains
     Order "1" *-- "many" OrderItem : contains
     ProductVariant "1" --o "many" StockMovement : logs
-    OrderItem "1" --|| "1" AuthenticityTag : has
+    OrderItem "1" --> "1" AuthenticityTag : has
 ```
 
 ---
