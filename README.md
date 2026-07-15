@@ -1,4 +1,4 @@
-# AllThingMerch - Licensed Merchandise E-Commerce Platform
+# AllThingsMerch - Licensed Merchandise E-Commerce Platform
 
 **System Analysis and Design Specification (SADS)**  
 **เอกสารวิเคราะห์และออกแบบระบบ**
@@ -29,7 +29,7 @@
 
 ### 1.1 ภาพรวมโครงการ
 
-**LicenMerch** เป็นแพลตฟอร์มพาณิชย์อิเล็กทรอนิกส์สำหรับจำหน่ายสินค้าลิขสิทธิ์แท้ โดยเน้นสินค้าจากกลุ่มแฟนคลับและสินค้าสะสม เช่น ทีมแข่งรถ Formula 1 ศิลปินระดับโลก และสโมสรฟุตบอลชั้นนำ
+**AllThingsMerch** เป็นแพลตฟอร์มพาณิชย์อิเล็กทรอนิกส์สำหรับจำหน่ายสินค้าลิขสิทธิ์แท้ โดยเน้นสินค้าจากกลุ่มแฟนคลับและสินค้าสะสม เช่น ทีมแข่งรถ Formula 1 ศิลปินระดับโลก และสโมสรฟุตบอลชั้นนำ
 
 ระบบถูกออกแบบให้ลูกค้าสามารถค้นหาสินค้า สั่งซื้อสินค้า สั่งซื้อล่วงหน้า ดูข้อมูลการรับประกันสินค้าแท้จาก TAG ที่ร้านออกให้ และติดตามคำสั่งซื้อได้ภายในแพลตฟอร์มเดียวกัน อีกทั้งยังมีระบบหลังบ้านสำหรับผู้ดูแลระบบในการจัดการสินค้า สต๊อกสินค้า คำสั่งซื้อ คูปองส่วนลด สัญญาลิขสิทธิ์ และรายงานส่วนแบ่งลิขสิทธิ์
 
@@ -60,7 +60,7 @@
 
 ### 2.2 กลุ่มสินค้าที่ระบบรองรับ
 
-ระบบ LicenMerch รองรับการจัดจำหน่ายสินค้าลิขสิทธิ์แท้หลากหลายประเภท โดยเน้นสินค้าที่เกี่ยวข้องกับแบรนด์ บุคคล องค์กร ทีม ศิลปิน สื่อบันเทิง กีฬา และกลุ่มแฟนคลับต่าง ๆ ซึ่งสามารถเพิ่มเติมหรือปรับเปลี่ยนหมวดหมู่สินค้าได้ตามความเหมาะสมในอนาคต
+ระบบ AllThingsMerch รองรับการจัดจำหน่ายสินค้าลิขสิทธิ์แท้หลากหลายประเภท โดยเน้นสินค้าที่เกี่ยวข้องกับแบรนด์ บุคคล องค์กร ทีม ศิลปิน สื่อบันเทิง กีฬา และกลุ่มแฟนคลับต่าง ๆ ซึ่งสามารถเพิ่มเติมหรือปรับเปลี่ยนหมวดหมู่สินค้าได้ตามความเหมาะสมในอนาคต
 
 ตัวอย่างกลุ่มสินค้าที่ระบบสามารถรองรับได้ มีดังนี้
 
@@ -205,7 +205,7 @@
 
 ## 7. สถาปัตยกรรมของระบบ
 
-ระบบใช้สถาปัตยกรรมแบบ Client Server โดยแบ่งการทำงานออกเป็น 3 ชั้นหลัก ได้แก่
+ระบบใช้สถาปัตยกรรมแบบ Full-stack Web Application ที่มีโครงสร้างหลัก 3 ส่วน ได้แก่
 
 1. Frontend Layer
 2. Backend Layer
@@ -213,54 +213,50 @@
 
 ### 7.1 Frontend Layer
 
-Frontend Layer ใช้สำหรับแสดงผลหน้าร้านออนไลน์และรับคำสั่งจากผู้ใช้ โดยใช้เทคโนโลยีดังนี้
+Frontend Layer ใช้สำหรับแสดงผลหน้าร้านออนไลน์และเว็บคอนโซลแอดมิน โดยใช้เทคโนโลยีดังนี้
 
-1. Next.js
-2. React
-3. State Management ด้วย Redux หรือ Context
+1. Next.js App Router (React Components)
+2. Tailwind CSS (Styling System)
+3. State Management ด้วย Zustand และ LocalStorage
 
 ### 7.2 Backend Layer
 
-Backend Layer ใช้สำหรับประมวลผลคำขอจาก Frontend และเชื่อมต่อฐานข้อมูล โดยใช้เทคโนโลยีดังนี้
+Backend Layer ฝังอยู่ใน Next.js Framework ทำหน้าที่ประมวลผลคำขอฝั่ง Server ผ่าน Server Actions และ API Route Handlers โดยมีสถาปัตยกรรมเด่นดังนี้
 
-1. Node.js
-2. Express
-3. REST API
-4. JWT Authentication
+1. Next.js Route Handlers & Server Actions
+2. Dual-Mode Repository Pattern (Demo Repository และ Supabase Repository)
+3. Supabase Auth Integration
 
 ### 7.3 Database Layer
 
-Database Layer ใช้สำหรับจัดเก็บข้อมูลหลักของระบบ โดยใช้ PostgreSQL เป็นฐานข้อมูลเชิงสัมพันธ์
+Database Layer ใช้สำหรับจัดเก็บและคุ้มครองข้อมูลของระบบอย่างน่าเชื่อถือ โดยใช้ Supabase PostgreSQL ที่มาพร้อมกับระบบรักษาความปลอดภัย Row Level Security (RLS)
 
 ```mermaid
 graph TD
-    Client[Web Browser และ Mobile View] --> Gateway[API Gateway และ Routing]
-
+    Client[Web Browser Client] --> NextJS[Next.js App Router API & Server Actions]
+    
     subgraph Frontend [Frontend Layer]
         UI[User Interface Components]
-        State[State Management]
+        State[Zustand State & LocalStorage]
     end
 
     subgraph Backend [Backend Services]
-        Gateway --> Auth[Authentication Service]
-        Gateway --> Product[Product Service]
-        Gateway --> Order[Order Service]
-        Gateway --> Coupon[Coupon Service]
-        Gateway --> Royalty[Royalty Service]
-        Gateway --> TagService[Authenticity Tag Service]
+        NextJS --> Repo[Repository Pattern Adapter]
+        Repo --> DemoRepo[DemoRepository (In-Memory / LocalState)]
+        Repo --> SupabaseRepo[SupabaseRepository (Cloud API)]
     end
 
     subgraph Database [Database Layer]
-        DB[(PostgreSQL Database)]
+        S_Auth[Supabase Auth]
+        S_DB[(Supabase PostgreSQL + RLS)]
+        S_Storage[Supabase Storage]
     end
 
-    Client --> Frontend
-    Auth --> DB
-    Product --> DB
-    Order --> DB
-    Coupon --> DB
-    Royalty --> DB
-    TagService --> DB
+    Client --> UI
+    UI --> State
+    SupabaseRepo --> S_Auth
+    SupabaseRepo --> S_DB
+    SupabaseRepo --> S_Storage
 ```
 
 ---
@@ -269,93 +265,193 @@ graph TD
 
 ### 8.1 รายการ Entity หลัก
 
-1. Users
-2. Licenses
-3. Products
-4. Orders
-5. Order Items
-6. Royalty Transactions
-7. Reviews
-8. Coupons
+1. Brands (แบรนด์)
+2. Categories (หมวดหมู่สินค้า)
+3. License Holders (ผู้ถือครองลิขสิทธิ์)
+4. License Contracts (สัญญาลิขสิทธิ์)
+5. Products (สินค้าหลัก)
+6. Product Variants (สินค้าเฉพาะรูปแบบ/SKU)
+7. Product Images (รูปภาพสินค้า)
+8. Coupons (คูปองส่วนลด)
+9. Orders (คำสั่งซื้อ)
+10. Order Items (รายการคำสั่งซื้อ)
+11. Authenticity Tags (รหัสยืนยันสินค้าลิขสิทธิ์แท้)
+12. Royalty Transactions (ส่วนแบ่งค่าลิขสิทธิ์)
+13. Stock Movements (บันทึกการเคลื่นย้ายสต็อก)
+14. Reviews (รีวิวและคะแนน)
 
 ### 8.2 Entity Relationship Diagram
 
 ```mermaid
 erDiagram
-    USERS ||--o{ ORDERS : places
-    USERS ||--o{ REVIEWS : writes
-    LICENSES ||--o{ PRODUCTS : owns
-    PRODUCTS ||--o{ ORDER_ITEMS : contains
+    BRANDS ||--o{ PRODUCTS : categorizes
+    CATEGORIES ||--o{ PRODUCTS : classifies
+    LICENSE_HOLDERS ||--o{ LICENSE_CONTRACTS : contracts
+    LICENSE_CONTRACTS ||--o{ PRODUCTS : governs
+    PRODUCTS ||--o{ PRODUCT_VARIANTS : has
+    PRODUCT_VARIANTS ||--o{ ORDER_ITEMS : ordered
+    PRODUCT_VARIANTS ||--o{ AUTHENTICITY_TAGS : tracks
+    PRODUCT_VARIANTS ||--o{ STOCK_MOVEMENTS : logs
+    ORDERS ||--|{ ORDER_ITEMS : contains
+    COUPONS ||--o{ ORDERS : discounts
+    ORDER_ITEMS ||--o{ ROYALTY_TRANSACTIONS : computes
+    ORDER_ITEMS ||--|| REVIEWS : has_review
     PRODUCTS ||--o{ REVIEWS : receives
-    ORDERS ||--|{ ORDER_ITEMS : includes
-    COUPONS |o--o{ ORDERS : applies_to
-    ORDER_ITEMS ||--o{ ROYALTY_TRANSACTIONS : generates
 
-    USERS {
-        int id PK
+    BRANDS {
+        uuid id PK
         string name
-        string email
-        string password_hash
-        string role
+        string slug
+        string description
+        string logo_url
+        boolean is_active
+        datetime created_at
     }
 
-    LICENSES {
-        int id PK
-        string partner_name
-        string category
+    CATEGORIES {
+        uuid id PK
+        string name
+        string slug
+        uuid parent_id FK
+        datetime created_at
+    }
+
+    LICENSE_HOLDERS {
+        uuid id PK
+        string name
+        string contact_email
+        string status
+        datetime created_at
+    }
+
+    LICENSE_CONTRACTS {
+        uuid id PK
+        uuid license_holder_id FK
+        string contract_reference
         decimal royalty_rate
-        datetime contract_expiry
+        date starts_at
+        date expires_at
+        string status
+        datetime created_at
     }
 
     PRODUCTS {
-        int id PK
-        int license_id FK
+        uuid id PK
+        uuid brand_id FK
+        uuid category_id FK
+        uuid license_contract_id FK
         string name
+        string slug
         text description
+        string status
+        boolean is_preorder
+        datetime preorder_release_at
+        datetime created_at
+        datetime updated_at
+    }
+
+    PRODUCT_VARIANTS {
+        uuid id PK
+        uuid product_id FK
+        string sku
+        string size
+        string color
         decimal price
-        int stock
-        string tag_code_prefix
+        decimal compare_at_price
+        int stock_quantity
+        int low_stock_threshold
+        boolean is_active
+        datetime created_at
     }
 
     ORDERS {
-        int id PK
-        int user_id FK
-        decimal total_amount
+        uuid id PK
+        string order_number
+        uuid user_id FK
         string status
+        string payment_status
+        decimal subtotal
+        decimal discount_amount
+        decimal shipping_amount
+        decimal total_amount
+        uuid coupon_id FK
+        jsonb shipping_address
         datetime created_at
-        int coupon_id FK
+        datetime updated_at
     }
 
     ORDER_ITEMS {
-        int id PK
-        int order_id FK
-        int product_id FK
+        uuid id PK
+        uuid order_id FK
+        uuid product_id FK
+        uuid product_variant_id FK
+        string product_name
+        string variant_name
+        string sku
+        decimal unit_price
         int quantity
-        decimal price
-        string authenticity_tag_code
+        decimal line_total
+        decimal royalty_rate_snapshot
+    }
+
+    AUTHENTICITY_TAGS {
+        uuid id PK
+        string public_code
+        string serial_number
+        uuid order_item_id FK
+        uuid product_variant_id FK
+        string status
+        datetime issued_at
+        datetime activated_at
+        datetime revoked_at
     }
 
     ROYALTY_TRANSACTIONS {
-        int id PK
-        int order_item_id FK
-        int license_id FK
-        decimal computed_royalty
+        uuid id PK
+        uuid order_item_id FK
+        uuid license_contract_id FK
+        decimal gross_amount
+        decimal royalty_rate
+        decimal royalty_amount
+        string status
         datetime transaction_date
     }
 
+    STOCK_MOVEMENTS {
+        uuid id PK
+        uuid product_variant_id FK
+        string movement_type
+        int quantity
+        string reference_type
+        uuid reference_id
+        text note
+        datetime created_at
+    }
+
     REVIEWS {
-        int id PK
-        int product_id FK
-        int user_id FK
+        uuid id PK
+        uuid product_id FK
+        uuid user_id FK
+        uuid order_item_id FK
         int rating
         text comment
+        string status
+        datetime created_at
     }
 
     COUPONS {
-        int id PK
+        uuid id PK
         string code
-        decimal discount
-        datetime expiry_date
+        string description
+        string discount_type
+        decimal discount_value
+        decimal min_order_value
+        int max_global_uses
+        int current_global_uses
+        int max_uses_per_user
+        boolean is_active
+        datetime expires_at
+        datetime created_at
     }
 ```
 
@@ -363,36 +459,30 @@ erDiagram
 
 #### 8.3.1 Users
 
-1. เก็บข้อมูลบัญชีผู้ใช้งาน
-2. แยกบทบาทผู้ใช้เป็นลูกค้าและผู้ดูแลระบบ
-3. เก็บรหัสผ่านในรูปแบบแฮช
+1. แยกสิทธิ์การใช้งานของบัญชีผู้ใช้เป็นระบบลูกค้า (Customer), แอดมินผู้ดูแลระบบ (Admin) และผู้ถือลิขสิทธิ์ (License Holder)
+2. อ้างอิงระบบความปลอดภัยด้วยสิทธิ์ของ JWT metadata / RLS Policies บน Supabase Auth
 
 #### 8.3.2 Licenses
 
-1. เก็บข้อมูลผู้ถือครองลิขสิทธิ์
-2. เก็บประเภทลิขสิทธิ์ เช่น ทีม Formula 1 ศิลปิน และสโมสรฟุตบอล
-3. เก็บอัตราส่วนแบ่งลิขสิทธิ์
-4. เก็บวันหมดอายุของสัญญา
+1. เก็บข้อมูลรายนามผู้ถือครองลิขสิทธิ์คู่ค้า (License Holders)
+2. สัญญาควบคุมอัตราส่วนแบ่งและวันสิ้นสุดสัญญา (License Contracts) ที่ใช้สำหรับคำนวณและ snapshot ใน Order Item
 
 #### 8.3.3 Products
 
-1. เก็บข้อมูลสินค้า
-2. เชื่อมโยงสินค้ากับผู้ถือครองลิขสิทธิ์
-3. เก็บราคาและจำนวนคงเหลือ
-4. เก็บคำนำหน้ารหัส TAG รับประกันสินค้าแท้สำหรับสินค้าแต่ละกลุ่ม
+1. สินค้าหลัก (Products) ที่เชื่อมโยงกับแบรนด์ หมวดหมู่ และสัญญาลิขสิทธิ์
+2. ความต่างตามแบบไซซ์ (Product Variants) สำหรับบริหารสต็อกแยกตาม SKU แต่ละรายการ
+3. รูปภาพสินค้าควบคุมผ่าน Product Images
 
 #### 8.3.4 Orders
 
-1. เก็บข้อมูลคำสั่งซื้อ
-2. เชื่อมโยงคำสั่งซื้อกับลูกค้า
-3. เก็บยอดรวมหลังคำนวณส่วนลด
-4. เก็บสถานะคำสั่งซื้อ
+1. ใบสั่งซื้อ (Orders) บันทึกมูลค่าสินค้า ส่วนลด ยอดสุทธิ และ Coupon ID ที่ใช้งาน
+2. Snapshot ใน Order Items บันทึกรักษามูลค่าราคาขายและอัตราลิขสิทธิ์ขณะซื้อ เพื่อไม่ให้เปลี่ยนเมื่อแก้ไขต้นทาง
+3. รหัส TAG รับประกันสินค้าแท้ (Authenticity Tags) 1 ชิ้นต่อ 1 รหัส ไม่ซ้ำกันผูกกับแต่ละชิ้นใน Order Item
 
 #### 8.3.5 Royalty Transactions
 
-1. เก็บข้อมูลธุรกรรมส่วนแบ่งลิขสิทธิ์
-2. คำนวณจากราคาขายและอัตราส่วนแบ่งของผู้ถือครองลิขสิทธิ์
-3. ใช้สำหรับจัดทำรายงานให้ผู้ดูแลระบบตรวจสอบ
+1. ธุรกรรมส่วนแบ่งลิขสิทธิ์ (Royalty Transactions) คำนวณบันทึกโดยอัตโนมัติขณะสร้างออเดอร์
+2. คลังข้อมูล Stock Movements เพื่อบันทึกประวัติการย้ายสต็อกอย่างละเอียด (reserve, release, sale, return, adjustment) สำหรับระบบตรวจสอบบัญชี (Audit Trail)
 
 ---
 
@@ -519,5 +609,5 @@ graph LR
 
 ---
 
-© 2026 LicenMerch Development Team  
-Document version 1.1 Revised SADS Draft
+© 2026 AllThingsMerch Development Team  
+Document version 1.2 Revised SADS Draft
