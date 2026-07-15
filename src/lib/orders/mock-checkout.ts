@@ -99,6 +99,8 @@ export function validateAndRecalculateCart(items: CartItem[], coupon?: Coupon | 
       totalPrice: lineTotal,
       royaltyRateSnapshot,
       licenseContractId,
+      isPreorder: product.isPreorder,
+      preorderReleaseAt: product.preorderReleaseAt,
     });
   }
 

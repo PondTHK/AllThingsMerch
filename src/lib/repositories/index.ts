@@ -66,6 +66,76 @@ class DemoRepository implements DataRepository {
   }
 }
 
+function mapDbProductToProduct(p: any): Product {
+  const variants = (p.product_variants || []).map((v: any) => ({
+    id: v.id,
+    productId: v.product_id,
+    sku: v.sku,
+    size: v.size,
+    color: v.color,
+    price: Number(v.price),
+    compareAtPrice: v.compare_at_price ? Number(v.compare_at_price) : undefined,
+    stockQuantity: v.stock_quantity,
+    lowStockThreshold: v.low_stock_threshold,
+    isActive: v.is_active,
+    createdAt: v.created_at,
+  }));
+
+  const prices = variants.map((v: any) => v.price);
+  const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+  const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
+
+  const images = (p.product_images || []).map((img: any) => ({
+    id: img.id,
+    productId: img.product_id,
+    storagePath: img.storage_path,
+    altText: img.alt_text,
+    sortOrder: img.sort_order,
+  })).sort((a: any, b: any) => a.sortOrder - b.sortOrder);
+
+  const featuredImage = images.length > 0 ? images[0].storagePath : '/products/polo-navy.jpg';
+
+  let tagline = undefined;
+  if (p.is_preorder) {
+    const releaseDate = p.preorder_release_at ? new Date(p.preorder_release_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+    tagline = `Pre-Order Drop${releaseDate ? ` • Releases ${releaseDate}` : ''}`;
+  }
+
+  return {
+    id: p.id,
+    brandId: p.brand_id,
+    categoryId: p.category_id,
+    licenseContractId: p.license_contract_id,
+    name: p.name,
+    slug: p.slug,
+    description: p.description,
+    status: p.status,
+    isPreorder: p.is_preorder || false,
+    preorderReleaseAt: p.preorder_release_at || undefined,
+    createdAt: p.created_at,
+    updatedAt: p.updated_at,
+    brand: p.brands ? {
+      id: p.brands.id,
+      name: p.brands.name,
+      slug: p.brands.slug,
+      logoUrl: p.brands.logo_url,
+      description: p.brands.description,
+      isActive: p.brands.is_active,
+    } : undefined,
+    category: p.categories ? {
+      id: p.categories.id,
+      name: p.categories.name,
+      slug: p.categories.slug,
+    } : undefined,
+    variants,
+    images,
+    featuredImage,
+    minPrice,
+    maxPrice,
+    tagline,
+  };
+}
+
 class SupabaseRepository implements DataRepository {
   mode = 'supabase' as const;
 
@@ -75,7 +145,7 @@ class SupabaseRepository implements DataRepository {
 
     const { data, error } = await client
       .from('products')
-      .select('*, brands(*), categories(*), product_variants(*)')
+      .select('*, brands(*), categories(*), product_variants(*), product_images(*)')
       .eq('status', 'active');
 
     if (error || !data) {
@@ -83,7 +153,7 @@ class SupabaseRepository implements DataRepository {
       return getMockProducts();
     }
 
-    return data as unknown as Product[];
+    return data.map(mapDbProductToProduct);
   }
 
   async getProductBySlug(slug: string): Promise<Product | undefined> {
@@ -92,7 +162,7 @@ class SupabaseRepository implements DataRepository {
 
     const { data, error } = await client
       .from('products')
-      .select('*, brands(*), categories(*), product_variants(*)')
+      .select('*, brands(*), categories(*), product_variants(*), product_images(*)')
       .eq('slug', slug)
       .single();
 
@@ -100,7 +170,7 @@ class SupabaseRepository implements DataRepository {
       return getMockProductBySlug(slug);
     }
 
-    return data as unknown as Product;
+    return mapDbProductToProduct(data);
   }
 
   async getBrands(): Promise<Brand[]> {

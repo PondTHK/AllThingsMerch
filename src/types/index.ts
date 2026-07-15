@@ -101,6 +101,8 @@ export interface CartItem {
   quantity: number;
   imageUrl: string;
   brandName?: string;
+  isPreorder?: boolean;
+  preorderReleaseAt?: string;
 }
 
 export interface ShippingAddress {
@@ -126,6 +128,8 @@ export interface OrderItem {
   serialNumber?: string;
   royaltyRateSnapshot: number; // percentage e.g. 12.5
   licenseContractId?: string;
+  isPreorder?: boolean;
+  preorderReleaseAt?: string;
 }
 
 export interface Order {

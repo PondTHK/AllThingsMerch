@@ -1,3 +1,8 @@
+---
+name: ui-context
+description: UI design system, theme, typography, color palette, component library guidelines, and layout patterns.
+---
+
 # UI Context
 
 ## Theme

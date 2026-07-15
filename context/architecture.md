@@ -1,3 +1,8 @@
+---
+name: architecture
+description: System architecture context, technology stack, system boundaries, storage model, and invariants.
+---
+
 # Architecture Context
 
 ## Stack

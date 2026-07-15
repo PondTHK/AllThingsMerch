@@ -1,3 +1,8 @@
+---
+name: code-standards
+description: Development and coding standards for TypeScript, Next.js (App Router), styling, APIs, data storage, and commits.
+---
+
 # Code Standards
 
 ## General

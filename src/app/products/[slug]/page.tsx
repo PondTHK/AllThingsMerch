@@ -222,7 +222,9 @@ export default function ProductDetailPage() {
                   Low Stock &mdash; Only {selectedVariant.stockQuantity} left
                 </span>
               ) : (
-                <span className="text-black font-bold">In Stock &mdash; Ready to Ship</span>
+                <span className="text-black font-bold">
+                  {product.isPreorder ? 'Pre-Order Available' : 'In Stock — Ready to Ship'}
+                </span>
               )}
             </div>
           )}
@@ -262,6 +264,8 @@ export default function ProductDetailPage() {
                 <span>
                   {!selectedVariant || selectedVariant.stockQuantity <= 0
                     ? 'Sold Out'
+                    : product.isPreorder
+                    ? 'Pre-Order Now'
                     : 'Add to Cart'}
                 </span>
               </button>

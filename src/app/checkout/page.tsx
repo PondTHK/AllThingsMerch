@@ -275,7 +275,14 @@ export default function CheckoutPage() {
               {verifiedCalculation.verifiedItems.map((item) => (
                 <div key={item.id} className="flex items-start justify-between gap-4 text-xs">
                   <div>
-                    <div className="font-bold text-black">{item.productName}</div>
+                    <div className="font-bold text-black flex items-center gap-2">
+                      <span>{item.productName}</span>
+                      {item.isPreorder && (
+                        <span className="px-1.5 py-0.5 rounded-md bg-neutral-200 text-black text-[9px] font-black uppercase tracking-wider">
+                          Pre-Order
+                        </span>
+                      )}
+                    </div>
                     <div className="text-neutral-500">
                       Size: {item.size || 'ONE SIZE'} &bull; Qty: {item.quantity}
                     </div>

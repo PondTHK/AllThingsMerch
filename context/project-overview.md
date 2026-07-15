@@ -1,3 +1,8 @@
+---
+name: project-overview
+description: High-level overview, goals, core user flow, feature list, and success criteria for the AllThingsMerch platform.
+---
+
 # AllThingsMerch
 
 ## Overview

@@ -59,6 +59,8 @@ export const useCartStore = create<CartState>()(
             quantity,
             imageUrl: product.featuredImage,
             brandName: product.brand?.name || 'AllThingsMerch',
+            isPreorder: product.isPreorder,
+            preorderReleaseAt: product.preorderReleaseAt,
           };
           set({ items: [...existingItems, newItem] });
         }

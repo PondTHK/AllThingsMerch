@@ -1,3 +1,8 @@
+---
+name: ai-workflow-rules
+description: Rules and guidelines for AI-driven incremental development, scoping, file protection, and documentation sync.
+---
+
 # AI Workflow Rules
 
 ## Approach

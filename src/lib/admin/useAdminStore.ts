@@ -21,6 +21,8 @@ export interface AdminState {
     sku: string;
     stockQuantity: number;
     featuredImage: string;
+    isPreorder?: boolean;
+    preorderReleaseAt?: string;
   }) => Product;
   toggleProductStatus: (productId: string) => void;
   adjustVariantStock: (variantId: string, deltaAmount: number) => void;
@@ -153,7 +155,8 @@ export const useAdminStore = create<AdminState>()(
           slug: data.slug,
           description: data.description,
           status: 'active',
-          isPreorder: false,
+          isPreorder: data.isPreorder || false,
+          preorderReleaseAt: data.preorderReleaseAt,
           minPrice: data.price,
           maxPrice: data.price,
           createdAt: new Date().toISOString(),

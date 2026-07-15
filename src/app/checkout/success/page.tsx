@@ -85,7 +85,14 @@ function OrderSuccessContent() {
                 className="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
               >
                 <div className="space-y-1">
-                  <div className="font-bold text-black text-sm">{item.productName}</div>
+                  <div className="font-bold text-black text-sm flex items-center gap-2">
+                    <span>{item.productName}</span>
+                    {item.isPreorder && (
+                      <span className="px-1.5 py-0.5 rounded-md bg-neutral-200 text-black text-[9px] font-black uppercase tracking-wider">
+                        Pre-Order
+                      </span>
+                    )}
+                  </div>
                   <div className="text-xs text-neutral-500">
                     Size: {item.size || 'ONE SIZE'} &bull; Qty: {item.quantity} &bull; SKU: {item.sku}
                   </div>
