@@ -229,7 +229,16 @@ describe('Storefront Logic & Data Integrity', () => {
       items: [],
       subtotal: 1000,
       totalAmount: 950,
-      shippingAddress: {} as any,
+      shippingAddress: {
+        fullName: '',
+        email: '',
+        addressLine1: '',
+        city: '',
+        state: '',
+        postalCode: '',
+        country: '',
+        phone: ''
+      },
       paymentMethod: 'credit-card',
       createdAt: new Date().toISOString(),
     };
