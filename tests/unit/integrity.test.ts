@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { useCartStore } from '@/lib/cart/useCartStore';
 import { useAdminStore } from '@/lib/admin/useAdminStore';
 import { validateAndRecalculateCart } from '@/lib/orders/mock-checkout';
-import { CartItem, Product, Coupon, Order } from '@/types';
+import { CartItem, Product, Coupon, Order, ShippingAddress } from '@/types';
 
 describe('Storefront Logic & Data Integrity', () => {
   const inStockProduct: Product = {
@@ -14,6 +14,7 @@ describe('Storefront Logic & Data Integrity', () => {
     description: 'Comes ready to ship.',
     status: 'active',
     isPreorder: false,
+    isLimited: true,
     minPrice: 1000,
     maxPrice: 1000,
     createdAt: new Date().toISOString(),
@@ -144,7 +145,9 @@ describe('Storefront Logic & Data Integrity', () => {
         },
       ],
       subtotal: 3000,
+      shippingFee: 0,
       totalAmount: 3000,
+      isDemoOrder: true,
       shippingAddress: {
         fullName: 'Test User',
         email: 'test@user.com',
@@ -154,8 +157,6 @@ describe('Storefront Logic & Data Integrity', () => {
         postalCode: '10000',
       },
       paymentMethod: 'credit-card',
-      shippingFee: 0,
-      isDemoOrder: true,
       createdAt: new Date().toISOString(),
     };
 
@@ -229,18 +230,11 @@ describe('Storefront Logic & Data Integrity', () => {
       couponCode: 'LIMITED50',
       items: [],
       subtotal: 1000,
-      totalAmount: 950,
-      shippingAddress: {
-        fullName: '',
-        email: '',
-        phone: '',
-        street: '',
-        city: '',
-        postalCode: ''
-      },
-      paymentMethod: 'credit-card',
       shippingFee: 0,
+      totalAmount: 950,
       isDemoOrder: true,
+      shippingAddress: {} as unknown as ShippingAddress,
+      paymentMethod: 'credit-card',
       createdAt: new Date().toISOString(),
     };
     

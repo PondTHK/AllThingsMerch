@@ -188,6 +188,7 @@ export const MOCK_PRODUCTS: Product[] = [
     description:
       'Official Oracle Red Bull Racing team polo shirt engineered with breathable performance fabric, featuring championship team and sponsor branding across chest and sleeves. Integrated Authenticity TAG verification.',
     status: 'active',
+    isLimited: false,
     isPreorder: false,
     createdAt: '2026-06-01T10:00:00Z',
     updatedAt: '2026-07-01T10:00:00Z',
@@ -214,6 +215,7 @@ export const MOCK_PRODUCTS: Product[] = [
     description:
       'Official Scuderia Ferrari team softshell jacket crafted with water-resistant stretch polyester, featuring high-density team and sponsor logos across the chest and arms. Equipped with an internal encrypted Authenticity TAG embedded at the hem.',
     status: 'active',
+    isLimited: true,
     isPreorder: false,
     createdAt: '2026-06-02T10:00:00Z',
     updatedAt: '2026-07-01T10:00:00Z',
@@ -239,6 +241,7 @@ export const MOCK_PRODUCTS: Product[] = [
     description:
       'Monaco Grand Prix Special Edition cap worn by Charles Leclerc. Features embroidered driver number 16 under the brim and laser-perforated side ventilation panels.',
     status: 'active',
+    isLimited: true,
     isPreorder: false,
     createdAt: '2026-06-10T10:00:00Z',
     updatedAt: '2026-07-03T10:00:00Z',

@@ -12,7 +12,7 @@ export default function AdminCouponsPage() {
   const [loading, setLoading] = useState(true);
   const [searchCode, setSearchCode] = useState('');
 
-  const fetchCoupons = async () => {
+  async function fetchCoupons() {
     setLoading(true);
     try {
       const data = await getRepository().getCoupons();
@@ -22,13 +22,12 @@ export default function AdminCouponsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    setTimeout(() => {
       fetchCoupons();
     }, 0);
-    return () => clearTimeout(timer);
   }, []);
 
   async function handleDelete(id: string) {

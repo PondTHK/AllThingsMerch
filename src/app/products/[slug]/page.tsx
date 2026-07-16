@@ -60,7 +60,7 @@ export default function ProductDetailPage() {
       setTimeout(() => {
         setAddedMessage(false);
       }, 3000);
-    } catch (e) {
+    } catch (e: unknown) {
       setErrorMsg(e instanceof Error ? e.message : 'An error occurred');
       setTimeout(() => {
         setErrorMsg('');

@@ -22,6 +22,7 @@ export interface AdminState {
     sku: string;
     stockQuantity: number;
     featuredImage: string;
+    isLimited?: boolean;
     isPreorder?: boolean;
     preorderReleaseAt?: string;
   }) => Product;
@@ -164,6 +165,7 @@ export const useAdminStore = create<AdminState>()(
           slug: data.slug,
           description: data.description,
           status: 'active',
+          isLimited: data.isLimited || false,
           isPreorder: data.isPreorder || false,
           preorderReleaseAt: data.preorderReleaseAt,
           minPrice: data.price,

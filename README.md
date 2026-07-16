@@ -363,60 +363,67 @@ sequenceDiagram
 
 ```mermaid
 classDiagram
-    class DataRepository {
-        <<interface>>
-        +mode string
-        +getProducts() Promise~Product[]~
-        +getProductBySlug(string slug) Promise~Product_or_undefined~
-        +getBrands() Promise~Brand[]~
-        +getCategories() Promise~Category[]~
-        +getCoupons() Promise~Coupon[]~
-        +getCouponByCode(string code) Promise~Coupon_or_undefined~
-        +createCoupon(coupon: [code: string, description?: string, discountType: string, discountValue: number, minOrderValue?: number, maxGlobalUses?: number, maxUsesPerUser?: number, isActive?: boolean, expiresAt?: string]) Promise~Coupon~
-        +updateCoupon(string id, updates: [code?: string, description?: string, discountType?: string, discountValue?: number, minOrderValue?: number, maxGlobalUses?: number, maxUsesPerUser?: number, isActive?: boolean, expiresAt?: string]) Promise~Coupon~
-        +deleteCoupon(string id) Promise~void~
+    %% ─── Authentication Layer ───
+    class useAuthStore {
+        +UserProfile user
+        +SavedAddress[] addresses
+        +login(string id, string email, string fullName, string role) void
+        +logout() void
+        +updateProfile(string fullName, string phone) void
+        +loginAsDemoCollector() void
+        +loginAsDemoAdmin() void
+        +addAddress(string label, string fullName, string email, string phone, string street, string city, string postalCode, boolean isDefault) SavedAddress
+        +updateAddress(string id, string label, string street, boolean isDefault) void
+        +deleteAddress(string id) void
+        +setDefaultAddress(string id) void
     }
 
-    class DemoRepository {
-        +mode string
-        +getProducts() Promise~Product[]~
-        +getProductBySlug(string slug) Promise~Product_or_undefined~
-        +getBrands() Promise~Brand[]~
-        +getCategories() Promise~Category[]~
-        +getCoupons() Promise~Coupon[]~
-        +getCouponByCode(string code) Promise~Coupon_or_undefined~
-        +createCoupon(coupon: [code: string, description?: string, discountType: string, discountValue: number, minOrderValue?: number, maxGlobalUses?: number, maxUsesPerUser?: number, isActive?: boolean, expiresAt?: string]) Promise~Coupon~
-        +updateCoupon(string id, updates: [code?: string, description?: string, discountType?: string, discountValue?: number, minOrderValue?: number, maxGlobalUses?: number, maxUsesPerUser?: number, isActive?: boolean, expiresAt?: string]) Promise~Coupon~
-        +deleteCoupon(string id) Promise~void~
+    class UserProfile {
+        +string id
+        +string email
+        +string fullName
+        +string phone
+        +UserRole role
+        +string createdAt
     }
 
-    class SupabaseRepository {
-        +mode string
-        +getProducts() Promise~Product[]~
-        +getProductBySlug(string slug) Promise~Product_or_undefined~
-        +getBrands() Promise~Brand[]~
-        +getCategories() Promise~Category[]~
-        +getCoupons() Promise~Coupon[]~
-        +getCouponByCode(string code) Promise~Coupon_or_undefined~
-        +createCoupon(coupon: [code: string, description?: string, discountType: string, discountValue: number, minOrderValue?: number, maxGlobalUses?: number, maxUsesPerUser?: number, isActive?: boolean, expiresAt?: string]) Promise~Coupon~
-        +updateCoupon(string id, updates: [code?: string, description?: string, discountType?: string, discountValue?: number, minOrderValue?: number, maxGlobalUses?: number, maxUsesPerUser?: number, isActive?: boolean, expiresAt?: string]) Promise~Coupon~
-        +deleteCoupon(string id) Promise~void~
+    class UserRole {
+        <<enumeration>>
+        customer
+        admin
     }
 
-    DataRepository <|.. DemoRepository : implements
-    DataRepository <|.. SupabaseRepository : implements
+    class SavedAddress {
+        +string id
+        +string label
+        +string fullName
+        +string email
+        +string phone
+        +string street
+        +string city
+        +string postalCode
+        +boolean isDefault
+    }
 
+    useAuthStore "1" o-- "0..1" UserProfile : manages
+    useAuthStore "1" o-- "*" SavedAddress : manages
+    UserProfile "1" --> "1" UserRole : has
+
+    note for useAuthStore "Role guard อยู่ที่ admin/layout.tsx\\nif user.role !== admin → redirect"
+
+    %% ─── Customer-Accessible Layer ───
     class useCartStore {
-        +items CartItem[]
-        +cartReservedUntil string
-        +appliedCoupon Coupon
-        +addItem(ProductVariant variant, Product product, number quantity) void
+        <<customer access>>
+        +CartItem[] items
+        +string cartReservedUntil
+        +Coupon appliedCoupon
+        +addItem(string variantId, string productId, number quantity) void
         +updateQuantity(string variantId, number quantity) void
         +removeItem(string variantId) void
         +clearCart() void
         +clearCartWithoutRelease() void
         +releaseExpiredReservation() void
-        +applyCoupon(Coupon coupon) void
+        +applyCoupon(string code, number discountValue, string discountType) void
         +removeCoupon() void
         +getTotalCount() number
         +getSubtotal() number
@@ -425,24 +432,62 @@ classDiagram
         +getTotalAmount() number
     }
 
-    class useAdminStore {
-        +products Product[]
-        +orders Order[]
-        +contracts LicenseContract[]
-        +stockMovements StockMovement[]
-        +syncOrdersFromStorage() void
-        +addProduct(data: [name: string, slug: string, description: string, brandId: string, categoryId: string, price: number, sku: string, stockQuantity: number, featuredImage: string, isPreorder?: boolean, preorderReleaseAt?: string]) Product
-        +toggleProductStatus(string productId) void
-        +adjustVariantStock(string variantId, number deltaAmount, StockMovementType movementType, string referenceType, string referenceId, string note) void
-        +updateOrderStatus(string orderNumber, string status) void
-        +addContract(data: [licenseHolderId: string, holderName: string, contractReference: string, royaltyRate: number, startsAt: string, expiresAt: string, status: string]) LicenseContract
+    class CartItem {
+        +string id
+        +string productId
+        +string variantId
+        +string productName
+        +string productSlug
+        +string sku
+        +string size
+        +string color
+        +number unitPrice
+        +number quantity
+        +string imageUrl
+        +string brandName
+        +boolean isLimited
+        +boolean isPreorder
+        +string preorderReleaseAt
+        +string reservedUntil
     }
 
+    class Coupon {
+        +string id
+        +string code
+        +string description
+        +string discountType
+        +number discountValue
+        +number minOrderValue
+        +number maxGlobalUses
+        +number currentGlobalUses
+        +number maxUsesPerUser
+        +boolean isActive
+        +string expiresAt
+        +string createdAt
+    }
+
+    %% ─── Admin-Accessible Layer ───
+    class useAdminStore {
+        <<admin access>>
+        +Product[] products
+        +Order[] orders
+        +LicenseContract[] contracts
+        +StockMovement[] stockMovements
+        +syncOrdersFromStorage() void
+        +addProduct(string name, string slug, string description, string brandId, string categoryId, number price, string sku, number stockQuantity, string featuredImage, boolean isLimited) Product
+        +toggleProductStatus(string productId) void
+        +adjustVariantStock(string variantId, number deltaAmount, string movementType) void
+        +updateOrderStatus(string orderNumber, string status) void
+        +addContract(string licenseHolderId, string holderName, string contractReference, number royaltyRate, string startsAt, string expiresAt) LicenseContract
+    }
+
+    %% ─── Shared Domain Models ───
     class Product {
         +string id
         +string name
         +string slug
         +string description
+        +boolean isLimited
         +boolean isPreorder
         +string preorderReleaseAt
         +string brandId
@@ -451,14 +496,11 @@ classDiagram
         +string status
         +string createdAt
         +string updatedAt
-        +Brand brand
-        +Category category
         +ProductVariant[] variants
         +ProductImage[] images
         +string featuredImage
         +number minPrice
         +number maxPrice
-        +string tagline
     }
 
     class ProductVariant {
@@ -505,7 +547,6 @@ classDiagram
         +number royaltyRateSnapshot
         +string licenseContractId
         +boolean isPreorder
-        +string preorderReleaseAt
     }
 
     class StockMovement {
@@ -542,25 +583,38 @@ classDiagram
         +string orderNumber
     }
 
-    class Coupon {
+    class LicenseContract {
         +string id
-        +string code
-        +string description
-        +string discountType
-        +number discountValue
-        +number minOrderValue
-        +number maxGlobalUses
-        +number currentGlobalUses
-        +number maxUsesPerUser
-        +boolean isActive
+        +string licenseHolderId
+        +string holderName
+        +string contractReference
+        +number royaltyRate
+        +string startsAt
         +string expiresAt
-        +string createdAt
+        +string status
     }
 
-    Product "1" *-- "many" ProductVariant : contains
-    Order "1" *-- "many" OrderItem : contains
-    ProductVariant "1" --o "many" StockMovement : logs
-    OrderItem "1" --> "1" AuthenticityTagRecord : has
+    %% ─── Role-Based Access (ใครเข้าถึงอะไร) ───
+    UserProfile ..> useCartStore : customer accesses
+    UserProfile ..> useAdminStore : admin accesses
+    UserProfile ..> LicenseContract : license_holder views
+
+    %% ─── Store → Domain Relationships ───
+    useCartStore "1" o-- "*" CartItem : manages
+    useCartStore "1" --> "0..1" Coupon : applies
+    useAdminStore "1" o-- "*" Product : manages
+    useAdminStore "1" o-- "*" Order : manages
+    useAdminStore "1" o-- "*" StockMovement : tracks
+    useAdminStore "1" o-- "*" LicenseContract : manages
+
+    %% ─── Domain Composition ───
+    UserProfile "1" --> "*" Order : places
+    Product "1" *-- "*" ProductVariant : contains
+    Order "1" *-- "*" OrderItem : contains
+    CartItem "*" --> "1" ProductVariant : references
+    OrderItem "*" --> "1" ProductVariant : references
+    ProductVariant "1" --o "*" StockMovement : logs
+    OrderItem "1" --> "0..1" AuthenticityTagRecord : has
 ```
 
 ---
@@ -569,10 +623,11 @@ classDiagram
 
 ### 8.1 รายการ Entity หลัก
 
-1. Brands (แบรนด์)
-2. Categories (หมวดหมู่สินค้า)
-3. License Holders (ผู้ถือครองลิขสิทธิ์)
-4. License Contracts (สัญญาลิขสิทธิ์)
+1. Users (ผู้ใช้งานระบบ)
+2. Brands (แบรนด์)
+3. Categories (หมวดหมู่สินค้า)
+4. License Holders (ผู้ถือครองลิขสิทธิ์)
+5. License Contracts (สัญญาลิขสิทธิ์)
 5. Products (สินค้าหลัก)
 6. Product Variants (สินค้าเฉพาะรูปแบบ/SKU)
 7. Product Images (รูปภาพสินค้า)
@@ -588,6 +643,9 @@ classDiagram
 
 ```mermaid
 erDiagram
+    USERS ||--o{ ORDERS : places
+    USERS ||--o{ REVIEWS : writes
+    USERS ||--|| USER_ROLES : has
     BRANDS ||--o{ PRODUCTS : categorizes
     CATEGORIES ||--o{ PRODUCTS : classifies
     LICENSE_HOLDERS ||--o{ LICENSE_CONTRACTS : contracts
@@ -790,7 +848,57 @@ erDiagram
 
 ---
 
-## 9. แนวทางการทำงานร่วมกัน
+## 9. ระบบ Authentication & Authorization (สิทธิ์ผู้ใช้งาน)
+
+เพื่อให้แยกลอจิกและสิทธิ์การเข้าถึงได้ชัดเจน ระบบจะแบ่งผู้ใช้งาน (`UserRole`) ออกเป็น 3 ระดับ:
+
+### 9.1 Customer (ลูกค้าทั่วไป)
+
+| สิทธิ์ | รายละเอียด |
+|--------|-----------|
+| ดูสินค้า | เรียกดูรายการสินค้า, รายละเอียด, รูปภาพ |
+| ตะกร้าสินค้า | เพิ่ม/ลบสินค้าในตะกร้า (สินค้า Limited จะจอง 15 นาที) |
+| Checkout | สั่งซื้อสินค้า, ใช้คูปอง |
+| ประวัติคำสั่งซื้อ | ดูประวัติออเดอร์ของตัวเอง |
+| เขียนรีวิว | รีวิวสินค้าที่เคยซื้อ |
+| ❌ เข้าถึง Admin Panel | ไม่ได้ |
+
+### 9.2 Admin (ผู้ดูแลระบบ)
+
+| สิทธิ์ | รายละเอียด |
+|--------|-----------|
+| จัดการ Product | สร้าง/แก้ไข/ปิดการมองเห็นสินค้า, กำหนด isLimited |
+| จัดการ Stock | ปรับ Stock, ดู Stock Movement History |
+| จัดการ Coupon | สร้าง/แก้ไข/ลบคูปองส่วนลด |
+| จัดการ License Contract | สร้าง/ดูสัญญาลิขสิทธิ์ |
+| จัดการ Order | ดู/อัปเดตสถานะออเดอร์ของลูกค้าทุกคน |
+| ดู Review | ดูรีวิวทั้งหมดในระบบ |
+
+### 9.3 License Holder (เจ้าของลิขสิทธิ์ / พาร์ทเนอร์)
+
+| สิทธิ์ | รายละเอียด |
+|--------|-----------|
+| ดู Dashboard | ดูสรุปยอดขายเฉพาะแบรนด์ของตัวเอง |
+| ดู Royalty Rate | ดูข้อมูลส่วนแบ่งค่าลิขสิทธิ์ที่ตัวเองได้รับ |
+| ❌ แก้ไขข้อมูลระบบ | Read-only สำหรับข้อมูลตัวเอง |
+
+### 9.4 ความสัมพันธ์ระหว่าง Auth กับระบบ
+
+```mermaid
+flowchart LR
+    A[User Login] --> B{UserRole?}
+    B -->|customer| C[Storefront + Cart + Checkout]
+    B -->|admin| D[Admin Panel + Full CRUD]
+    B -->|license_holder| E[Partner Dashboard - Read Only]
+    
+    C --> F[useCartStore]
+    D --> G[useAdminStore]
+    E --> H[License Dashboard]
+```
+
+---
+
+## 10. แนวทางการทำงานร่วมกัน
 
 ทีมใช้ Git และ GitHub ในการจัดการ Source Code โดยกำหนดแนวทางการทำงานดังนี้
 
@@ -822,7 +930,7 @@ erDiagram
 
 ---
 
-## 10. กระบวนการส่งมอบซอฟต์แวร์
+## 11. กระบวนการส่งมอบซอฟต์แวร์
 
 ใช้ GitHub Actions เพื่อช่วยตรวจสอบคุณภาพของโค้ดก่อนรวมงาน โดยแบ่งกระบวนการออกเป็นขั้นตอนดังนี้
 
@@ -858,7 +966,7 @@ graph LR
 
 ---
 
-## 11. แผนการดำเนินงาน
+## 12. แผนการดำเนินงาน
 
 | Phase | รายละเอียด | ผลลัพธ์ที่คาดหวัง |
 | :--- | :--- | :--- |
@@ -871,7 +979,7 @@ graph LR
 
 ---
 
-## 12. การจัดการความเสี่ยง
+## 13. การจัดการความเสี่ยง
 
 | ความเสี่ยง | ผลกระทบ | แผนการจัดการรองรับ |
 | :--- | :---: | :--- |
@@ -892,7 +1000,7 @@ graph LR
 | 67160449 | นายณฐมน โชติกุล | ผู้พัฒนา Frontend/Backend | 
 | 67132694 | นายนิรินทร์ เทพวิสุทธิพันธุ์ | ผู้พัฒนา Frontend/Backend | 
 | 67167855 | นายกฤตณัฐ อิ้วสมจิตร | ผู้ออกแบบฐานข้อมูลและระบบลิขสิทธิ์ |
-| 67185699 | นางสาว กนกร ทะทอง | ผู้จัดทำเอกสารและทดสอบระบบ |
+| 67185699 | นางสาว กนกกร ทะกอง | ผู้จัดทำเอกสารและทดสอบระบบ |
 
 ---
 
@@ -914,4 +1022,4 @@ graph LR
 ---
 
 © 2026 AllThingsMerch Development Team  
-Document version 1.2 Revised SADS Draft
+Document version 1.3 Revised SADS Draft

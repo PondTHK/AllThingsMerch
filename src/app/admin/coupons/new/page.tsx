@@ -49,7 +49,7 @@ export default function NewCouponPage() {
       });
 
       router.push('/admin/coupons');
-    } catch (err) {
+    } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to create coupon');
     } finally {
       setLoading(false);

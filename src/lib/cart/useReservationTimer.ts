@@ -35,13 +35,14 @@ export function useReservationTimer(
   const [secondsLeft, setSecondsLeft] = useState<number>(calcSecondsLeft);
 
   useEffect(() => {
+    if (!reservedUntil) {
+      setTimeout(() => setSecondsLeft(0), 0);
+      return;
+    }
     const tick = () => setSecondsLeft(calcSecondsLeft());
+    tick(); // sync immediately after mount
     const id = setInterval(tick, 1000);
-    const timer = setTimeout(tick, 0);
-    return () => {
-      clearInterval(id);
-      clearTimeout(timer);
-    };
+    return () => clearInterval(id);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reservedUntil]);
 

@@ -49,7 +49,7 @@ export default function EditCouponPage() {
           maxUsesPerUser: coupon.maxUsesPerUser ? String(coupon.maxUsesPerUser) : '',
           isActive: coupon.isActive,
         });
-      } catch (err) {
+      } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'Failed to load coupon');
       } finally {
         setFetching(false);
@@ -88,7 +88,7 @@ export default function EditCouponPage() {
       });
 
       router.push('/admin/coupons');
-    } catch (err) {
+    } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to update coupon');
     } finally {
       setLoading(false);
