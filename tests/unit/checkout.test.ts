@@ -45,4 +45,11 @@ describe('Mock Checkout & Price Verification', () => {
     expect(order.items[0].authenticityTagCode).toBeDefined();
     expect(order.items[0].authenticityTagCode).toContain('TAG-ATM');
   });
+
+  it('captures the correct royalty rate snapshot and contract reference during checkout', () => {
+    const res = validateAndRecalculateCart([sampleCartItem]);
+    expect(res.isValid).toBe(true);
+    expect(res.verifiedItems[0].royaltyRateSnapshot).toBe(12.5);
+    expect(res.verifiedItems[0].licenseContractId).toBe('contract-rbr-01');
+  });
 });

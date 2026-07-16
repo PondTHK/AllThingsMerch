@@ -1,10 +1,12 @@
-import { CartItem, Order, OrderItem, ShippingAddress } from '@/types';
+import { CartItem, Order, OrderItem, ShippingAddress, Coupon } from '@/types';
 import { getProductBySlug } from '@/lib/repositories/mock-data';
+import { useAdminStore } from '@/lib/admin/useAdminStore';
 
 // Server-side / adapter price verification: ensures prices match official catalog
-export function validateAndRecalculateCart(items: CartItem[]): {
+export function validateAndRecalculateCart(items: CartItem[], coupon?: Coupon | null): {
   verifiedItems: OrderItem[];
   subtotal: number;
+  discountAmount: number;
   shippingFee: number;
   totalAmount: number;
   isValid: boolean;
@@ -14,6 +16,7 @@ export function validateAndRecalculateCart(items: CartItem[]): {
     return {
       verifiedItems: [],
       subtotal: 0,
+      discountAmount: 0,
       shippingFee: 0,
       totalAmount: 0,
       isValid: false,
@@ -21,15 +24,43 @@ export function validateAndRecalculateCart(items: CartItem[]): {
     };
   }
 
+  // ── Reservation expiry guard ──────────────────────────────────────────────
+  // This is the server-side equivalent of the frontend timer. Even if the UI
+  // already shows a warning, we re-validate here at the moment of submission
+  // to close the race-condition window between the timer reaching 0 and the
+  // user clicking "Place Order".
+  // When connecting to a real backend, replicate this check in your Server
+  // Action / API route before any DB write.
+  const now = Date.now();
+  for (const item of items) {
+    if (item.reservedUntil && new Date(item.reservedUntil).getTime() < now) {
+      return {
+        verifiedItems: [],
+        subtotal: 0,
+        discountAmount: 0,
+        shippingFee: 0,
+        totalAmount: 0,
+        isValid: false,
+        errorMessage: `Your reservation for "${item.productName}" has expired. Please add the item to your cart again to continue.`,
+      };
+    }
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
   const verifiedItems: OrderItem[] = [];
   let subtotal = 0;
 
   for (const item of items) {
-    const product = getProductBySlug(item.productSlug);
+    const adminProducts = useAdminStore.getState().products;
+    let product = adminProducts.find((p) => p.slug === item.productSlug);
+    if (!product) {
+      product = getProductBySlug(item.productSlug);
+    }
     if (!product) {
       return {
         verifiedItems: [],
         subtotal: 0,
+        discountAmount: 0,
         shippingFee: 0,
         totalAmount: 0,
         isValid: false,
@@ -42,6 +73,7 @@ export function validateAndRecalculateCart(items: CartItem[]): {
       return {
         verifiedItems: [],
         subtotal: 0,
+        discountAmount: 0,
         shippingFee: 0,
         totalAmount: 0,
         isValid: false,
@@ -53,6 +85,36 @@ export function validateAndRecalculateCart(items: CartItem[]): {
     const lineTotal = officialPrice * item.quantity;
     subtotal += lineTotal;
 
+    // Map brand to royalty rate and contract ID
+    let royaltyRateSnapshot = 10.0;
+    let licenseContractId = undefined;
+
+    if (product.brandId === 'brand-f1-redbull') {
+      royaltyRateSnapshot = 12.5;
+      licenseContractId = 'contract-rbr-01';
+    } else if (product.brandId === 'brand-f1-ferrari') {
+      royaltyRateSnapshot = 14.0;
+      licenseContractId = 'contract-sf-01';
+    } else if (product.brandId === 'brand-music-travis') {
+      royaltyRateSnapshot = 10.0;
+      licenseContractId = 'contract-travis-01';
+    } else if (product.brandId === 'brand-music-weeknd') {
+      royaltyRateSnapshot = 10.0;
+      licenseContractId = 'contract-weeknd-01';
+    } else if (product.brandId === 'brand-football-real') {
+      royaltyRateSnapshot = 15.0;
+      licenseContractId = 'contract-real-01';
+    } else if (product.brandId === 'brand-football-arsenal') {
+      royaltyRateSnapshot = 15.0;
+      licenseContractId = 'contract-arsenal-01';
+    } else if (product.brandId === 'brand-collect-kaws') {
+      royaltyRateSnapshot = 8.0;
+      licenseContractId = 'contract-kaws-01';
+    } else if (product.brandId === 'brand-collect-bearbrick') {
+      royaltyRateSnapshot = 8.0;
+      licenseContractId = 'contract-bearbrick-01';
+    }
+
     verifiedItems.push({
       id: `order-item-${Math.random().toString(36).substring(2, 9)}`,
       productId: product.id,
@@ -63,15 +125,93 @@ export function validateAndRecalculateCart(items: CartItem[]): {
       unitPrice: officialPrice,
       quantity: item.quantity,
       totalPrice: lineTotal,
+      royaltyRateSnapshot,
+      licenseContractId,
+      isPreorder: product.isPreorder,
+      preorderReleaseAt: product.preorderReleaseAt,
     });
   }
 
+  let discountAmount = 0;
+  if (coupon) {
+    if (!coupon.isActive) {
+      return {
+        verifiedItems: [],
+        subtotal: 0,
+        discountAmount: 0,
+        shippingFee: 0,
+        totalAmount: 0,
+        isValid: false,
+        errorMessage: 'The applied coupon is inactive.',
+      };
+    }
+
+    if (coupon.expiresAt && new Date().getTime() > new Date(coupon.expiresAt).getTime()) {
+      return {
+        verifiedItems: [],
+        subtotal: 0,
+        discountAmount: 0,
+        shippingFee: 0,
+        totalAmount: 0,
+        isValid: false,
+        errorMessage: 'The applied coupon has expired.',
+      };
+    }
+
+    if (coupon.maxGlobalUses !== undefined && coupon.currentGlobalUses >= coupon.maxGlobalUses) {
+      return {
+        verifiedItems: [],
+        subtotal: 0,
+        discountAmount: 0,
+        shippingFee: 0,
+        totalAmount: 0,
+        isValid: false,
+        errorMessage: 'This coupon code has reached its maximum global usage limit.',
+      };
+    }
+
+    if (coupon.maxUsesPerUser !== undefined) {
+      const history = getOrderHistory();
+      const userCouponUses = history.filter((o) => o.couponCode === coupon.code).length;
+      if (userCouponUses >= coupon.maxUsesPerUser) {
+        return {
+          verifiedItems: [],
+          subtotal: 0,
+          discountAmount: 0,
+          shippingFee: 0,
+          totalAmount: 0,
+          isValid: false,
+          errorMessage: 'You have reached the usage limit for this coupon code.',
+        };
+      }
+    }
+
+    if (!coupon.minOrderValue || subtotal >= coupon.minOrderValue) {
+      if (coupon.discountType === 'percentage') {
+        discountAmount = Math.floor(subtotal * (coupon.discountValue / 100));
+      } else {
+        discountAmount = Math.min(subtotal, coupon.discountValue);
+      }
+    } else {
+      return {
+        verifiedItems: [],
+        subtotal: 0,
+        discountAmount: 0,
+        shippingFee: 0,
+        totalAmount: 0,
+        isValid: false,
+        errorMessage: `Minimum order value of ${coupon.minOrderValue} THB required to use this coupon.`,
+      };
+    }
+  }
+
   const shippingFee = subtotal >= 3000 ? 0 : 100;
-  const totalAmount = subtotal + shippingFee;
+  const totalAmount = Math.max(0, subtotal - discountAmount) + shippingFee;
 
   return {
     verifiedItems,
     subtotal,
+    discountAmount,
     shippingFee,
     totalAmount,
     isValid: true,
@@ -82,9 +222,10 @@ export function validateAndRecalculateCart(items: CartItem[]): {
 export function fulfillMockOrder(
   items: CartItem[],
   shippingAddress: ShippingAddress,
-  paymentMethod: string
+  paymentMethod: string,
+  coupon?: Coupon | null
 ): Order {
-  const calculation = validateAndRecalculateCart(items);
+  const calculation = validateAndRecalculateCart(items, coupon);
   if (!calculation.isValid) {
     throw new Error(calculation.errorMessage || 'Invalid checkout calculation');
   }
@@ -108,6 +249,8 @@ export function fulfillMockOrder(
     items: fulfilledItems,
     subtotal: calculation.subtotal,
     shippingFee: calculation.shippingFee,
+    discountAmount: calculation.discountAmount > 0 ? calculation.discountAmount : undefined,
+    couponCode: coupon && calculation.discountAmount > 0 ? coupon.code : undefined,
     totalAmount: calculation.totalAmount,
     shippingAddress,
     paymentMethod,

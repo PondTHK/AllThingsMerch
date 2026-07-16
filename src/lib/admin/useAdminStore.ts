@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Product, Order, LicenseContract, ProductVariant } from '@/types';
+import { Product, Order, LicenseContract, ProductVariant, StockMovement } from '@/types';
 import { MOCK_PRODUCTS } from '@/lib/repositories/mock-data';
 import { getOrderHistory } from '@/lib/orders/mock-checkout';
 
@@ -10,6 +10,7 @@ export interface AdminState {
   products: Product[];
   orders: Order[];
   contracts: LicenseContract[];
+  stockMovements: StockMovement[];
   syncOrdersFromStorage: () => void;
   addProduct: (data: {
     name: string;
@@ -21,9 +22,18 @@ export interface AdminState {
     sku: string;
     stockQuantity: number;
     featuredImage: string;
+    isPreorder?: boolean;
+    preorderReleaseAt?: string;
   }) => Product;
   toggleProductStatus: (productId: string) => void;
-  adjustVariantStock: (variantId: string, deltaAmount: number) => void;
+  adjustVariantStock: (
+    variantId: string,
+    deltaAmount: number,
+    movementType?: StockMovement['movementType'],
+    referenceType?: string,
+    referenceId?: string,
+    note?: string
+  ) => void;
   updateOrderStatus: (orderNumber: string, status: Order['status']) => void;
   addContract: (data: Omit<LicenseContract, 'id'>) => LicenseContract;
 }
@@ -32,7 +42,7 @@ const DEFAULT_CONTRACTS: LicenseContract[] = [
   {
     id: 'contract-rbr-01',
     licenseHolderId: 'l1111111-1111-4111-8111-111111111111',
-    holderName: 'Red Bull Technology Ltd',
+    holderName: 'Oracle Red Bull Racing',
     contractReference: 'RBR-2026-MERCH-01',
     royaltyRate: 12.5,
     startsAt: '2026-01-01',
@@ -42,9 +52,69 @@ const DEFAULT_CONTRACTS: LicenseContract[] = [
   {
     id: 'contract-sf-01',
     licenseHolderId: 'l2222222-2222-4222-8222-222222222222',
-    holderName: 'Ferrari S.p.A.',
+    holderName: 'Scuderia Ferrari F1',
     contractReference: 'SF-2026-MERCH-01',
     royaltyRate: 14.0,
+    startsAt: '2026-01-01',
+    expiresAt: '2027-12-31',
+    status: 'active',
+  },
+  {
+    id: 'contract-travis-01',
+    licenseHolderId: 'l3333333-3333-4333-8333-333333333333',
+    holderName: 'Cactus Jack Merch',
+    contractReference: 'CJ-2026-TOUR-01',
+    royaltyRate: 10.0,
+    startsAt: '2026-01-01',
+    expiresAt: '2027-12-31',
+    status: 'active',
+  },
+  {
+    id: 'contract-weeknd-01',
+    licenseHolderId: 'l4444444-4444-4444-8444-444444444444',
+    holderName: 'XO Records',
+    contractReference: 'XO-2026-ALBUM-01',
+    royaltyRate: 10.0,
+    startsAt: '2026-01-01',
+    expiresAt: '2027-12-31',
+    status: 'active',
+  },
+  {
+    id: 'contract-real-01',
+    licenseHolderId: 'l5555555-5555-4555-8555-555555555555',
+    holderName: 'Real Madrid Official',
+    contractReference: 'RM-2026-CLUB-01',
+    royaltyRate: 15.0,
+    startsAt: '2026-01-01',
+    expiresAt: '2027-12-31',
+    status: 'active',
+  },
+  {
+    id: 'contract-arsenal-01',
+    licenseHolderId: 'l6666666-6666-4666-8666-666666666666',
+    holderName: 'Arsenal FC',
+    contractReference: 'AFC-2026-CLUB-01',
+    royaltyRate: 15.0,
+    startsAt: '2026-01-01',
+    expiresAt: '2027-12-31',
+    status: 'active',
+  },
+  {
+    id: 'contract-kaws-01',
+    licenseHolderId: 'l7777777-7777-4777-8777-777777777777',
+    holderName: 'KAWS Collectibles',
+    contractReference: 'KAWS-2026-ART-01',
+    royaltyRate: 8.0,
+    startsAt: '2026-01-01',
+    expiresAt: '2027-12-31',
+    status: 'active',
+  },
+  {
+    id: 'contract-bearbrick-01',
+    licenseHolderId: 'l8888888-8888-4888-8888-888888888888',
+    holderName: 'Bearbrick Collectibles',
+    contractReference: 'MED-2026-TOY-01',
+    royaltyRate: 8.0,
     startsAt: '2026-01-01',
     expiresAt: '2027-12-31',
     status: 'active',
@@ -57,6 +127,7 @@ export const useAdminStore = create<AdminState>()(
       products: MOCK_PRODUCTS,
       orders: [],
       contracts: DEFAULT_CONTRACTS,
+      stockMovements: [],
 
       syncOrdersFromStorage: () => {
         const localHistory = getOrderHistory();
@@ -93,7 +164,8 @@ export const useAdminStore = create<AdminState>()(
           slug: data.slug,
           description: data.description,
           status: 'active',
-          isPreorder: false,
+          isPreorder: data.isPreorder || false,
+          preorderReleaseAt: data.preorderReleaseAt,
           minPrice: data.price,
           maxPrice: data.price,
           createdAt: new Date().toISOString(),
@@ -117,20 +189,48 @@ export const useAdminStore = create<AdminState>()(
         });
       },
 
-      adjustVariantStock: (variantId, deltaAmount) => {
+      adjustVariantStock: (variantId, deltaAmount, movementType = 'adjustment', referenceType, referenceId, note) => {
+        let actualDelta = deltaAmount;
         set({
           products: get().products.map((prod) => ({
             ...prod,
             variants: prod.variants.map((v) => {
               if (v.id !== variantId) return v;
               const newQty = Math.max(0, v.stockQuantity + deltaAmount);
+              actualDelta = newQty - v.stockQuantity;
               return { ...v, stockQuantity: newQty };
             }),
           })),
+          stockMovements: [
+            {
+              id: `mov-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+              productVariantId: variantId,
+              movementType,
+              quantity: actualDelta,
+              referenceType,
+              referenceId,
+              note: note || `Stock adjustment: ${deltaAmount > 0 ? '+' : ''}${deltaAmount}`,
+              createdAt: new Date().toISOString(),
+            },
+            ...get().stockMovements,
+          ],
         });
       },
 
       updateOrderStatus: (orderNumber, status) => {
+        const order = get().orders.find((o) => o.orderNumber === orderNumber);
+        if (order && status === 'cancelled' && order.status !== 'cancelled') {
+          order.items.forEach((item) => {
+            get().adjustVariantStock(
+              item.variantId,
+              item.quantity,
+              'return',
+              'order',
+              order.id,
+              `Order ${order.orderNumber} cancelled`
+            );
+          });
+        }
         set({
           orders: get().orders.map((o) => (o.orderNumber === orderNumber ? { ...o, status } : o)),
         });

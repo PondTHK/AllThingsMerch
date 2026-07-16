@@ -1,11 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCartStore } from '@/lib/cart/useCartStore';
 import { useHydrated } from '@/lib/cart/useHydrated';
 import { formatTHB } from '@/lib/money';
+import { CartItemTimer } from '@/components/CartItemTimer';
 import { Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
 
 export default function CartPage() {
@@ -14,9 +15,22 @@ export default function CartPage() {
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
   const clearCart = useCartStore((state) => state.clearCart);
+  const releaseExpiredReservation = useCartStore((s) => s.releaseExpiredReservation);
   const subtotal = useCartStore((state) => state.getSubtotal());
   const shippingFee = useCartStore((state) => state.getShippingFee());
   const totalAmount = useCartStore((state) => state.getTotalAmount());
+
+  // Release any per-item reservations that expired while the user was away
+  useEffect(() => {
+    if (isHydrated) releaseExpiredReservation();
+  }, [isHydrated, releaseExpiredReservation]);
+
+  // The item whose reservation expires soonest gets highlighted
+  const soonestExpiry = items.reduce<string | null>((min, item) => {
+    if (!item.reservedUntil) return min;
+    if (!min) return item.reservedUntil;
+    return item.reservedUntil < min ? item.reservedUntil : min;
+  }, null);
 
   if (!isHydrated) {
     return <div className="p-16 text-center text-neutral-500">Loading Shopping Cart...</div>;
@@ -74,9 +88,16 @@ export default function CartPage() {
                   </div>
 
                   <div className="space-y-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">
-                      {item.brandName || 'Official Merch'}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">
+                        {item.brandName || 'Official Merch'}
+                      </span>
+                      {item.isPreorder && (
+                        <span className="px-1.5 py-0.5 rounded-md bg-neutral-200 text-black text-[9px] font-black uppercase tracking-wider">
+                          Pre-Order
+                        </span>
+                      )}
+                    </div>
                     <Link
                       href={`/products/${item.productSlug}`}
                       className="font-bold text-black text-sm sm:text-base hover:underline block"
@@ -86,6 +107,10 @@ export default function CartPage() {
                     <div className="text-xs text-neutral-600 font-medium">
                       Size: <span className="font-bold text-black uppercase">{item.size || 'ONE SIZE'}</span> &bull; SKU: <span className="font-mono">{item.sku}</span>
                     </div>
+                    <CartItemTimer
+                      reservedUntil={item.reservedUntil}
+                      isSoonest={item.reservedUntil === soonestExpiry}
+                    />
                     <div className="text-xs font-bold text-black sm:hidden pt-1">
                       {formatTHB(item.unitPrice)}
                     </div>

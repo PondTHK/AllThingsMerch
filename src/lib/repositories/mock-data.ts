@@ -1,4 +1,64 @@
-import { Brand, Category, Collection, Product } from '@/types';
+import { Brand, Category, Collection, Product, Coupon } from '@/types';
+
+// Mock Coupons
+export const MOCK_COUPONS: Coupon[] = [
+  {
+    id: 'coupon-1',
+    code: 'WELCOME10',
+    description: '10% off for new customers',
+    discountType: 'percentage',
+    discountValue: 10,
+    minOrderValue: 500,
+    maxGlobalUses: 100,
+    currentGlobalUses: 45,
+    maxUsesPerUser: 1,
+    isActive: true,
+    createdAt: new Date('2026-01-01T00:00:00Z').toISOString(),
+    expiresAt: new Date('2026-12-31T23:59:59Z').toISOString(),
+  },
+  {
+    id: 'coupon-2',
+    code: 'MINUS50',
+    description: '50 THB off on any order',
+    discountType: 'fixed',
+    discountValue: 50,
+    currentGlobalUses: 10,
+    isActive: true,
+    createdAt: new Date('2026-02-01T00:00:00Z').toISOString(),
+  }
+];
+
+let mutableCoupons = [...MOCK_COUPONS];
+
+export async function getCoupons(): Promise<Coupon[]> {
+  return [...mutableCoupons];
+}
+
+export async function getCouponByCode(code: string): Promise<Coupon | undefined> {
+  return mutableCoupons.find(c => c.code.toUpperCase() === code.toUpperCase());
+}
+
+export async function createCoupon(coupon: Omit<Coupon, 'id' | 'createdAt' | 'currentGlobalUses'>): Promise<Coupon> {
+  const newCoupon: Coupon = {
+    ...coupon,
+    id: `coupon-${Date.now()}`,
+    currentGlobalUses: 0,
+    createdAt: new Date().toISOString(),
+  };
+  mutableCoupons.push(newCoupon);
+  return newCoupon;
+}
+
+export async function updateCoupon(id: string, updates: Partial<Coupon>): Promise<Coupon> {
+  const index = mutableCoupons.findIndex(c => c.id === id);
+  if (index === -1) throw new Error('Coupon not found');
+  mutableCoupons[index] = { ...mutableCoupons[index], ...updates };
+  return mutableCoupons[index];
+}
+
+export async function deleteCoupon(id: string): Promise<void> {
+  mutableCoupons = mutableCoupons.filter(c => c.id !== id);
+}
 
 // Helper to generate clean, minimalist studio product SVG data URL
 function createStudioImage(title: string, subtitle: string = '', theme: 'dark' | 'light' = 'light'): string {

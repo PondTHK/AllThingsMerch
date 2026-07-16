@@ -19,6 +19,8 @@ export default function AdminProductsPage() {
   const [sku, setSku] = useState('');
   const [price, setPrice] = useState('2990');
   const [stockQuantity, setStockQuantity] = useState('20');
+  const [isPreorder, setIsPreorder] = useState(false);
+  const [preorderReleaseAt, setPreorderReleaseAt] = useState('');
   const [createdMsg, setCreatedMsg] = useState(false);
 
   const handleNameChange = (val: string) => {
@@ -46,12 +48,16 @@ export default function AdminProductsPage() {
       price: parseFloat(price) || 2990,
       stockQuantity: parseInt(stockQuantity, 10) || 20,
       featuredImage: '/products/polo-navy.jpg',
+      isPreorder,
+      preorderReleaseAt: isPreorder ? (preorderReleaseAt || undefined) : undefined,
     });
 
     setName('');
     setSlug('');
     setDescription('');
     setSku('');
+    setIsPreorder(false);
+    setPreorderReleaseAt('');
     setShowForm(false);
     setCreatedMsg(true);
     setTimeout(() => setCreatedMsg(false), 3000);
@@ -191,6 +197,34 @@ export default function AdminProductsPage() {
                 onChange={(e) => setStockQuantity(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs font-medium"
               />
+            </div>
+
+            <div className="sm:col-span-2 flex flex-col sm:flex-row gap-4 items-start sm:items-center p-4 bg-neutral-50 rounded-xl border border-neutral-200">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isPreorder}
+                  onChange={(e) => setIsPreorder(e.target.checked)}
+                  className="w-4 h-4 rounded border-neutral-300 text-black focus:ring-black"
+                />
+                <span className="text-xs font-bold uppercase tracking-wider text-black">
+                  Pre-Order Product
+                </span>
+              </label>
+              
+              {isPreorder && (
+                <div className="flex-1 w-full sm:w-auto">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-1">
+                    Release Date (Optional)
+                  </label>
+                  <input
+                    type="date"
+                    value={preorderReleaseAt}
+                    onChange={(e) => setPreorderReleaseAt(e.target.value)}
+                    className="w-full sm:w-auto px-4 py-2 rounded-xl bg-white border border-neutral-300 text-xs font-medium"
+                  />
+                </div>
+              )}
             </div>
 
             <div className="sm:col-span-2">

@@ -2,6 +2,21 @@ export type UserRole = 'customer' | 'admin' | 'license_holder';
 
 export type ProductStatus = 'draft' | 'active' | 'archived';
 
+export interface Coupon {
+  id: string;
+  code: string;
+  description?: string;
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+  minOrderValue?: number;
+  maxGlobalUses?: number;
+  currentGlobalUses: number;
+  maxUsesPerUser?: number;
+  isActive: boolean;
+  expiresAt?: string;
+  createdAt: string;
+}
+
 export interface Brand {
   id: string;
   name: string;
@@ -86,7 +101,16 @@ export interface CartItem {
   quantity: number;
   imageUrl: string;
   brandName?: string;
+  isPreorder?: boolean;
+  preorderReleaseAt?: string;
+  /**
+   * ISO timestamp when this item's stock reservation expires.
+   * Optional for backward-compat with carts persisted before this field was added.
+   * If undefined the item still behaves correctly — it just won't show a per-item timer.
+   */
+  reservedUntil?: string;
 }
+
 
 export interface ShippingAddress {
   fullName: string;
@@ -109,6 +133,10 @@ export interface OrderItem {
   totalPrice: number;
   authenticityTagCode?: string;
   serialNumber?: string;
+  royaltyRateSnapshot: number; // percentage e.g. 12.5
+  licenseContractId?: string;
+  isPreorder?: boolean;
+  preorderReleaseAt?: string;
 }
 
 export interface Order {
@@ -118,6 +146,8 @@ export interface Order {
   items: OrderItem[];
   subtotal: number;
   shippingFee: number;
+  discountAmount?: number;
+  couponCode?: string;
   totalAmount: number;
   shippingAddress: ShippingAddress;
   paymentMethod: string;
@@ -171,5 +201,16 @@ export interface AuthenticityTagRecord {
   orderNumber?: string;
 }
 
-
-
+export interface Review {
+  id: string;
+  productId: string;
+  userId: string;
+  orderItemId: string;
+  rating: number; // 1-5
+  comment: string;
+  status: 'pending' | 'published' | 'hidden';
+  createdAt: string;
+  userName?: string;
+  productName?: string;
+}
+export * from './stock';

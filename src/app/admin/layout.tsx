@@ -15,6 +15,9 @@ import {
   ShieldCheck,
   ArrowLeft,
   ShieldAlert,
+  Ticket,
+  Coins,
+  MessageSquare,
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -69,7 +72,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { label: 'Inventory & Stock', href: '/admin/inventory', icon: Layers },
     { label: 'Customer Orders', href: '/admin/orders', icon: ClipboardList },
     { label: 'Authenticity TAGs', href: '/admin/tags', icon: ShieldCheck },
+    { label: 'Discount Coupons', href: '/admin/coupons', icon: Ticket },
     { label: 'License Contracts', href: '/admin/contracts', icon: FileText },
+    { label: 'Royalty Reports', href: '/admin/royalties', icon: Coins },
+    { label: 'Customer Reviews', href: '/admin/reviews', icon: MessageSquare },
   ];
 
   return (
