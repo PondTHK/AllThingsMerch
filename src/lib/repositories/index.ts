@@ -34,6 +34,21 @@ interface DbImage {
   sort_order: number;
 }
 
+interface DbBrand {
+  id: string;
+  name: string;
+  slug: string;
+  logo_url: string | null;
+  description: string | null;
+  is_active: boolean;
+}
+
+interface DbCategory {
+  id: string;
+  name: string;
+  slug: string;
+}
+
 interface DbProduct {
   id: string;
   name: string;
@@ -49,6 +64,8 @@ interface DbProduct {
   updated_at: string;
   product_variants?: DbVariant[];
   product_images?: DbImage[];
+  brands?: DbBrand | null;
+  categories?: DbCategory | null;
 }
 
 interface DbCoupon {
@@ -121,7 +138,7 @@ class DemoRepository implements DataRepository {
 }
 
 function mapDbProductToProduct(p: DbProduct): Product {
-  const variants = (p.product_variants || []).map((v: DbVariant) => ({
+  const variants: ProductVariant[] = (p.product_variants || []).map((v: DbVariant) => ({
     id: v.id,
     productId: v.product_id,
     sku: v.sku,
@@ -130,20 +147,19 @@ function mapDbProductToProduct(p: DbProduct): Product {
     price: Number(v.price),
     compareAtPrice: v.compare_at_price ? Number(v.compare_at_price) : undefined,
     stockQuantity: v.stock_quantity,
-    lowStockThreshold: v.low_stock_threshold || undefined,
+    lowStockThreshold: v.low_stock_threshold !== null ? v.low_stock_threshold : 10,
     isActive: v.is_active,
-    createdAt: v.created_at,
   }));
 
   const prices = variants.map((v) => v.price);
   const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
   const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
 
-  const images = (p.product_images || []).map((img: DbImage) => ({
+  const images: ProductImage[] = (p.product_images || []).map((img: DbImage) => ({
     id: img.id,
     productId: img.product_id,
     storagePath: img.storage_path,
-    altText: img.alt_text || undefined,
+    altText: img.alt_text || '',
     sortOrder: img.sort_order,
   })).sort((a, b) => a.sortOrder - b.sortOrder);
 
@@ -159,11 +175,11 @@ function mapDbProductToProduct(p: DbProduct): Product {
     id: p.id,
     brandId: p.brand_id,
     categoryId: p.category_id,
-    licenseContractId: p.license_contract_id,
+    licenseContractId: p.license_contract_id || undefined,
     name: p.name,
     slug: p.slug,
-    description: p.description,
-    status: p.status,
+    description: p.description || '',
+    status: p.status as ProductStatus,
     isPreorder: p.is_preorder || false,
     preorderReleaseAt: p.preorder_release_at || undefined,
     createdAt: p.created_at,
@@ -172,8 +188,8 @@ function mapDbProductToProduct(p: DbProduct): Product {
       id: p.brands.id,
       name: p.brands.name,
       slug: p.brands.slug,
-      logoUrl: p.brands.logo_url,
-      description: p.brands.description,
+      logoUrl: p.brands.logo_url || '',
+      description: p.brands.description || '',
       isActive: p.brands.is_active,
     } : undefined,
     category: p.categories ? {
