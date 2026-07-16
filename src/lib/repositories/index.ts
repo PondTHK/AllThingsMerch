@@ -1,4 +1,4 @@
-import { Product, Brand, Category, Coupon } from '@/types';
+import { Product, Brand, Category, Coupon, ProductVariant, ProductImage, ProductStatus } from '@/types';
 import {
   getAllProducts as getMockProducts,
   getProductBySlug as getMockProductBySlug,
