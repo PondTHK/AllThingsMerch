@@ -20,6 +20,7 @@ export default function AdminProductsPage() {
   const [price, setPrice] = useState('2990');
   const [stockQuantity, setStockQuantity] = useState('20');
   const [isPreorder, setIsPreorder] = useState(false);
+  const [isLimited, setIsLimited] = useState(false);
   const [preorderReleaseAt, setPreorderReleaseAt] = useState('');
   const [createdMsg, setCreatedMsg] = useState(false);
 
@@ -48,6 +49,7 @@ export default function AdminProductsPage() {
       price: parseFloat(price) || 2990,
       stockQuantity: parseInt(stockQuantity, 10) || 20,
       featuredImage: '/products/polo-navy.jpg',
+      isLimited,
       isPreorder,
       preorderReleaseAt: isPreorder ? (preorderReleaseAt || undefined) : undefined,
     });
@@ -56,6 +58,7 @@ export default function AdminProductsPage() {
     setSlug('');
     setDescription('');
     setSku('');
+    setIsLimited(false);
     setIsPreorder(false);
     setPreorderReleaseAt('');
     setShowForm(false);
@@ -203,15 +206,29 @@ export default function AdminProductsPage() {
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
+                  checked={isLimited}
+                  onChange={(e) => setIsLimited(e.target.checked)}
+                  className="w-4 h-4 rounded border-neutral-300 text-black focus:ring-black accent-black cursor-pointer"
+                />
+                <span className="text-xs font-bold uppercase tracking-wider text-black">
+                  Limited Drop (15-Min Timer)
+                </span>
+              </label>
+
+              <div className="hidden sm:block w-px h-6 bg-neutral-300"></div>
+
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
                   checked={isPreorder}
                   onChange={(e) => setIsPreorder(e.target.checked)}
-                  className="w-4 h-4 rounded border-neutral-300 text-black focus:ring-black"
+                  className="w-4 h-4 rounded border-neutral-300 text-black focus:ring-black accent-black cursor-pointer"
                 />
                 <span className="text-xs font-bold uppercase tracking-wider text-black">
                   Pre-Order Product
                 </span>
               </label>
-              
+
               {isPreorder && (
                 <div className="flex-1 w-full sm:w-auto">
                   <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-1">
@@ -274,9 +291,8 @@ export default function AdminProductsPage() {
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-black text-sm">{prod.name}</span>
                     <span
-                      className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                        isActive ? 'bg-black text-white' : 'bg-neutral-300 text-neutral-700'
-                      }`}
+                      className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${isActive ? 'bg-green-100 text-green-800' : 'bg-neutral-300 text-neutral-700'
+                        }`}
                     >
                       {prod.status}
                     </span>

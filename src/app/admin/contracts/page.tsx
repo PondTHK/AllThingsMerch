@@ -177,7 +177,7 @@ export default function AdminContractsPage() {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-black text-sm">{contract.holderName}</span>
-                  <span className="px-2 py-0.5 rounded bg-black text-white text-[10px] font-bold uppercase tracking-wider">
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${contract.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-neutral-300 text-neutral-700'}`}>
                     {contract.status}
                   </span>
                 </div>

@@ -435,7 +435,7 @@ classDiagram
         +contracts LicenseContract[]
         +stockMovements StockMovement[]
         +syncOrdersFromStorage() void
-        +addProduct(data: [name: string, slug: string, description: string, brandId: string, categoryId: string, price: number, sku: string, stockQuantity: number, featuredImage: string, isPreorder?: boolean, preorderReleaseAt?: string]) Product
+        +addProduct(data: [name: string, slug: string, description: string, brandId: string, categoryId: string, price: number, sku: string, stockQuantity: number, featuredImage: string, isLimited?: boolean, isPreorder?: boolean, preorderReleaseAt?: string]) Product
         +toggleProductStatus(string productId) void
         +adjustVariantStock(string variantId, number deltaAmount, StockMovementType movementType, string referenceType, string referenceId, string note) void
         +updateOrderStatus(string orderNumber, string status) void
@@ -447,6 +447,7 @@ classDiagram
         +string name
         +string slug
         +string description
+        +boolean isLimited
         +boolean isPreorder
         +string preorderReleaseAt
         +string brandId

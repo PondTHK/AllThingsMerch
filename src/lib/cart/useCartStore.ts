@@ -72,16 +72,20 @@ export const useCartStore = create<CartState>()(
 
         const existingItems = get().items;
 
-        useAdminStore.getState().adjustVariantStock(
-          variant.id,
-          -quantity,
-          'reserve',
-          'cart',
-          undefined,
-          `Cart reservation lock for ${product.name} (Qty: ${quantity})`
-        );
+        if (product.isLimited) {
+          useAdminStore.getState().adjustVariantStock(
+            variant.id,
+            -quantity,
+            'reserve',
+            'cart',
+            undefined,
+            `Cart reservation lock for ${product.name} (Qty: ${quantity})`
+          );
+        }
 
-        const reservedUntil = new Date(Date.now() + RESERVATION_MS).toISOString();
+        const reservedUntil = product.isLimited
+          ? new Date(Date.now() + RESERVATION_MS).toISOString()
+          : undefined;
         const existingIndex = existingItems.findIndex(
           (item) => item.variantId === variant.id
         );
@@ -109,6 +113,7 @@ export const useCartStore = create<CartState>()(
             brandName: product.brand?.name || 'AllThingsMerch',
             isPreorder: product.isPreorder,
             preorderReleaseAt: product.preorderReleaseAt,
+            isLimited: product.isLimited,
             reservedUntil,
           };
           nextItems = [...existingItems, newItem];
@@ -132,8 +137,10 @@ export const useCartStore = create<CartState>()(
           return;
         }
 
-        // Extend or shrink reservation
-        const reservedUntil = new Date(Date.now() + RESERVATION_MS).toISOString();
+        // Extend or shrink reservation for limited items
+        const reservedUntil = item.isLimited
+          ? new Date(Date.now() + RESERVATION_MS).toISOString()
+          : undefined;
 
         if (diff > 0) {
           const adminProducts = useAdminStore.getState().products;
@@ -146,23 +153,27 @@ export const useCartStore = create<CartState>()(
             throw new Error(`Insufficient stock. Only ${availableStock} additional item(s) left.`);
           }
 
-          useAdminStore.getState().adjustVariantStock(
-            variantId,
-            -diff,
-            'reserve',
-            'cart',
-            undefined,
-            `Cart reservation increased by ${diff}`
-          );
+          if (item.isLimited) {
+            useAdminStore.getState().adjustVariantStock(
+              variantId,
+              -diff,
+              'reserve',
+              'cart',
+              undefined,
+              `Extended cart reservation lock (Qty: +${diff})`
+            );
+          }
         } else {
-          useAdminStore.getState().adjustVariantStock(
-            variantId,
-            -diff,
-            'release',
-            'cart',
-            undefined,
-            `Cart reservation decreased by ${Math.abs(diff)}`
-          );
+          if (item.isLimited) {
+            useAdminStore.getState().adjustVariantStock(
+              variantId,
+              Math.abs(diff),
+              'release',
+              'cart',
+              undefined,
+              `Reduced cart reservation lock (Qty: ${diff})`
+            );
+          }
         }
 
         const nextItems = get().items.map((i) =>
@@ -177,18 +188,17 @@ export const useCartStore = create<CartState>()(
 
       removeItem: (variantId) => {
         const item = get().items.find((i) => i.variantId === variantId);
-        if (item) {
+        if (item && item.isLimited) {
           useAdminStore.getState().adjustVariantStock(
             variantId,
             item.quantity,
             'release',
             'cart',
             undefined,
-            `Cart reservation released (Item removed)`
+            `Cart item removed ${item.productName}`
           );
         }
-
-        const nextItems = get().items.filter((i) => i.variantId !== variantId);
+        const nextItems = get().items.filter((item) => item.variantId !== variantId);
         set({
           items: nextItems,
           cartReservedUntil: computeCartReservedUntil(nextItems),
@@ -196,15 +206,18 @@ export const useCartStore = create<CartState>()(
       },
 
       clearCart: () => {
-        get().items.forEach((item) => {
-          useAdminStore.getState().adjustVariantStock(
-            item.variantId,
-            item.quantity,
-            'release',
-            'cart',
-            undefined,
-            `Cart reservation released (Cart cleared)`
-          );
+        const { items } = get();
+        items.forEach((item) => {
+          if (item.isLimited) {
+            useAdminStore.getState().adjustVariantStock(
+              item.variantId,
+              item.quantity,
+              'release',
+              'cart',
+              undefined,
+              `Cart cleared ${item.productName}`
+            );
+          }
         });
         set({ items: [], appliedCoupon: null, cartReservedUntil: null });
       },

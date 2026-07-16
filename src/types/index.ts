@@ -63,6 +63,7 @@ export interface Product {
   slug: string;
   description: string;
   status: ProductStatus;
+  isLimited?: boolean;
   isPreorder: boolean;
   preorderReleaseAt?: string;
   createdAt: string;
@@ -101,6 +102,7 @@ export interface CartItem {
   quantity: number;
   imageUrl: string;
   brandName?: string;
+  isLimited?: boolean;
   isPreorder?: boolean;
   preorderReleaseAt?: string;
   /**

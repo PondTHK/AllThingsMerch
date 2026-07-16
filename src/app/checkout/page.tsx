@@ -99,6 +99,20 @@ export default function CheckoutPage() {
         appliedCoupon
       );
 
+      // 1. Validate stock for NON-LIMITED items (because they weren't reserved!)
+      const adminProducts = useAdminStore.getState().products;
+      for (const item of items) {
+        if (!item.isLimited) {
+          const adminVariant = adminProducts
+            .flatMap((p) => p.variants)
+            .find((v) => v.id === item.variantId);
+          const available = adminVariant ? adminVariant.stockQuantity : 0;
+          if (available < item.quantity) {
+            throw new Error(`Item ${item.productName} is out of stock. Please adjust your cart.`);
+          }
+        }
+      }
+
       // Increment coupon use count if one was applied
       if (appliedCoupon) {
         getRepository().updateCoupon(appliedCoupon.id, {
@@ -108,9 +122,12 @@ export default function CheckoutPage() {
 
       // Transition reservation to sale in Admin Store
       items.forEach((item) => {
-        // 1. Release the reservation (positive delta)
-        useAdminStore.getState().adjustVariantStock(item.variantId, item.quantity, 'release', 'cart');
-        // 2. Log as permanent sale (negative delta)
+        if (item.isLimited) {
+          // 1. Release the reservation (positive delta) since it was reserved
+          useAdminStore.getState().adjustVariantStock(item.variantId, item.quantity, 'release', 'cart');
+        }
+        
+        // 2. Log as permanent sale (negative delta) for ALL items
         useAdminStore.getState().adjustVariantStock(
           item.variantId,
           -item.quantity,
