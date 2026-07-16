@@ -443,8 +443,8 @@ export default function CheckoutPage() {
                           }
                           applyCoupon(coupon);
                           setCouponCodeInput('');
-                        } catch (err: any) {
-                          setCouponError(err.message || 'Failed to apply coupon');
+                        } catch (err) {
+                          setCouponError(err instanceof Error ? err.message : 'Failed to apply coupon');
                         } finally {
                           setIsApplyingCoupon(false);
                         }
