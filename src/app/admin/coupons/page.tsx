@@ -12,11 +12,7 @@ export default function AdminCouponsPage() {
   const [loading, setLoading] = useState(true);
   const [searchCode, setSearchCode] = useState('');
 
-  useEffect(() => {
-    fetchCoupons();
-  }, []);
-
-  async function fetchCoupons() {
+  const fetchCoupons = async () => {
     setLoading(true);
     try {
       const data = await getRepository().getCoupons();
@@ -26,7 +22,11 @@ export default function AdminCouponsPage() {
     } finally {
       setLoading(false);
     }
-  }
+  };
+
+  useEffect(() => {
+    fetchCoupons();
+  }, []);
 
   async function handleDelete(id: string) {
     if (!confirm('Are you sure you want to delete this coupon?')) return;
