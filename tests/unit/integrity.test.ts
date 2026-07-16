@@ -154,6 +154,8 @@ describe('Storefront Logic & Data Integrity', () => {
         postalCode: '10000',
       },
       paymentMethod: 'credit-card',
+      shippingFee: 0,
+      isDemoOrder: true,
       createdAt: new Date().toISOString(),
     };
 
@@ -237,6 +239,8 @@ describe('Storefront Logic & Data Integrity', () => {
         postalCode: ''
       },
       paymentMethod: 'credit-card',
+      shippingFee: 0,
+      isDemoOrder: true,
       createdAt: new Date().toISOString(),
     };
     
