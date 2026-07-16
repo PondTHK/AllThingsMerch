@@ -25,7 +25,10 @@ export default function AdminCouponsPage() {
   };
 
   useEffect(() => {
-    fetchCoupons();
+    const timer = setTimeout(() => {
+      fetchCoupons();
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   async function handleDelete(id: string) {
