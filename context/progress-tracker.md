@@ -13,7 +13,7 @@ description: Project development progress tracker, milestones, in-progress tasks
 
 ## Current Goal
 
-- ระบบรีวิวและให้คะแนนสินค้า (Reviews & Ratings System)
+- ไม่มี (รอคำสั่งฟีเจอร์ใหม่)
 
 ## Completed
 
@@ -39,6 +39,9 @@ description: Project development progress tracker, milestones, in-progress tasks
 - **Feature: Inventory Stock Audit UI & Draft Confirm** — เพิ่มตาราง Stock Audit Ledger แสดงประวัติการย้ายสต็อก และอัปเดตระบบปรับสต็อกหน้าแอดมินเป็นแบบบันทึกร่างและกดยืนยันทีเดียวเพื่อลดบันทึกรอยต่อที่ซ้ำซ้อน
 - **Feature: Stock Audit Ledger Pagination** — เพิ่มระบบแบ่งหน้า (Pagination) หน้าละ 10 แถวให้กับประวัติการย้ายสต็อก เพื่อประสิทธิภาพการเรนเดอร์และความสวยงามของเลย์เอาต์
 - **Feature: SADS Diagrams** — พัฒนาแผนภาพการออกแบบซอฟต์แวร์ 3 ชนิด (Use Case Diagram, Sequence Diagram และ Class Diagram) ครบถ้วนโดยระบุพารามิเตอร์และประเภทข้อมูลการส่งกลับ (Parameter & Return types) อย่างละเอียด และไร้อิโมจิตามข้อกำหนดของเอกสาร SADS 1.2
+- **Feature: Limited Drop 15-Min Timer** — เพิ่มตัวเลือก `isLimited` ในหน้าแอดมินให้เปิดปิดการนับเวลาตะกร้า 15 นาทีรายสินค้า และแสดงเวลานับถอยหลังในตะกร้าเฉพาะเมื่อมีสินค้าจำกัดเวลา
+- **Feature: UI Detail Alignments** — ปรับแต่ง UI ให้ตรงกับ Monochrome Design System เช่น Checkbox สีขาวดำแบบ Accent-Black และแถบสถานะ (Badge) สีเขียวสำหรับสินค้าที่ Active
+- **Feature: Architecture Documentation Refactor** — จัดโครงสร้าง Class Diagram ใหม่ แยก Layer (Auth, Customer, Admin, Domain) ระบุสิทธิ์ผู้ใช้งานผ่านเส้นความสัมพันธ์ (UserRole) เปลี่ยน Parameter กลับเป็นชนิดพื้นฐานให้สะท้อนโค้ดจริง และอัปเดตไฟล์ `context/design.md` ให้เป็นมาตรฐาน DESIGN.md
 
 <!-- เพิ่ม bullet ใหม่ที่นี่ทุกครั้งที่ทำ Feature เสร็จ -->
 
