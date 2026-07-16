@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getRepository } from '@/lib/repositories';
 import { ArrowLeft, Save } from 'lucide-react';
-import { Coupon } from '@/types';
 
 export default function NewCouponPage() {
   const router = useRouter();
@@ -50,8 +49,8 @@ export default function NewCouponPage() {
       });
 
       router.push('/admin/coupons');
-    } catch (err: any) {
-      setError(err.message || 'Failed to create coupon');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create coupon');
     } finally {
       setLoading(false);
     }
@@ -116,7 +115,7 @@ export default function NewCouponPage() {
                 </label>
                 <select
                   value={formData.discountType}
-                  onChange={(e) => setFormData({ ...formData, discountType: e.target.value as any })}
+                  onChange={(e) => setFormData({ ...formData, discountType: e.target.value as 'percentage' | 'fixed' })}
                   className="w-full px-4 py-2.5 rounded-xl border border-neutral-300 focus:outline-none focus:ring-1 focus:ring-black focus:border-black bg-white"
                 >
                   <option value="percentage">Percentage (%)</option>
