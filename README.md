@@ -367,15 +367,16 @@ sequenceDiagram
 
 ```mermaid
 classDiagram
-    class Repository {
+    class DataRepository {
         <<interface>>
+        +mode string
         +getProducts() Promise~Product[]~
         +getProductBySlug(string slug) Promise~Product_or_undefined~
         +getBrands() Promise~Brand[]~
         +getCategories() Promise~Category[]~
         +getCoupons() Promise~Coupon[]~
         +getCouponByCode(string code) Promise~Coupon_or_undefined~
-        +createCoupon(Coupon coupon) Promise~Coupon~
+        +createCoupon(CouponInput coupon) Promise~Coupon~
         +updateCoupon(string id, Coupon updates) Promise~Coupon~
         +deleteCoupon(string id) Promise~void~
     }
@@ -388,7 +389,7 @@ classDiagram
         +getCategories() Promise~Category[]~
         +getCoupons() Promise~Coupon[]~
         +getCouponByCode(string code) Promise~Coupon_or_undefined~
-        +createCoupon(Coupon coupon) Promise~Coupon~
+        +createCoupon(CouponInput coupon) Promise~Coupon~
         +updateCoupon(string id, Coupon updates) Promise~Coupon~
         +deleteCoupon(string id) Promise~void~
     }
@@ -401,20 +402,20 @@ classDiagram
         +getCategories() Promise~Category[]~
         +getCoupons() Promise~Coupon[]~
         +getCouponByCode(string code) Promise~Coupon_or_undefined~
-        +createCoupon(Coupon coupon) Promise~Coupon~
+        +createCoupon(CouponInput coupon) Promise~Coupon~
         +updateCoupon(string id, Coupon updates) Promise~Coupon~
         +deleteCoupon(string id) Promise~void~
     }
 
-    Repository <|.. DemoRepository : implements
-    Repository <|.. SupabaseRepository : implements
+    DataRepository <|.. DemoRepository : implements
+    DataRepository <|.. SupabaseRepository : implements
 
     class useCartStore {
         +items CartItem[]
         +cartReservedUntil string
         +appliedCoupon Coupon
-        +addItem(ProductVariant variant, Product product, int quantity) void
-        +updateQuantity(string variantId, int quantity) void
+        +addItem(ProductVariant variant, Product product, number quantity) void
+        +updateQuantity(string variantId, number quantity) void
         +removeItem(string variantId) void
         +clearCart() void
         +clearCartWithoutRelease() void
@@ -436,88 +437,134 @@ classDiagram
         +syncOrdersFromStorage() void
         +addProduct(ProductData data) Product
         +toggleProductStatus(string productId) void
-        +adjustVariantStock(string variantId, int deltaAmount, string movementType, string referenceType, string referenceId, string note) void
+        +adjustVariantStock(string variantId, number deltaAmount, StockMovementType movementType, string referenceType, string referenceId, string note) void
         +updateOrderStatus(string orderNumber, string status) void
-        +addContract(ContractData data) LicenseContract
+        +addContract(LicenseContractData data) LicenseContract
     }
 
     class Product {
-        +uuid id
+        +string id
         +string name
         +string slug
         +string description
         +boolean isPreorder
-        +datetime preorderReleaseAt
+        +string preorderReleaseAt
+        +string brandId
+        +string categoryId
+        +string licenseContractId
+        +string status
+        +string createdAt
+        +string updatedAt
+        +Brand brand
+        +Category category
         +ProductVariant[] variants
+        +ProductImage[] images
+        +string featuredImage
+        +number minPrice
+        +number maxPrice
+        +string tagline
     }
 
     class ProductVariant {
-        +uuid id
-        +uuid productId
+        +string id
+        +string productId
         +string sku
         +string size
-        +decimal price
-        +int stockQuantity
-        +int lowStockThreshold
+        +string color
+        +number price
+        +number compareAtPrice
+        +number stockQuantity
+        +number lowStockThreshold
+        +boolean isActive
     }
 
     class Order {
-        +uuid id
+        +string id
         +string orderNumber
         +string status
-        +decimal subtotal
-        +decimal discountAmount
-        +decimal totalAmount
-        +uuid couponId
-        +datetime createdAt
+        +OrderItem[] items
+        +number subtotal
+        +number shippingFee
+        +number discountAmount
+        +string couponCode
+        +number totalAmount
+        +ShippingAddress shippingAddress
+        +string paymentMethod
+        +boolean isDemoOrder
+        +string createdAt
     }
 
     class OrderItem {
-        +uuid id
-        +uuid orderId
-        +uuid productVariantId
+        +string id
+        +string productId
+        +string variantId
         +string productName
-        +decimal unitPrice
-        +int quantity
-        +decimal royaltyRateSnapshot
+        +string sku
+        +string size
+        +number unitPrice
+        +number quantity
+        +number totalPrice
+        +string authenticityTagCode
+        +string serialNumber
+        +number royaltyRateSnapshot
+        +string licenseContractId
+        +boolean isPreorder
+        +string preorderReleaseAt
     }
 
     class StockMovement {
-        +uuid id
-        +uuid productVariantId
-        +string movementType
-        +int quantity
+        +string id
+        +string productVariantId
+        +StockMovementType movementType
+        +number quantity
         +string referenceType
-        +uuid referenceId
+        +string referenceId
         +string note
-        +datetime createdAt
+        +string createdAt
     }
 
-    class AuthenticityTag {
-        +uuid id
-        +string publicCode
+    class StockMovementType {
+        <<enumeration>>
+        receive
+        reserve
+        release
+        sale
+        return
+        adjustment
+    }
+
+    class AuthenticityTagRecord {
+        +string tagCode
         +string serialNumber
-        +uuid orderItemId
+        +string productId
+        +string productName
+        +string brandName
+        +string sku
+        +string size
         +string status
-        +datetime issuedAt
+        +string issuedAt
+        +string orderNumber
     }
 
     class Coupon {
-        +uuid id
+        +string id
         +string code
+        +string description
         +string discountType
-        +decimal discountValue
-        +decimal minOrderValue
-        +int maxGlobalUses
-        +int currentGlobalUses
-        +int maxUsesPerUser
+        +number discountValue
+        +number minOrderValue
+        +number maxGlobalUses
+        +number currentGlobalUses
+        +number maxUsesPerUser
         +boolean isActive
+        +string expiresAt
+        +string createdAt
     }
 
     Product "1" *-- "many" ProductVariant : contains
     Order "1" *-- "many" OrderItem : contains
     ProductVariant "1" --o "many" StockMovement : logs
-    OrderItem "1" --> "1" AuthenticityTag : has
+    OrderItem "1" --> "1" AuthenticityTagRecord : has
 ```
 
 ---
