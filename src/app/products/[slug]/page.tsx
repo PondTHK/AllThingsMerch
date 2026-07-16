@@ -60,8 +60,8 @@ export default function ProductDetailPage() {
       setTimeout(() => {
         setAddedMessage(false);
       }, 3000);
-    } catch (e: any) {
-      setErrorMsg(e.message);
+    } catch (e) {
+      setErrorMsg(e instanceof Error ? e.message : 'An error occurred');
       setTimeout(() => {
         setErrorMsg('');
       }, 5000);
@@ -373,7 +373,7 @@ export default function ProductDetailPage() {
                     </span>
                   </div>
                   <p className="text-sm text-neutral-800 leading-relaxed font-semibold">
-                    "{review.comment}"
+                    &quot;{review.comment}&quot;
                   </p>
                   <div className="flex items-center gap-2 text-xs">
                     <span className="font-bold text-black">{review.userName || 'Verified Buyer'}</span>
