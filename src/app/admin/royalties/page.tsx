@@ -9,7 +9,6 @@ import {
   FileText, 
   Undo2, 
   Calendar,
-  AlertCircle,
   HelpCircle
 } from 'lucide-react';
 
