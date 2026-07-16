@@ -376,8 +376,8 @@ classDiagram
         +getCategories() Promise~Category[]~
         +getCoupons() Promise~Coupon[]~
         +getCouponByCode(string code) Promise~Coupon_or_undefined~
-        +createCoupon(coupon: &#123; code: string, description?: string, discountType: string, discountValue: number, minOrderValue?: number, maxGlobalUses?: number, maxUsesPerUser?: number, isActive?: boolean, expiresAt?: string &#125;) Promise~Coupon~
-        +updateCoupon(string id, updates: &#123; code?: string, description?: string, discountType?: string, discountValue?: number, minOrderValue?: number, maxGlobalUses?: number, maxUsesPerUser?: number, isActive?: boolean, expiresAt?: string &#125;) Promise~Coupon~
+        +createCoupon(coupon: [code: string, description?: string, discountType: string, discountValue: number, minOrderValue?: number, maxGlobalUses?: number, maxUsesPerUser?: number, isActive?: boolean, expiresAt?: string]) Promise~Coupon~
+        +updateCoupon(string id, updates: [code?: string, description?: string, discountType?: string, discountValue?: number, minOrderValue?: number, maxGlobalUses?: number, maxUsesPerUser?: number, isActive?: boolean, expiresAt?: string]) Promise~Coupon~
         +deleteCoupon(string id) Promise~void~
     }
 
@@ -389,8 +389,8 @@ classDiagram
         +getCategories() Promise~Category[]~
         +getCoupons() Promise~Coupon[]~
         +getCouponByCode(string code) Promise~Coupon_or_undefined~
-        +createCoupon(coupon: &#123; code: string, description?: string, discountType: string, discountValue: number, minOrderValue?: number, maxGlobalUses?: number, maxUsesPerUser?: number, isActive?: boolean, expiresAt?: string &#125;) Promise~Coupon~
-        +updateCoupon(string id, updates: &#123; code?: string, description?: string, discountType?: string, discountValue?: number, minOrderValue?: number, maxGlobalUses?: number, maxUsesPerUser?: number, isActive?: boolean, expiresAt?: string &#125;) Promise~Coupon~
+        +createCoupon(coupon: [code: string, description?: string, discountType: string, discountValue: number, minOrderValue?: number, maxGlobalUses?: number, maxUsesPerUser?: number, isActive?: boolean, expiresAt?: string]) Promise~Coupon~
+        +updateCoupon(string id, updates: [code?: string, description?: string, discountType?: string, discountValue?: number, minOrderValue?: number, maxGlobalUses?: number, maxUsesPerUser?: number, isActive?: boolean, expiresAt?: string]) Promise~Coupon~
         +deleteCoupon(string id) Promise~void~
     }
 
@@ -402,8 +402,8 @@ classDiagram
         +getCategories() Promise~Category[]~
         +getCoupons() Promise~Coupon[]~
         +getCouponByCode(string code) Promise~Coupon_or_undefined~
-        +createCoupon(coupon: &#123; code: string, description?: string, discountType: string, discountValue: number, minOrderValue?: number, maxGlobalUses?: number, maxUsesPerUser?: number, isActive?: boolean, expiresAt?: string &#125;) Promise~Coupon~
-        +updateCoupon(string id, updates: &#123; code?: string, description?: string, discountType?: string, discountValue?: number, minOrderValue?: number, maxGlobalUses?: number, maxUsesPerUser?: number, isActive?: boolean, expiresAt?: string &#125;) Promise~Coupon~
+        +createCoupon(coupon: [code: string, description?: string, discountType: string, discountValue: number, minOrderValue?: number, maxGlobalUses?: number, maxUsesPerUser?: number, isActive?: boolean, expiresAt?: string]) Promise~Coupon~
+        +updateCoupon(string id, updates: [code?: string, description?: string, discountType?: string, discountValue?: number, minOrderValue?: number, maxGlobalUses?: number, maxUsesPerUser?: number, isActive?: boolean, expiresAt?: string]) Promise~Coupon~
         +deleteCoupon(string id) Promise~void~
     }
 
@@ -435,11 +435,11 @@ classDiagram
         +contracts LicenseContract[]
         +stockMovements StockMovement[]
         +syncOrdersFromStorage() void
-        +addProduct(data: &#123; name: string, slug: string, description: string, brandId: string, categoryId: string, price: number, sku: string, stockQuantity: number, featuredImage: string, isPreorder?: boolean, preorderReleaseAt?: string &#125;) Product
+        +addProduct(data: [name: string, slug: string, description: string, brandId: string, categoryId: string, price: number, sku: string, stockQuantity: number, featuredImage: string, isPreorder?: boolean, preorderReleaseAt?: string]) Product
         +toggleProductStatus(string productId) void
         +adjustVariantStock(string variantId, number deltaAmount, StockMovementType movementType, string referenceType, string referenceId, string note) void
         +updateOrderStatus(string orderNumber, string status) void
-        +addContract(data: &#123; licenseHolderId: string, holderName: string, contractReference: string, royaltyRate: number, startsAt: string, expiresAt: string, status: string &#125;) LicenseContract
+        +addContract(data: [licenseHolderId: string, holderName: string, contractReference: string, royaltyRate: number, startsAt: string, expiresAt: string, status: string]) LicenseContract
     }
 
     class Product {
