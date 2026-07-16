@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useCartStore } from '@/lib/cart/useCartStore';
@@ -9,6 +9,7 @@ import { useHydrated } from '@/lib/cart/useHydrated';
 import { fulfillMockOrder, validateAndRecalculateCart } from '@/lib/orders/mock-checkout';
 import { formatTHB } from '@/lib/money';
 import { getRepository } from '@/lib/repositories';
+import { CheckoutReservationBanner } from '@/components/CheckoutReservationBanner';
 import { ShieldAlert, ShieldCheck, Lock, ArrowLeft, Ticket, X } from 'lucide-react';
 
 type PaymentMethodId = 'credit-card' | 'promptpay' | 'cod';
@@ -19,9 +20,22 @@ export default function CheckoutPage() {
   const items = useCartStore((s) => s.items);
   const hasPreorder = items.some((item) => item.isPreorder);
   const clearCartWithoutRelease = useCartStore((s) => s.clearCartWithoutRelease);
+  const releaseExpiredReservation = useCartStore((s) => s.releaseExpiredReservation);
   const appliedCoupon = useCartStore((s) => s.appliedCoupon);
   const applyCoupon = useCartStore((s) => s.applyCoupon);
   const removeCoupon = useCartStore((s) => s.removeCoupon);
+
+  // Release expired per-item reservations on mount
+  useEffect(() => {
+    if (isHydrated) releaseExpiredReservation();
+  }, [isHydrated, releaseExpiredReservation]);
+
+  // Unified checkout timer — driven by the soonest-expiring item
+  const soonestExpiry = items.reduce<string | null>((min, item) => {
+    if (!item.reservedUntil) return min;
+    if (!min) return item.reservedUntil;
+    return item.reservedUntil < min ? item.reservedUntil : min;
+  }, null);
 
   const [fullName, setFullName] = useState('Thanakhon Demo Collector');
   const [email, setEmail] = useState('collector@allthingsmerch.demo');
@@ -118,6 +132,9 @@ export default function CheckoutPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {/* Sticky reservation countdown — shows neutral/amber/red based on time left */}
+      <CheckoutReservationBanner soonestExpiry={soonestExpiry} />
+
       {/* Top Banner Notice */}
       <div className="mb-8 p-4 rounded-2xl bg-neutral-100 border border-neutral-300 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">

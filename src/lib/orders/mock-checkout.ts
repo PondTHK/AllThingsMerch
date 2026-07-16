@@ -24,6 +24,29 @@ export function validateAndRecalculateCart(items: CartItem[], coupon?: Coupon | 
     };
   }
 
+  // ── Reservation expiry guard ──────────────────────────────────────────────
+  // This is the server-side equivalent of the frontend timer. Even if the UI
+  // already shows a warning, we re-validate here at the moment of submission
+  // to close the race-condition window between the timer reaching 0 and the
+  // user clicking "Place Order".
+  // When connecting to a real backend, replicate this check in your Server
+  // Action / API route before any DB write.
+  const now = Date.now();
+  for (const item of items) {
+    if (item.reservedUntil && new Date(item.reservedUntil).getTime() < now) {
+      return {
+        verifiedItems: [],
+        subtotal: 0,
+        discountAmount: 0,
+        shippingFee: 0,
+        totalAmount: 0,
+        isValid: false,
+        errorMessage: `Your reservation for "${item.productName}" has expired. Please add the item to your cart again to continue.`,
+      };
+    }
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
   const verifiedItems: OrderItem[] = [];
   let subtotal = 0;
 

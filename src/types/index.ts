@@ -103,7 +103,14 @@ export interface CartItem {
   brandName?: string;
   isPreorder?: boolean;
   preorderReleaseAt?: string;
+  /**
+   * ISO timestamp when this item's stock reservation expires.
+   * Optional for backward-compat with carts persisted before this field was added.
+   * If undefined the item still behaves correctly — it just won't show a per-item timer.
+   */
+  reservedUntil?: string;
 }
+
 
 export interface ShippingAddress {
   fullName: string;

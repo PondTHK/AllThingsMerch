@@ -1,18 +1,41 @@
+'use client';
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { CartItem, Product, ProductVariant, Coupon } from '@/types';
 import { useAdminStore } from '@/lib/admin/useAdminStore';
 
+const RESERVATION_MS = 15 * 60 * 1000; // 15 minutes
+
+/** Compute the soonest reservedUntil from a list of items, or null if none. */
+function computeCartReservedUntil(items: CartItem[]): string | null {
+  const timestamps = items
+    .map((i) => i.reservedUntil)
+    .filter((t): t is string => !!t);
+  if (timestamps.length === 0) return null;
+  return timestamps.reduce((min, t) => (t < min ? t : min));
+}
+
 interface CartState {
   items: CartItem[];
+  /**
+   * The soonest reservedUntil across all items.
+   * Kept in sync for backward-compat and for consumers that want a single
+   * "cart expires at" value (e.g. the checkout page unified timer).
+   */
   cartReservedUntil: string | null;
+  appliedCoupon: Coupon | null;
   addItem: (variant: ProductVariant, product: Product, quantity?: number) => void;
   updateQuantity: (variantId: string, quantity: number) => void;
   removeItem: (variantId: string) => void;
   clearCart: () => void;
   clearCartWithoutRelease: () => void;
+  /**
+   * Releases stock for each expired item individually and removes them from the
+   * cart. Non-expired items are kept intact.
+   * Call this on page load / focus to clean up stale reservations.
+   */
   releaseExpiredReservation: () => void;
-  appliedCoupon: Coupon | null;
   applyCoupon: (coupon: Coupon) => void;
   removeCoupon: () => void;
   getTotalCount: () => number;
@@ -58,18 +81,18 @@ export const useCartStore = create<CartState>()(
           `Cart reservation lock for ${product.name} (Qty: ${quantity})`
         );
 
-        const reservationTime = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+        const reservedUntil = new Date(Date.now() + RESERVATION_MS).toISOString();
         const existingIndex = existingItems.findIndex(
           (item) => item.variantId === variant.id
         );
 
+        let nextItems: CartItem[];
         if (existingIndex > -1) {
-          const updated = [...existingItems];
-          updated[existingIndex] = {
-            ...updated[existingIndex],
-            quantity: updated[existingIndex].quantity + quantity,
-          };
-          set({ items: updated, cartReservedUntil: reservationTime });
+          nextItems = existingItems.map((item, i) =>
+            i === existingIndex
+              ? { ...item, quantity: item.quantity + quantity, reservedUntil }
+              : item
+          );
         } else {
           const newItem: CartItem = {
             id: `${variant.id}-${Date.now()}`,
@@ -86,9 +109,15 @@ export const useCartStore = create<CartState>()(
             brandName: product.brand?.name || 'AllThingsMerch',
             isPreorder: product.isPreorder,
             preorderReleaseAt: product.preorderReleaseAt,
+            reservedUntil,
           };
-          set({ items: [...existingItems, newItem], cartReservedUntil: reservationTime });
+          nextItems = [...existingItems, newItem];
         }
+
+        set({
+          items: nextItems,
+          cartReservedUntil: computeCartReservedUntil(nextItems),
+        });
       },
 
       updateQuantity: (variantId, quantity) => {
@@ -102,6 +131,9 @@ export const useCartStore = create<CartState>()(
           get().removeItem(variantId);
           return;
         }
+
+        // Extend or shrink reservation
+        const reservedUntil = new Date(Date.now() + RESERVATION_MS).toISOString();
 
         if (diff > 0) {
           const adminProducts = useAdminStore.getState().products;
@@ -133,13 +165,13 @@ export const useCartStore = create<CartState>()(
           );
         }
 
-        const reservationTime = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+        const nextItems = get().items.map((i) =>
+          i.variantId === variantId ? { ...i, quantity, reservedUntil } : i
+        );
 
         set({
-          items: get().items.map((item) =>
-            item.variantId === variantId ? { ...item, quantity } : item
-          ),
-          cartReservedUntil: reservationTime,
+          items: nextItems,
+          cartReservedUntil: computeCartReservedUntil(nextItems),
         });
       },
 
@@ -156,14 +188,10 @@ export const useCartStore = create<CartState>()(
           );
         }
 
-        const nextItems = get().items.filter((item) => item.variantId !== variantId);
-        const reservationTime = nextItems.length > 0 
-          ? new Date(Date.now() + 15 * 60 * 1000).toISOString()
-          : null;
-
+        const nextItems = get().items.filter((i) => i.variantId !== variantId);
         set({
           items: nextItems,
-          cartReservedUntil: reservationTime,
+          cartReservedUntil: computeCartReservedUntil(nextItems),
         });
       },
 
@@ -185,21 +213,50 @@ export const useCartStore = create<CartState>()(
         set({ items: [], appliedCoupon: null, cartReservedUntil: null });
       },
 
+      /**
+       * Per-item expiry: only releases and removes items whose reservedUntil
+       * has passed. Items still within their window are untouched.
+       *
+       * For items persisted before reservedUntil was added (undefined), we fall
+       * back to the cart-level cartReservedUntil. If that is also undefined the
+       * item is considered non-expiring and is kept.
+       */
       releaseExpiredReservation: () => {
-        const reservedUntil = get().cartReservedUntil;
-        if (reservedUntil && new Date().getTime() > new Date(reservedUntil).getTime()) {
-          get().items.forEach((item) => {
-            useAdminStore.getState().adjustVariantStock(
-              item.variantId,
-              item.quantity,
-              'release',
-              'cart',
-              undefined,
-              `Cart reservation expired for ${item.productName}`
-            );
-          });
-          set({ items: [], appliedCoupon: null, cartReservedUntil: null });
-        }
+        const now = Date.now();
+        const cartExpiry = get().cartReservedUntil;
+
+        const { expiredItems, validItems } = get().items.reduce(
+          (acc, item) => {
+            const expiry = item.reservedUntil ?? cartExpiry ?? null;
+            if (expiry && new Date(expiry).getTime() < now) {
+              acc.expiredItems.push(item);
+            } else {
+              acc.validItems.push(item);
+            }
+            return acc;
+          },
+          { expiredItems: [] as CartItem[], validItems: [] as CartItem[] }
+        );
+
+        if (expiredItems.length === 0) return;
+
+        expiredItems.forEach((item) => {
+          useAdminStore.getState().adjustVariantStock(
+            item.variantId,
+            item.quantity,
+            'release',
+            'cart',
+            undefined,
+            `Cart reservation expired for ${item.productName}`
+          );
+        });
+
+        set({
+          items: validItems,
+          cartReservedUntil: computeCartReservedUntil(validItems),
+          // Clear coupon only if cart is now completely empty
+          appliedCoupon: validItems.length === 0 ? null : get().appliedCoupon,
+        });
       },
 
       getTotalCount: () => {
@@ -221,16 +278,16 @@ export const useCartStore = create<CartState>()(
         if (!coupon) return 0;
 
         const subtotal = get().getSubtotal();
-        
+
         // Check minimum order value
         if (coupon.minOrderValue && subtotal < coupon.minOrderValue) {
-          return 0; // Or we could automatically remove it, but returning 0 is safer for state
+          return 0;
         }
 
         if (coupon.discountType === 'percentage') {
           return Math.floor(subtotal * (coupon.discountValue / 100));
         } else {
-          return Math.min(subtotal, coupon.discountValue); // Discount shouldn't exceed subtotal
+          return Math.min(subtotal, coupon.discountValue);
         }
       },
 
@@ -238,8 +295,6 @@ export const useCartStore = create<CartState>()(
         const subtotal = get().getSubtotal();
         const discount = get().getDiscountAmount();
         const shipping = get().getShippingFee();
-        
-        // Discount is applied before shipping in most ecommerce logic
         return Math.max(0, subtotal - discount) + shipping;
       },
     }),
