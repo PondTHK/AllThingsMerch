@@ -36,7 +36,7 @@ export function useReservationTimer(
 
   useEffect(() => {
     if (!reservedUntil) {
-      setSecondsLeft(0);
+      setTimeout(() => setSecondsLeft(0), 0);
       return;
     }
     const tick = () => setSecondsLeft(calcSecondsLeft());

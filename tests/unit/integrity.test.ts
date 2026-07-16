@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { useCartStore } from '@/lib/cart/useCartStore';
 import { useAdminStore } from '@/lib/admin/useAdminStore';
 import { validateAndRecalculateCart } from '@/lib/orders/mock-checkout';
-import { CartItem, Product, ProductVariant, Coupon, Order } from '@/types';
+import { CartItem, Product, Coupon, Order, ShippingAddress } from '@/types';
 
 describe('Storefront Logic & Data Integrity', () => {
   const inStockProduct: Product = {
@@ -14,6 +14,7 @@ describe('Storefront Logic & Data Integrity', () => {
     description: 'Comes ready to ship.',
     status: 'active',
     isPreorder: false,
+    isLimited: true,
     minPrice: 1000,
     maxPrice: 1000,
     createdAt: new Date().toISOString(),
@@ -122,7 +123,6 @@ describe('Storefront Logic & Data Integrity', () => {
 
   it('refunds inventory stock upon order cancellation (Issue 3)', () => {
     const varId = inStockProduct.variants[0].id;
-    const initialStock = inStockProduct.variants[0].stockQuantity; // 10
 
     // Setup an existing order
     const orderId = 'ord-123';
@@ -233,7 +233,7 @@ describe('Storefront Logic & Data Integrity', () => {
       shippingFee: 0,
       totalAmount: 950,
       isDemoOrder: true,
-      shippingAddress: {} as any,
+      shippingAddress: {} as unknown as ShippingAddress,
       paymentMethod: 'credit-card',
       createdAt: new Date().toISOString(),
     };

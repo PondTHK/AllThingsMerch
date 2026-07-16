@@ -12,10 +12,6 @@ export default function AdminCouponsPage() {
   const [loading, setLoading] = useState(true);
   const [searchCode, setSearchCode] = useState('');
 
-  useEffect(() => {
-    fetchCoupons();
-  }, []);
-
   async function fetchCoupons() {
     setLoading(true);
     try {
@@ -27,6 +23,12 @@ export default function AdminCouponsPage() {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    setTimeout(() => {
+      fetchCoupons();
+    }, 0);
+  }, []);
 
   async function handleDelete(id: string) {
     if (!confirm('Are you sure you want to delete this coupon?')) return;

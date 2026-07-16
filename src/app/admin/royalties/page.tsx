@@ -58,7 +58,7 @@ export default function RoyaltyReportsPage() {
     let grossSales = 0;
     let netSales = 0;
     let totalRoyalty = 0;
-    let orderCount = filteredOrders.length;
+    const orderCount = filteredOrders.length;
     let itemsCount = 0;
     let activeReversals = 0;
 
@@ -187,7 +187,7 @@ export default function RoyaltyReportsPage() {
       const isCancelled = order.status === 'cancelled';
       order.items.forEach((item) => {
         // Find matching contract details
-        let contractId = item.licenseContractId;
+        const contractId = item.licenseContractId;
         const matchedContract = contracts.find(c => c.id === contractId || c.contractReference === contractId);
         const holderName = matchedContract?.holderName || 'Other/Default IP Holder';
         const rate = item.royaltyRateSnapshot || 10.0;

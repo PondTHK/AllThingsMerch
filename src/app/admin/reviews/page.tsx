@@ -6,9 +6,7 @@ import {
   Star, 
   MessageSquare, 
   Eye, 
-  EyeOff, 
-  ShieldAlert, 
-  CheckCircle 
+  EyeOff 
 } from 'lucide-react';
 
 export default function AdminReviewsPage() {
@@ -183,7 +181,7 @@ export default function AdminReviewsPage() {
 
                       {/* Comment */}
                       <td className="py-3.5 px-4 font-normal text-neutral-700 max-w-xs break-words">
-                        "{review.comment}"
+                        &quot;{review.comment}&quot;
                       </td>
 
                       {/* Status Badge */}

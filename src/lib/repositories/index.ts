@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Product, Brand, Category, Coupon } from '@/types';
 import {
   getAllProducts as getMockProducts,
