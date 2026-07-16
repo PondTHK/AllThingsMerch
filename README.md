@@ -376,8 +376,8 @@ classDiagram
         +getCategories() Promise~Category[]~
         +getCoupons() Promise~Coupon[]~
         +getCouponByCode(string code) Promise~Coupon_or_undefined~
-        +createCoupon(CouponInput coupon) Promise~Coupon~
-        +updateCoupon(string id, Coupon updates) Promise~Coupon~
+        +createCoupon(coupon: { code: string, description?: string, discountType: string, discountValue: number, minOrderValue?: number, maxGlobalUses?: number, maxUsesPerUser?: number, isActive?: boolean, expiresAt?: string }) Promise~Coupon~
+        +updateCoupon(string id, updates: { code?: string, description?: string, discountType?: string, discountValue?: number, minOrderValue?: number, maxGlobalUses?: number, maxUsesPerUser?: number, isActive?: boolean, expiresAt?: string }) Promise~Coupon~
         +deleteCoupon(string id) Promise~void~
     }
 
@@ -389,8 +389,8 @@ classDiagram
         +getCategories() Promise~Category[]~
         +getCoupons() Promise~Coupon[]~
         +getCouponByCode(string code) Promise~Coupon_or_undefined~
-        +createCoupon(CouponInput coupon) Promise~Coupon~
-        +updateCoupon(string id, Coupon updates) Promise~Coupon~
+        +createCoupon(coupon: { code: string, description?: string, discountType: string, discountValue: number, minOrderValue?: number, maxGlobalUses?: number, maxUsesPerUser?: number, isActive?: boolean, expiresAt?: string }) Promise~Coupon~
+        +updateCoupon(string id, updates: { code?: string, description?: string, discountType?: string, discountValue?: number, minOrderValue?: number, maxGlobalUses?: number, maxUsesPerUser?: number, isActive?: boolean, expiresAt?: string }) Promise~Coupon~
         +deleteCoupon(string id) Promise~void~
     }
 
@@ -402,8 +402,8 @@ classDiagram
         +getCategories() Promise~Category[]~
         +getCoupons() Promise~Coupon[]~
         +getCouponByCode(string code) Promise~Coupon_or_undefined~
-        +createCoupon(CouponInput coupon) Promise~Coupon~
-        +updateCoupon(string id, Coupon updates) Promise~Coupon~
+        +createCoupon(coupon: { code: string, description?: string, discountType: string, discountValue: number, minOrderValue?: number, maxGlobalUses?: number, maxUsesPerUser?: number, isActive?: boolean, expiresAt?: string }) Promise~Coupon~
+        +updateCoupon(string id, updates: { code?: string, description?: string, discountType?: string, discountValue?: number, minOrderValue?: number, maxGlobalUses?: number, maxUsesPerUser?: number, isActive?: boolean, expiresAt?: string }) Promise~Coupon~
         +deleteCoupon(string id) Promise~void~
     }
 
