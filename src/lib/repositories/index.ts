@@ -12,6 +12,60 @@ import {
 } from './mock-data';
 import { isSupabaseConfigured, getSupabaseBrowserClient } from '@/lib/supabase/client';
 
+interface DbVariant {
+  id: string;
+  product_id: string;
+  sku: string;
+  size: string | null;
+  color: string | null;
+  price: string | number;
+  compare_at_price: string | number | null;
+  stock_quantity: number;
+  low_stock_threshold: number | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+interface DbImage {
+  id: string;
+  product_id: string;
+  storage_path: string;
+  alt_text: string | null;
+  sort_order: number;
+}
+
+interface DbProduct {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  brand_id: string;
+  category_id: string;
+  license_contract_id: string | null;
+  status: string;
+  is_preorder: boolean;
+  preorder_release_at: string | null;
+  created_at: string;
+  updated_at: string;
+  product_variants?: DbVariant[];
+  product_images?: DbImage[];
+}
+
+interface DbCoupon {
+  id: string;
+  code: string;
+  description: string | null;
+  discount_type: 'percentage' | 'fixed';
+  discount_value: number;
+  min_order_value: number | null;
+  max_global_uses: number | null;
+  current_global_uses: number;
+  max_uses_per_user: number | null;
+  is_active: boolean;
+  expires_at: string | null;
+  created_at: string;
+}
+
 export interface DataRepository {
   mode: 'demo' | 'supabase';
   getProducts(): Promise<Product[]>;
@@ -66,32 +120,32 @@ class DemoRepository implements DataRepository {
   }
 }
 
-function mapDbProductToProduct(p: any): Product {
-  const variants = (p.product_variants || []).map((v: any) => ({
+function mapDbProductToProduct(p: DbProduct): Product {
+  const variants = (p.product_variants || []).map((v: DbVariant) => ({
     id: v.id,
     productId: v.product_id,
     sku: v.sku,
-    size: v.size,
-    color: v.color,
+    size: v.size || undefined,
+    color: v.color || undefined,
     price: Number(v.price),
     compareAtPrice: v.compare_at_price ? Number(v.compare_at_price) : undefined,
     stockQuantity: v.stock_quantity,
-    lowStockThreshold: v.low_stock_threshold,
+    lowStockThreshold: v.low_stock_threshold || undefined,
     isActive: v.is_active,
     createdAt: v.created_at,
   }));
 
-  const prices = variants.map((v: any) => v.price);
+  const prices = variants.map((v) => v.price);
   const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
   const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
 
-  const images = (p.product_images || []).map((img: any) => ({
+  const images = (p.product_images || []).map((img: DbImage) => ({
     id: img.id,
     productId: img.product_id,
     storagePath: img.storage_path,
-    altText: img.alt_text,
+    altText: img.alt_text || undefined,
     sortOrder: img.sort_order,
-  })).sort((a: any, b: any) => a.sortOrder - b.sortOrder);
+  })).sort((a, b) => a.sortOrder - b.sortOrder);
 
   const featuredImage = images.length > 0 ? images[0].storagePath : '/products/polo-navy.jpg';
 
@@ -197,18 +251,18 @@ class SupabaseRepository implements DataRepository {
     if (error || !data) return getMockCoupons();
     
     // Map snake_case to camelCase
-    return data.map((c: any) => ({
+    return data.map((c: DbCoupon) => ({
       id: c.id,
       code: c.code,
-      description: c.description,
+      description: c.description || undefined,
       discountType: c.discount_type,
-      discountValue: c.discount_value,
-      minOrderValue: c.min_order_value,
-      maxGlobalUses: c.max_global_uses,
+      discountValue: Number(c.discount_value),
+      minOrderValue: c.min_order_value ? Number(c.min_order_value) : undefined,
+      maxGlobalUses: c.max_global_uses !== null ? c.max_global_uses : undefined,
       currentGlobalUses: c.current_global_uses,
-      maxUsesPerUser: c.max_uses_per_user,
+      maxUsesPerUser: c.max_uses_per_user !== null ? c.max_uses_per_user : undefined,
       isActive: c.is_active,
-      expiresAt: c.expires_at,
+      expiresAt: c.expires_at || undefined,
       createdAt: c.created_at,
     }));
   }
@@ -275,7 +329,7 @@ class SupabaseRepository implements DataRepository {
     const client = getSupabaseBrowserClient();
     if (!client) return updateMockCoupon(id, updates);
 
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (updates.code !== undefined) updateData.code = updates.code.toUpperCase();
     if (updates.description !== undefined) updateData.description = updates.description;
     if (updates.discountType !== undefined) updateData.discount_type = updates.discountType;
