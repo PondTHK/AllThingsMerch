@@ -44,7 +44,8 @@ export function CheckoutReservationBanner({
     const alreadyDismissed =
       modalDismissedAt !== null && Date.now() - modalDismissedAt < 90_000;
     if (!alreadyDismissed && !showModal) {
-      setShowModal(true);
+      const timer = setTimeout(() => setShowModal(true), 0);
+      return () => clearTimeout(timer);
     }
   }, [isUrgent, showModal, modalDismissedAt]);
 
