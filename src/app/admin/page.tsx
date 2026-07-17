@@ -1,30 +1,38 @@
-'use client';
-
 import React from 'react';
 import Link from 'next/link';
-import { useAdminStore } from '@/lib/admin/useAdminStore';
-import { useHydrated } from '@/lib/cart/useHydrated';
+import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { formatTHB } from '@/lib/money';
 import { Package, Layers, ClipboardList, FileText, AlertTriangle, ArrowRight } from 'lucide-react';
 
-export default function AdminDashboardPage() {
-  const isHydrated = useHydrated();
-  const products = useAdminStore((state) => state.products);
-  const orders = useAdminStore((state) => state.orders);
-  const contracts = useAdminStore((state) => state.contracts);
-
-  if (!isHydrated) {
-    return <div className="p-12 text-center text-neutral-500">Calculating Operations Overview...</div>;
+export default async function AdminDashboardPage() {
+  const supabase = await getSupabaseServerClient();
+  
+  if (!supabase) {
+    return <div className="p-12 text-center text-neutral-500">Supabase is not configured.</div>;
   }
 
-  const activeProducts = products.filter((p) => p.status === 'active');
-  const totalVariants = products.flatMap((p) => p.variants);
-  const totalStockUnits = totalVariants.reduce((sum, v) => sum + v.stockQuantity, 0);
-  const lowStockVariants = totalVariants.filter((v) => v.stockQuantity <= v.lowStockThreshold);
+  // Fetch data in parallel
+  const [
+    { count: activeProductsCount },
+    { count: totalProductsCount },
+    { data: variants },
+    { data: orders },
+    { count: activeContractsCount }
+  ] = await Promise.all([
+    supabase.from('products').select('*', { count: 'exact', head: true }).eq('status', 'active'),
+    supabase.from('products').select('*', { count: 'exact', head: true }),
+    supabase.from('product_variants').select('id, sku, size, stock_quantity, low_stock_threshold'),
+    supabase.from('orders').select('id, total_amount, status'),
+    supabase.from('license_contracts').select('*', { count: 'exact', head: true }).eq('status', 'active'),
+  ]);
+
+  const totalStockUnits = variants?.reduce((sum, v) => sum + v.stock_quantity, 0) || 0;
+  const lowStockVariants = variants?.filter((v) => v.stock_quantity <= v.low_stock_threshold) || [];
 
   const totalRevenue = orders
-    .filter((o) => o.status === 'fulfilled' || o.status === 'processing')
-    .reduce((sum, o) => sum + o.totalAmount, 0);
+    ?.filter((o) => ['processing', 'shipped', 'delivered'].includes(o.status))
+    .reduce((sum, o) => sum + Number(o.total_amount), 0) || 0;
+  const orderCount = orders?.length || 0;
 
   return (
     <div className="space-y-8">
@@ -45,7 +53,7 @@ export default function AdminDashboardPage() {
             <Package className="w-4 h-4" />
           </div>
           <div className="text-2xl font-black text-black">
-            {activeProducts.length} <span className="text-xs font-normal text-neutral-500">/ {products.length} Active</span>
+            {activeProductsCount || 0} <span className="text-xs font-normal text-neutral-500">/ {totalProductsCount || 0} Active</span>
           </div>
         </div>
 
@@ -65,7 +73,7 @@ export default function AdminDashboardPage() {
             <ClipboardList className="w-4 h-4" />
           </div>
           <div className="text-2xl font-black text-black">{formatTHB(totalRevenue)}</div>
-          <div className="text-[11px] text-neutral-500">{orders.length} Recorded Orders</div>
+          <div className="text-[11px] text-neutral-500">{orderCount} Recorded Orders</div>
         </div>
 
         <div className="p-5 rounded-2xl bg-neutral-100 border border-neutral-200 space-y-2">
@@ -74,7 +82,7 @@ export default function AdminDashboardPage() {
             <FileText className="w-4 h-4" />
           </div>
           <div className="text-2xl font-black text-black">
-            {contracts.filter((c) => c.status === 'active').length} Active
+            {activeContractsCount || 0} Active
           </div>
           <div className="text-[11px] text-neutral-500">RBR &amp; Ferrari Licensed</div>
         </div>
@@ -115,7 +123,7 @@ export default function AdminDashboardPage() {
                 </div>
                 <div className="text-right">
                   <span className="px-2 py-1 rounded bg-black text-white text-[10px] font-bold uppercase tracking-wider">
-                    {v.stockQuantity} Left
+                    {v.stock_quantity} Left
                   </span>
                 </div>
               </div>
