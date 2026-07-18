@@ -11,6 +11,8 @@ import {
   FileText,
   ShieldCheck,
   FolderTree,
+  Ticket,
+  BarChart2,
 } from 'lucide-react';
 
 const navItems = [
@@ -22,6 +24,8 @@ const navItems = [
   { label: 'Licensed Brands', href: '/admin/brands', icon: ShieldCheck },
   { label: 'Categories', href: '/admin/categories', icon: FolderTree },
   { label: 'License Contracts', href: '/admin/contracts', icon: FileText },
+  { label: 'Royalty Report', href: '/admin/royalties', icon: BarChart2 },
+  { label: 'Coupons', href: '/admin/coupons', icon: Ticket },
 ];
 
 export function NavSidebar() {
