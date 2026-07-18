@@ -10,6 +10,7 @@ import {
   ClipboardList,
   FileText,
   ShieldCheck,
+  FolderTree,
 } from 'lucide-react';
 
 const navItems = [
@@ -18,6 +19,8 @@ const navItems = [
   { label: 'Inventory & Stock', href: '/admin/inventory', icon: Layers },
   { label: 'Customer Orders', href: '/admin/orders', icon: ClipboardList },
   { label: 'Authenticity TAGs', href: '/admin/tags', icon: ShieldCheck },
+  { label: 'Licensed Brands', href: '/admin/brands', icon: ShieldCheck },
+  { label: 'Categories', href: '/admin/categories', icon: FolderTree },
   { label: 'License Contracts', href: '/admin/contracts', icon: FileText },
 ];
 
