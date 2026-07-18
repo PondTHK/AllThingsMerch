@@ -1,18 +1,36 @@
 'use client';
 
 import React, { useState } from 'react';
-import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { formatTHB } from '@/lib/money';
 import { Plus, Check, Eye, EyeOff, Package } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { createProductAction, toggleProductStatusAction } from './actions';
 
-type Product = any; // We can use the actual types from our schema or 'any' for simplicity here
+export interface ProductDto {
+  id: string;
+  name: string;
+  slug: string;
+  status: string;
+  totalStock: number;
+  primaryVariantSku: string;
+  primaryVariantPrice: number;
+}
+
+export interface BrandDto {
+  id: string;
+  name: string;
+}
+
+export interface CategoryDto {
+  id: string;
+  name: string;
+}
 
 interface ProductsClientProps {
-  initialProducts: Product[];
-  initialBrands: any[];
-  initialCategories: any[];
+  initialProducts: ProductDto[];
+  initialBrands: BrandDto[];
+  initialCategories: CategoryDto[];
   currentPage: number;
   totalPages: number;
   totalCount: number;
@@ -27,8 +45,7 @@ export function ProductsClient({
   totalCount,
 }: ProductsClientProps) {
   const router = useRouter();
-  const supabase = getSupabaseBrowserClient();
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [products, setProducts] = useState<ProductDto[]>(initialProducts);
 
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
@@ -54,80 +71,48 @@ export function ProductsClient({
   };
 
   const toggleStatus = async (productId: string, currentStatus: string) => {
-    if (!supabase) return;
     const nextStatus = currentStatus === 'active' ? 'draft' : 'active';
     const previousProducts = [...products];
-    
+
     // Optimistic update
-    setProducts((prev) => 
-      prev.map((p) => p.id === productId ? { ...p, status: nextStatus } : p)
+    setProducts((prev) =>
+      prev.map((p) => (p.id === productId ? { ...p, status: nextStatus } : p))
     );
 
-    try {
-      const { error } = await supabase
-        .from('products')
-        .update({ status: nextStatus })
-        .eq('id', productId);
-        
-      if (error) throw error;
-      router.refresh();
-    } catch (error) {
-      console.error('Failed to toggle product status:', error);
-      alert('Failed to update product status. Please try again.');
+    const result = await toggleProductStatusAction(productId);
+    
+    if (!result.success) {
+      alert(result.error || 'Failed to update product status. Please try again.');
       setProducts(previousProducts);
     }
   };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !slug.trim() || !sku.trim() || !supabase) return;
+    if (!name.trim() || !slug.trim() || !sku.trim()) return;
 
     setIsLoading(true);
 
     try {
-      // 1. Insert product
-      const { data: newProduct, error: productError } = await supabase
-        .from('products')
-        .insert({
-          brand_id: brandId,
-          category_id: categoryId,
-          name: name.trim(),
-          slug: slug.trim(),
-          description: description.trim() || 'Official licensed merchandise release.',
-          status: 'active',
-          is_preorder: false,
-        })
-        .select()
-        .single();
-
-      if (productError) throw productError;
-
-      // 2. Insert variant
       const parsedPrice = parseFloat(price) || 2990;
       const parsedStock = parseInt(stockQuantity, 10) || 20;
 
-      const { data: newVariant, error: variantError } = await supabase
-        .from('product_variants')
-        .insert({
-          product_id: newProduct.id,
-          sku: sku.trim(),
-          size: 'ONE SIZE',
-          price: parsedPrice,
-          stock_quantity: parsedStock,
-          low_stock_threshold: 3,
-          is_active: true,
-        })
-        .select()
-        .single();
+      const result = await createProductAction({
+        brandId,
+        categoryId,
+        name: name.trim(),
+        slug: slug.trim(),
+        description: description.trim() || 'Official licensed merchandise release.',
+        isPreorder: false,
+        sku: sku.trim(),
+        price: parsedPrice,
+        stockQuantity: parsedStock,
+        lowStockThreshold: 3,
+      });
 
-      if (variantError) {
-        // Rollback pseudo-transaction
-        await supabase.from('products').delete().eq('id', newProduct.id);
-        throw variantError;
+      if (!result.success) {
+        throw new Error(result.error);
       }
-
-      // Update local state
-      setProducts([{ ...newProduct, product_variants: [newVariant] }, ...products]);
 
       setName('');
       setSlug('');
@@ -136,10 +121,15 @@ export function ProductsClient({
       setShowForm(false);
       setCreatedMsg(true);
       setTimeout(() => setCreatedMsg(false), 3000);
+      
+      // Instead of manual optimistic insert, we just refresh since actions revalidate path
+      // But for better UX we could insert a dummy object until refresh completes.
+      // Next.js router.refresh() is seamless anyway.
       router.refresh();
-    } catch (error) {
+      
+    } catch (error: any) {
       console.error('Error creating product:', error);
-      alert('Failed to create product.');
+      alert(error.message || 'Failed to create product.');
     } finally {
       setIsLoading(false);
     }
@@ -335,7 +325,6 @@ export function ProductsClient({
       <div className="border border-neutral-200 rounded-2xl bg-white overflow-hidden">
         <div className="divide-y divide-neutral-200">
           {products.map((prod) => {
-            const primaryVariant = prod.product_variants?.[0];
             const isActive = prod.status === 'active';
 
             return (
@@ -356,17 +345,15 @@ export function ProductsClient({
                   </div>
                   <div className="text-xs text-neutral-500 mt-1">
                     Slug: <span className="font-mono">{prod.slug}</span> &bull; SKU:{' '}
-                    <span className="font-mono">{primaryVariant?.sku || 'N/A'}</span> &bull; Stock:{' '}
-                    <span className="font-bold text-black">
-                      {prod.product_variants?.reduce((s: number, v: any) => s + (v.stock_quantity || 0), 0) || 0} Units
-                    </span>
+                    <span className="font-mono">{prod.primaryVariantSku}</span> &bull; Stock:{' '}
+                    <span className="font-bold text-black">{prod.totalStock} Units</span>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
                   <div className="text-right">
                     <div className="font-black text-black text-sm">
-                      {primaryVariant ? formatTHB(primaryVariant.price) : 'N/A'}
+                      {formatTHB(prod.primaryVariantPrice)}
                     </div>
                   </div>
 

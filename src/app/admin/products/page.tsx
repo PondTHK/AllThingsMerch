@@ -1,5 +1,6 @@
 import React from 'react';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { getAdminServices } from '@/lib/admin/container';
 import { ProductsClient } from './ProductsClient';
 
 export default async function AdminProductsPage({
@@ -17,34 +18,43 @@ export default async function AdminProductsPage({
   const resolvedParams = await searchParams;
   const page = parseInt((resolvedParams.page as string) || '1', 10);
   const limit = 20;
-  const from = (page - 1) * limit;
-  const to = from + limit - 1;
 
-  // Fetch products, brands, and categories in parallel
+  // Initialize Clean Architecture Services
+  const services = getAdminServices(supabase);
+
+  // Fetch data in parallel via Use Cases
   const [
-    { data: products, count },
-    { data: brands },
-    { data: categories }
+    productsResult,
+    brandsResult,
+    categoriesResult
   ] = await Promise.all([
-    supabase
-      .from('products')
-      .select('*, product_variants(*)', { count: 'exact' })
-      .order('created_at', { ascending: false })
-      .range(from, to),
-    supabase.from('brands').select('id, name').eq('is_active', true).order('name'),
-    supabase.from('categories').select('id, name').order('name')
+    services.products.listProducts({ page, limit }),
+    services.brands.listActiveBrands(),
+    services.categories.listAllCategories()
   ]);
 
-  const totalPages = count ? Math.ceil(count / limit) : 1;
+  // Next.js RSC Rule: Cannot pass class instances with methods to Client Components.
+  // Map Domain Entities into clean UI DTOs.
+  const productsDto = productsResult.items.map((p) => ({
+    id: p.id,
+    name: p.name,
+    slug: p.slug,
+    status: p.status.value,
+    totalStock: p.totalStock,
+    primaryVariantSku: p.primaryVariant?.sku || 'N/A',
+    primaryVariantPrice: p.primaryVariant?.price.thb || 0,
+  }));
+  const brandsDto = brandsResult.map((b) => ({ id: b.id, name: b.name }));
+  const categoriesDto = categoriesResult.map((c) => ({ id: c.id, name: c.name }));
 
   return (
     <ProductsClient
-      initialProducts={products || []}
-      initialBrands={brands || []}
-      initialCategories={categories || []}
-      currentPage={page}
-      totalPages={totalPages}
-      totalCount={count || 0}
+      initialProducts={productsDto}
+      initialBrands={brandsDto}
+      initialCategories={categoriesDto}
+      currentPage={productsResult.currentPage}
+      totalPages={productsResult.totalPages}
+      totalCount={productsResult.totalCount}
     />
   );
 }

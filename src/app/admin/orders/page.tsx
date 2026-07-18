@@ -1,5 +1,6 @@
 import React from 'react';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { getAdminServices } from '@/lib/admin/container';
 import { OrdersClient } from './OrdersClient';
 
 export default async function AdminOrdersPage({
@@ -17,23 +18,40 @@ export default async function AdminOrdersPage({
   const resolvedParams = await searchParams;
   const page = parseInt((resolvedParams.page as string) || '1', 10);
   const limit = 20;
-  const from = (page - 1) * limit;
-  const to = from + limit - 1;
 
-  const { data: orders, count } = await supabase
-    .from('orders')
-    .select('*, order_items(*, authenticity_tags(*))', { count: 'exact' })
-    .order('created_at', { ascending: false })
-    .range(from, to);
+  // Initialize Clean Architecture Services
+  const services = getAdminServices(supabase);
 
-  const totalPages = count ? Math.ceil(count / limit) : 1;
+  // Fetch orders
+  const ordersResult = await services.orders.listOrders({ page, limit });
+
+  // Map Domain Entities into UI DTOs
+  const ordersDto = ordersResult.items.map((o) => ({
+    id: o.id,
+    orderNumber: o.orderNumber,
+    status: o.status.value,
+    createdAt: o.createdAt,
+    totalAmount: o.totalAmount.thb,
+    shippingAddress: {
+      fullName: o.shippingAddress.fullName,
+      city: o.shippingAddress.city,
+    },
+    items: o.items.map((item) => ({
+      id: item.id,
+      productName: item.productName,
+      sku: item.sku,
+      quantity: item.quantity,
+      lineTotal: item.unitPrice.thb * item.quantity,
+      tagCode: item.tagCode,
+    })),
+  }));
 
   return (
     <OrdersClient
-      initialOrders={orders || []}
-      currentPage={page}
-      totalPages={totalPages}
-      totalCount={count || 0}
+      initialOrders={ordersDto}
+      currentPage={ordersResult.currentPage}
+      totalPages={ordersResult.totalPages}
+      totalCount={ordersResult.totalCount}
     />
   );
 }

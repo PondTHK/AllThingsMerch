@@ -1,64 +1,21 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { BarChart2, TrendingUp, DollarSign, FileText } from 'lucide-react';
+import { formatTHB } from '@/lib/money';
 
-function formatTHB(amount: number) {
-  return new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(amount);
+export interface RoyaltyRowDto {
+  id: string;
+  holderName: string;
+  ref: string;
+  royaltyRate: number;
+  revenue: number;
+  royaltyOwed: number;
+  status: string;
+  expiresAt: string;
 }
 
-interface RoyaltiesClientProps {
-  initialContracts: any[];
-  initialOrders: any[];
-}
-
-export function RoyaltiesClient({ initialContracts, initialOrders }: RoyaltiesClientProps) {
-
-  // Aggregate revenue per brand from fulfilled orders
-  const brandRevenue = useMemo(() => {
-    const map: Record<string, { brandName: string; totalRevenue: number; orderCount: number }> = {};
-
-    for (const order of initialOrders) {
-      for (const item of order.order_items || []) {
-        const brand = item.product_variants?.products?.brands;
-        const brandId = item.product_variants?.products?.brand_id;
-        if (!brandId || !brand) continue;
-
-        const lineTotal = (item.unit_price || 0) * (item.quantity || 1);
-        if (!map[brandId]) {
-          map[brandId] = { brandName: brand.name, totalRevenue: 0, orderCount: 0 };
-        }
-        map[brandId].totalRevenue += lineTotal;
-        map[brandId].orderCount += 1;
-      }
-    }
-    return map;
-  }, [initialOrders]);
-
-  // Match contracts to brand revenue
-  const royaltyRows = useMemo(() => {
-    return initialContracts.map((contract) => {
-      // Find matching brand revenue by license holder name if no direct brand_id link
-      // We match on license_holder name against brand name as a fallback
-      const brandRevData = Object.values(brandRevenue).find(
-        (b) => b.brandName?.toLowerCase().includes(contract.license_holders?.name?.toLowerCase().split(' ')[0])
-      );
-      const revenue = brandRevData?.totalRevenue || 0;
-      const royaltyOwed = revenue * (contract.royalty_rate / 100);
-
-      return {
-        id: contract.id,
-        holderName: contract.license_holders?.name || 'Unknown',
-        ref: contract.contract_reference,
-        royaltyRate: contract.royalty_rate,
-        revenue,
-        royaltyOwed,
-        status: contract.status,
-        expiresAt: contract.expires_at,
-      };
-    });
-  }, [initialContracts, brandRevenue]);
-
+export function RoyaltiesClient({ royaltyRows }: { royaltyRows: RoyaltyRowDto[] }) {
   const totalRevenue = royaltyRows.reduce((sum, r) => sum + r.revenue, 0);
   const totalRoyaltyOwed = royaltyRows.reduce((sum, r) => sum + r.royaltyOwed, 0);
 
@@ -93,7 +50,7 @@ export function RoyaltiesClient({ initialContracts, initialOrders }: RoyaltiesCl
           <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-1">
             <FileText className="w-3 h-3" /> Active Contracts
           </p>
-          <p className="text-2xl font-black text-black">{initialContracts.length}</p>
+          <p className="text-2xl font-black text-black">{royaltyRows.length}</p>
         </div>
       </div>
 

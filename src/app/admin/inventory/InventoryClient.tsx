@@ -1,14 +1,27 @@
 'use client';
 
 import React, { useState } from 'react';
-import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { Plus, Minus, AlertTriangle, Check } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { adjustStockAction, setStockAbsoluteAction } from './actions';
 
-type Product = any;
+export interface InventoryVariantDto {
+  id: string;
+  sku: string;
+  size: string | null;
+  stockQuantity: number;
+  lowStockThreshold: number;
+}
+
+export interface InventoryProductDto {
+  id: string;
+  name: string;
+  slug: string;
+  variants: InventoryVariantDto[];
+}
 
 interface InventoryClientProps {
-  initialProducts: Product[];
+  initialProducts: InventoryProductDto[];
   currentPage: number;
   totalPages: number;
   totalCount: number;
@@ -21,14 +34,12 @@ export function InventoryClient({
   totalCount,
 }: InventoryClientProps) {
   const router = useRouter();
-  const supabase = getSupabaseBrowserClient();
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [products, setProducts] = useState<InventoryProductDto[]>(initialProducts);
   // Per-variant manual input state: variantId -> { inputValue, saving, saved }
   const [manualInputs, setManualInputs] = useState<Record<string, { value: string; saving: boolean; saved: boolean }>>({});
   const [isUpdating, setIsUpdating] = useState(false);
 
   const adjustStock = async (variantId: string, deltaAmount: number) => {
-    if (!supabase) return;
     setIsUpdating(true);
     
     const previousProducts = [...products];
@@ -37,54 +48,26 @@ export function InventoryClient({
     setProducts((prev) =>
       prev.map((prod) => ({
         ...prod,
-        product_variants: prod.product_variants.map((v: any) => {
+        variants: prod.variants.map((v) => {
           if (v.id !== variantId) return v;
-          const newQty = Math.max(0, (v.stock_quantity || 0) + deltaAmount);
-          return { ...v, stock_quantity: newQty };
+          const newQty = Math.max(0, v.stockQuantity + deltaAmount);
+          return { ...v, stockQuantity: newQty };
         }),
       }))
     );
 
-    try {
-      const { data: currentVariant, error: fetchError } = await supabase
-        .from('product_variants')
-        .select('stock_quantity')
-        .eq('id', variantId)
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      if (currentVariant) {
-        const newQuantity = Math.max(0, currentVariant.stock_quantity + deltaAmount);
-        const { error: updateError } = await supabase
-          .from('product_variants')
-          .update({ stock_quantity: newQuantity })
-          .eq('id', variantId);
-          
-        if (updateError) throw updateError;
-
-        // Also log stock movement
-        const { error: moveError } = await supabase.from('stock_movements').insert({
-          product_variant_id: variantId,
-          movement_type: deltaAmount > 0 ? 'receive' : 'adjustment',
-          quantity: Math.abs(deltaAmount),
-          note: 'Admin manual adjustment',
-        });
-        
-        if (moveError) throw moveError;
-      }
-      router.refresh();
-    } catch (error) {
-      console.error('Failed to adjust stock:', error);
-      alert('Failed to adjust stock. Please check your connection and permissions.');
+    const result = await adjustStockAction(variantId, deltaAmount);
+    
+    if (!result.success) {
+      alert(result.error || 'Failed to adjust stock.');
       setProducts(previousProducts);
-    } finally {
-      setIsUpdating(false);
     }
+
+    setIsUpdating(false);
   };
 
   const setStockAbsolute = async (variantId: string, newQty: number) => {
-    if (!supabase || newQty < 0) return;
+    if (newQty < 0) return;
 
     setManualInputs((prev) => ({ ...prev, [variantId]: { ...prev[variantId], saving: true, saved: false } }));
     const previousProducts = [...products];
@@ -93,47 +76,23 @@ export function InventoryClient({
     setProducts((prev) =>
       prev.map((prod) => ({
         ...prod,
-        product_variants: prod.product_variants.map((v: any) =>
-          v.id === variantId ? { ...v, stock_quantity: newQty } : v
+        variants: prod.variants.map((v) =>
+          v.id === variantId ? { ...v, stockQuantity: newQty } : v
         ),
       }))
     );
 
-    try {
-      const currentQty = products
-        .flatMap((p: any) => p.product_variants)
-        .find((v: any) => v.id === variantId)?.stock_quantity ?? newQty;
-
-      const delta = newQty - currentQty;
-
-      const { error: updateError } = await supabase
-        .from('product_variants')
-        .update({ stock_quantity: newQty })
-        .eq('id', variantId);
-        
-      if (updateError) throw updateError;
-
-      if (delta !== 0) {
-        const { error: moveError } = await supabase.from('stock_movements').insert({
-          product_variant_id: variantId,
-          movement_type: delta > 0 ? 'receive' : 'adjustment',
-          quantity: Math.abs(delta),
-          note: 'Admin manual set',
-        });
-        if (moveError) throw moveError;
-      }
-
+    const result = await setStockAbsoluteAction(variantId, newQty);
+    
+    if (!result.success) {
+      alert(result.error || 'Failed to set stock.');
+      setProducts(previousProducts);
+      setManualInputs((prev) => ({ ...prev, [variantId]: { ...prev[variantId], saving: false, saved: false } }));
+    } else {
       setManualInputs((prev) => ({ ...prev, [variantId]: { value: String(newQty), saving: false, saved: true } }));
       setTimeout(() => {
         setManualInputs((prev) => ({ ...prev, [variantId]: { ...prev[variantId], saved: false } }));
       }, 2000);
-
-      router.refresh();
-    } catch (error) {
-      console.error('Failed to set absolute stock:', error);
-      alert('Failed to set stock. Please check your connection and permissions.');
-      setProducts(previousProducts);
-      setManualInputs((prev) => ({ ...prev, [variantId]: { ...prev[variantId], saving: false, saved: false } }));
     }
   };
 
@@ -158,9 +117,9 @@ export function InventoryClient({
               </div>
 
               <div className="grid grid-cols-1 gap-2">
-                {prod.product_variants?.map((variant: any) => {
-                  const stockQuantity = variant.stock_quantity || 0;
-                  const isLow = stockQuantity <= variant.low_stock_threshold;
+                {prod.variants.map((variant) => {
+                  const stockQuantity = variant.stockQuantity || 0;
+                  const isLow = stockQuantity <= variant.lowStockThreshold;
 
                   return (
                     <div
@@ -182,7 +141,7 @@ export function InventoryClient({
                           )}
                         </div>
                         <div className="text-xs text-neutral-500 mt-0.5">
-                          Size: {variant.size || 'ONE SIZE'} &bull; Threshold: {variant.low_stock_threshold} Units
+                          Size: {variant.size || 'ONE SIZE'} &bull; Threshold: {variant.lowStockThreshold} Units
                         </div>
                       </div>
 
@@ -199,37 +158,41 @@ export function InventoryClient({
                         {/* Quick ±buttons */}
                         <div className="flex items-center gap-1.5">
                           <button
-                            type="button"
-                            onClick={() => adjustStock(variant.id, -5)}
-                            className="px-2.5 py-1.5 rounded-lg border border-neutral-300 bg-white text-xs font-bold hover:bg-neutral-100"
-                            title="Subtract 5"
-                          >
-                            -5
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => adjustStock(variant.id, -1)}
-                            className="p-1.5 rounded-lg border border-neutral-300 bg-white text-xs font-bold hover:bg-neutral-100"
-                            title="Subtract 1"
-                          >
-                            <Minus className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => adjustStock(variant.id, 1)}
-                            className="p-1.5 rounded-lg border border-black bg-black text-white text-xs font-bold hover:bg-neutral-800"
-                            title="Add 1"
-                          >
-                            <Plus className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => adjustStock(variant.id, 10)}
-                            className="px-2.5 py-1.5 rounded-lg border border-black bg-black text-white text-xs font-bold hover:bg-neutral-800"
-                            title="Add 10"
-                          >
-                            +10
-                          </button>
+                           type="button"
+                           disabled={isUpdating}
+                           onClick={() => adjustStock(variant.id, -5)}
+                           className="px-2.5 py-1.5 rounded-lg border border-neutral-300 bg-white text-xs font-bold hover:bg-neutral-100 disabled:opacity-50"
+                           title="Subtract 5"
+                         >
+                           -5
+                         </button>
+                         <button
+                           type="button"
+                           disabled={isUpdating}
+                           onClick={() => adjustStock(variant.id, -1)}
+                           className="p-1.5 rounded-lg border border-neutral-300 bg-white text-xs font-bold hover:bg-neutral-100 disabled:opacity-50"
+                           title="Subtract 1"
+                         >
+                           <Minus className="w-3.5 h-3.5" />
+                         </button>
+                         <button
+                           type="button"
+                           disabled={isUpdating}
+                           onClick={() => adjustStock(variant.id, 1)}
+                           className="p-1.5 rounded-lg border border-black bg-black text-white text-xs font-bold hover:bg-neutral-800 disabled:opacity-50"
+                           title="Add 1"
+                         >
+                           <Plus className="w-3.5 h-3.5" />
+                         </button>
+                         <button
+                           type="button"
+                           disabled={isUpdating}
+                           onClick={() => adjustStock(variant.id, 10)}
+                           className="px-2.5 py-1.5 rounded-lg border border-black bg-black text-white text-xs font-bold hover:bg-neutral-800 disabled:opacity-50"
+                           title="Add 10"
+                         >
+                           +10
+                         </button>
                         </div>
 
                         {/* Manual set input */}

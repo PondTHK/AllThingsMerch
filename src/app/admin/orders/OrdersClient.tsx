@@ -1,15 +1,35 @@
 'use client';
 
 import React, { useState } from 'react';
-import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { formatTHB } from '@/lib/money';
 import { ClipboardList, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { updateOrderStatusAction } from './actions';
 
-type Order = any; // Assuming 'any' or proper type matching Supabase response
+export interface OrderItemDto {
+  id: string;
+  productName: string;
+  sku: string;
+  quantity: number;
+  lineTotal: number;
+  tagCode: string | null;
+}
+
+export interface OrderDto {
+  id: string;
+  orderNumber: string;
+  status: string;
+  createdAt: string;
+  totalAmount: number;
+  shippingAddress: {
+    fullName: string;
+    city: string;
+  };
+  items: OrderItemDto[];
+}
 
 interface OrdersClientProps {
-  initialOrders: Order[];
+  initialOrders: OrderDto[];
   currentPage: number;
   totalPages: number;
   totalCount: number;
@@ -22,8 +42,7 @@ export function OrdersClient({
   totalCount,
 }: OrdersClientProps) {
   const router = useRouter();
-  const supabase = getSupabaseBrowserClient();
-  const [orders, setOrders] = useState<Order[]>(initialOrders);
+  const [orders, setOrders] = useState<OrderDto[]>(initialOrders);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -33,7 +52,6 @@ export function OrdersClient({
       : orders.filter((o) => o.status === filterStatus);
 
   const updateStatus = async (orderId: string, newStatus: string) => {
-    if (!supabase) return;
     setIsUpdating(true);
 
     // Save previous state for rollback
@@ -44,47 +62,18 @@ export function OrdersClient({
       prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
     );
 
-    try {
-      const { error } = await supabase
-        .from('orders')
-        .update({ status: newStatus })
-        .eq('id', orderId);
-
-      if (error) throw error;
-      
-      // Automatic Authenticity TAG Generation
-      if (newStatus === 'shipped' || newStatus === 'delivered') {
-        const order = orders.find(o => o.id === orderId);
-        if (order && order.order_items) {
-          for (const item of order.order_items) {
-            if (!item.authenticity_tags || item.authenticity_tags.length === 0) {
-               const uniqueCode = `ATM-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-               const serial = `SN-${item.sku.split('-')[0] || 'VAR'}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-               
-               const { error: tagError } = await supabase.from('authenticity_tags').insert({
-                 order_item_id: item.id,
-                 public_code: uniqueCode,
-                 serial_number: serial,
-                 status: 'active'
-               });
-               
-               if (tagError) {
-                 console.error('Failed to generate TAG for item:', item.id, tagError);
-               }
-            }
-          }
-        }
-      }
-
-      router.refresh();
-    } catch (error) {
-      console.error('Failed to update order status:', error);
-      alert('Failed to update order status. Please check your connection and permissions.');
-      // Revert to previous state
+    const result = await updateOrderStatusAction(orderId, newStatus);
+    
+    if (!result.success) {
+      alert(result.error || 'Failed to update order status.');
       setOrders(previousOrders);
-    } finally {
-      setIsUpdating(false);
     }
+    
+    // Automatic TAGs might have been generated on the server for shipped/delivered,
+    // so we rely on Server Action's revalidatePath and router.refresh to sync state.
+    // The optimistic update will be replaced by the fresh server data.
+    
+    setIsUpdating(false);
   };
 
   return (
@@ -130,9 +119,6 @@ export function OrdersClient({
       ) : (
         <div className="space-y-4">
           {filteredOrders.map((order) => {
-            // Note: In Supabase, the JSONB field is usually accessed as an object directly
-            const shipping = order.shipping_address || {};
-            
             return (
               <div
                 key={order.id}
@@ -142,14 +128,14 @@ export function OrdersClient({
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-mono font-black text-black text-base">
-                        {order.order_number}
+                        {order.orderNumber}
                       </span>
                       <span className="text-xs text-neutral-500">
-                        &bull; Placed on {new Date(order.created_at).toLocaleDateString()}
+                        &bull; Placed on {new Date(order.createdAt).toLocaleDateString()}
                       </span>
                     </div>
                     <div className="text-xs text-neutral-600 mt-0.5">
-                      Recipient: <span className="font-bold text-black">{shipping.fullName || shipping.name || 'Unknown'}</span> ({shipping.city || 'Unknown'})
+                      Recipient: <span className="font-bold text-black">{order.shippingAddress.fullName || 'Unknown'}</span> ({order.shippingAddress.city || 'Unknown'})
                     </div>
                   </div>
 
@@ -159,14 +145,15 @@ export function OrdersClient({
                         Total Amount
                       </span>
                       <span className="font-black text-black text-base">
-                        {formatTHB(order.total_amount)}
+                        {formatTHB(order.totalAmount)}
                       </span>
                     </div>
 
                     <select
                       value={order.status}
                       onChange={(e) => updateStatus(order.id, e.target.value)}
-                      className="px-3.5 py-2 rounded-xl bg-black text-white text-xs font-bold uppercase tracking-wider focus:outline-none"
+                      disabled={isUpdating}
+                      className="px-3.5 py-2 rounded-xl bg-black text-white text-xs font-bold uppercase tracking-wider focus:outline-none disabled:opacity-50"
                     >
                       <option value="pending_payment">Pending Payment</option>
                       <option value="paid">Paid</option>
@@ -180,23 +167,22 @@ export function OrdersClient({
 
                 {/* Order Items & TAGs */}
                 <div className="space-y-2">
-                  {order.order_items?.map((item: any) => (
+                  {order.items.map((item) => (
                     <div
                       key={item.id}
                       className="p-3 rounded-xl bg-neutral-100 border border-neutral-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs"
                     >
                       <div>
-                        <span className="font-bold text-black">{item.product_name}</span>
+                        <span className="font-bold text-black">{item.productName}</span>
                         <span className="text-neutral-500 ml-2">
-                          SKU: {item.sku} &bull; Qty: {item.quantity} &bull; {formatTHB(item.line_total)}
+                          SKU: {item.sku} &bull; Qty: {item.quantity} &bull; {formatTHB(item.lineTotal)}
                         </span>
                       </div>
 
-                      {/* In a real scenario, we might join authenticity_tags, but we assume it's part of the item or fetched separately if needed */}
-                      {item.authenticity_tags?.[0]?.public_code && (
+                      {item.tagCode && (
                         <div className="flex items-center gap-1.5 font-mono text-[11px] font-bold text-black">
                           <ShieldCheck className="w-3.5 h-3.5" />
-                          <span>TAG: {item.authenticity_tags[0].public_code}</span>
+                          <span>TAG: {item.tagCode}</span>
                         </div>
                       )}
                     </div>

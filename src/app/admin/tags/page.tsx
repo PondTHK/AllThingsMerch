@@ -1,5 +1,6 @@
 import React from 'react';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { getAdminServices } from '@/lib/admin/container';
 import { TagsClient } from './TagsClient';
 
 export default async function AdminTagsPage({
@@ -8,32 +9,34 @@ export default async function AdminTagsPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const supabase = await getSupabaseServerClient();
-
   if (!supabase) {
     return <div className="p-12 text-center text-neutral-500">Supabase is not configured.</div>;
   }
 
-  // Await searchParams in Next.js 15
   const resolvedParams = await searchParams;
   const page = parseInt((resolvedParams.page as string) || '1', 10);
   const limit = 20;
-  const from = (page - 1) * limit;
-  const to = from + limit - 1;
 
-  const { data: tags, count } = await supabase
-    .from('authenticity_tags')
-    .select('*, order_items(product_name, sku)', { count: 'exact' })
-    .order('issued_at', { ascending: false })
-    .range(from, to);
+  const services = getAdminServices(supabase);
+  const result = await services.tags.listTags({ page, limit });
 
-  const totalPages = count ? Math.ceil(count / limit) : 1;
+  const tagsDto = result.items.map((t) => ({
+    id: t.id,
+    publicCode: t.publicCode,
+    serialNumber: t.serialNumber,
+    productName: t.productName,
+    sku: t.sku,
+    status: t.status,
+    issuedAt: t.issuedAt,
+    orderNumber: t.orderNumber,
+  }));
 
   return (
     <TagsClient
-      initialTags={tags || []}
-      currentPage={page}
-      totalPages={totalPages}
-      totalCount={count || 0}
+      initialTags={tagsDto}
+      currentPage={result.currentPage}
+      totalPages={result.totalPages}
+      totalCount={result.totalCount}
     />
   );
 }

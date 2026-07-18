@@ -1,25 +1,31 @@
 'use client';
 
 import React, { useState } from 'react';
-import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { Plus, Check, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { createBrandAction, toggleBrandActiveAction } from './actions';
 
-export function BrandsClient({ 
+export interface BrandDto {
+  id: string;
+  name: string;
+  slug: string;
+  isActive: boolean;
+}
+
+export function BrandsClient({
   initialBrands,
   currentPage,
   totalPages,
   totalCount
-}: { 
-  initialBrands: any[];
+}: {
+  initialBrands: BrandDto[];
   currentPage: number;
   totalPages: number;
   totalCount: number;
 }) {
   const router = useRouter();
-  const supabase = getSupabaseBrowserClient();
-  const [brands, setBrands] = useState<any[]>(initialBrands);
-  
+  const [brands, setBrands] = useState<BrandDto[]>(initialBrands);
+
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
@@ -34,62 +40,33 @@ export function BrandsClient({
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !slug.trim() || !supabase) return;
-
+    if (!name.trim() || !slug.trim()) return;
     setIsLoading(true);
 
-    try {
-      const { data: newBrand, error } = await supabase
-        .from('brands')
-        .insert({
-          name: name.trim(),
-          slug: slug.trim(),
-          description: description.trim(),
-          is_active: true,
-        })
-        .select()
-        .single();
+    const result = await createBrandAction({
+      name: name.trim(),
+      slug: slug.trim(),
+      description: description.trim() || undefined,
+    });
 
-      if (error) throw error;
-
-      setBrands([newBrand, ...brands]);
-      setName('');
-      setSlug('');
-      setDescription('');
-      setShowForm(false);
-      
+    if (result.success) {
+      setName(''); setSlug(''); setDescription(''); setShowForm(false);
       setSavedMsg(true);
       setTimeout(() => setSavedMsg(false), 3000);
       router.refresh();
-    } catch (error) {
-      console.error('Error creating brand:', error);
-      alert('Failed to create brand. The slug might already be in use.');
-    } finally {
-      setIsLoading(false);
+    } else {
+      alert(result.error || 'Failed to create brand. The slug might already be in use.');
     }
+    setIsLoading(false);
   };
 
-  const toggleStatus = async (brandId: string, currentStatus: boolean) => {
-    if (!supabase) return;
-    const nextStatus = !currentStatus;
+  const toggleStatus = async (brandId: string, isActive: boolean) => {
     const previousBrands = [...brands];
-    
-    // Optimistic update
-    setBrands((prev) => 
-      prev.map((b) => b.id === brandId ? { ...b, is_active: nextStatus } : b)
-    );
+    setBrands((prev) => prev.map((b) => b.id === brandId ? { ...b, isActive: !isActive } : b));
 
-    try {
-      const { error } = await supabase
-        .from('brands')
-        .update({ is_active: nextStatus })
-        .eq('id', brandId);
-        
-      if (error) throw error;
-      router.refresh();
-    } catch (error) {
-      console.error('Failed to toggle brand status:', error);
-      alert('Failed to update brand status. Please try again.');
+    const result = await toggleBrandActiveAction(brandId);
+    if (!result.success) {
+      alert(result.error || 'Failed to update brand status.');
       setBrands(previousBrands);
     }
   };
@@ -106,89 +83,49 @@ export function BrandsClient({
             Manage official IP partners and merchandising brands.
           </p>
         </div>
-
-        <button
-          type="button"
-          onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2.5 rounded-xl bg-black text-white text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 hover:bg-neutral-800 transition-colors"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>New Brand</span>
+        <button type="button" onClick={() => setShowForm(!showForm)}
+          className="px-4 py-2.5 rounded-xl bg-black text-white text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 hover:bg-neutral-800 transition-colors">
+          <Plus className="w-3.5 h-3.5" /><span>New Brand</span>
         </button>
       </div>
 
       {savedMsg && (
         <div className="p-4 rounded-xl bg-neutral-100 border border-black flex items-center gap-2 text-xs font-bold text-black">
-          <Check className="w-4 h-4" />
-          <span>New brand created successfully.</span>
+          <Check className="w-4 h-4" /><span>New brand created successfully.</span>
         </div>
       )}
 
       {showForm && (
         <form onSubmit={handleCreate} className="p-6 rounded-2xl bg-neutral-100 border border-neutral-300 space-y-4 max-w-2xl">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-black border-b border-neutral-200 pb-2">
-            Brand Details
-          </h3>
-
+          <h3 className="text-xs font-bold uppercase tracking-wider text-black border-b border-neutral-200 pb-2">Brand Details</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">
-                Brand Name *
-              </label>
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => handleNameChange(e.target.value)}
-                placeholder="Red Bull Racing"
-                className="w-full px-4 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs font-medium text-black focus:outline-none focus:border-black"
-              />
+              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">Brand Name *</label>
+              <input type="text" required value={name} onChange={(e) => handleNameChange(e.target.value)} placeholder="Red Bull Racing"
+                className="w-full px-4 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs font-medium text-black focus:outline-none focus:border-black" />
             </div>
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">
-                URL Slug *
-              </label>
-              <input
-                type="text"
-                required
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs font-mono text-black focus:outline-none focus:border-black"
-              />
+              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">URL Slug *</label>
+              <input type="text" required value={slug} onChange={(e) => setSlug(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs font-mono text-black focus:outline-none focus:border-black" />
             </div>
             <div className="sm:col-span-2">
-              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">
-                Description
-              </label>
-              <textarea
-                rows={2}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs text-black focus:outline-none focus:border-black"
-              />
+              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">Description</label>
+              <textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs text-black focus:outline-none focus:border-black" />
             </div>
           </div>
-
           <div className="flex items-center gap-3 pt-2">
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="px-6 py-2.5 rounded-xl bg-black text-white text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 disabled:opacity-50"
-            >
+            <button type="submit" disabled={isLoading} className="px-6 py-2.5 rounded-xl bg-black text-white text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 disabled:opacity-50">
               {isLoading ? 'Creating...' : 'Create Brand'}
             </button>
-            <button
-              type="button"
-              onClick={() => setShowForm(false)}
-              className="px-6 py-2.5 rounded-xl border border-neutral-300 bg-white text-black text-xs font-bold uppercase tracking-wider hover:bg-neutral-200"
-            >
+            <button type="button" onClick={() => setShowForm(false)} className="px-6 py-2.5 rounded-xl border border-neutral-300 bg-white text-black text-xs font-bold uppercase tracking-wider hover:bg-neutral-200">
               Cancel
             </button>
           </div>
         </form>
       )}
 
-      {/* Table */}
       {brands.length === 0 ? (
         <div className="rounded-2xl bg-neutral-100 border border-neutral-200 p-12 text-center space-y-3">
           <ShieldCheck className="w-10 h-10 mx-auto text-neutral-400" />
@@ -202,31 +139,15 @@ export function BrandsClient({
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-black text-sm">{brand.name}</span>
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${brand.is_active ? 'bg-black text-white' : 'bg-neutral-300 text-neutral-700'}`}>
-                      {brand.is_active ? 'Active' : 'Disabled'}
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${brand.isActive ? 'bg-black text-white' : 'bg-neutral-300 text-neutral-700'}`}>
+                      {brand.isActive ? 'Active' : 'Disabled'}
                     </span>
                   </div>
-                  <div className="text-xs text-neutral-500 mt-1 font-mono">
-                    Slug: {brand.slug}
-                  </div>
+                  <div className="text-xs text-neutral-500 mt-1 font-mono">Slug: {brand.slug}</div>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() => toggleStatus(brand.id, brand.is_active)}
-                  className="px-3.5 py-2 rounded-xl border border-neutral-300 bg-white text-black text-xs font-bold uppercase tracking-wider hover:bg-neutral-100 flex items-center gap-1.5"
-                >
-                  {brand.is_active ? (
-                    <>
-                      <EyeOff className="w-3.5 h-3.5 text-neutral-500" />
-                      <span>Disable</span>
-                    </>
-                  ) : (
-                    <>
-                      <Eye className="w-3.5 h-3.5 text-black" />
-                      <span>Enable</span>
-                    </>
-                  )}
+                <button type="button" onClick={() => toggleStatus(brand.id, brand.isActive)}
+                  className="px-3.5 py-2 rounded-xl border border-neutral-300 bg-white text-black text-xs font-bold uppercase tracking-wider hover:bg-neutral-100 flex items-center gap-1.5">
+                  {brand.isActive ? <><EyeOff className="w-3.5 h-3.5 text-neutral-500" /><span>Disable</span></> : <><Eye className="w-3.5 h-3.5 text-black" /><span>Enable</span></>}
                 </button>
               </div>
             ))}
@@ -234,27 +155,14 @@ export function BrandsClient({
         </div>
       )}
 
-      {/* Pagination Controls */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between border-t border-neutral-200 pt-4">
-          <p className="text-xs text-neutral-500">
-            Showing page {currentPage} of {totalPages} ({totalCount} total brands)
-          </p>
+          <p className="text-xs text-neutral-500">Showing page {currentPage} of {totalPages} ({totalCount} total brands)</p>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => router.push(`/admin/brands?page=${currentPage - 1}`)}
-              disabled={currentPage <= 1 || isLoading}
-              className="px-3 py-1.5 rounded-xl border border-neutral-300 bg-white text-xs font-bold disabled:opacity-50 hover:bg-neutral-50"
-            >
-              Previous
-            </button>
-            <button
-              onClick={() => router.push(`/admin/brands?page=${currentPage + 1}`)}
-              disabled={currentPage >= totalPages || isLoading}
-              className="px-3 py-1.5 rounded-xl border border-neutral-300 bg-white text-xs font-bold disabled:opacity-50 hover:bg-neutral-50"
-            >
-              Next
-            </button>
+            <button onClick={() => router.push(`/admin/brands?page=${currentPage - 1}`)} disabled={currentPage <= 1}
+              className="px-3 py-1.5 rounded-xl border border-neutral-300 bg-white text-xs font-bold disabled:opacity-50 hover:bg-neutral-50">Previous</button>
+            <button onClick={() => router.push(`/admin/brands?page=${currentPage + 1}`)} disabled={currentPage >= totalPages}
+              className="px-3 py-1.5 rounded-xl border border-neutral-300 bg-white text-xs font-bold disabled:opacity-50 hover:bg-neutral-50">Next</button>
           </div>
         </div>
       )}

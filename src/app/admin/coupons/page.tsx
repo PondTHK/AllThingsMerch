@@ -1,5 +1,6 @@
 import React from 'react';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { getAdminServices } from '@/lib/admin/container';
 import { CouponsClient } from './CouponsClient';
 
 export default async function AdminCouponsPage({
@@ -15,25 +16,28 @@ export default async function AdminCouponsPage({
   const resolvedParams = await searchParams;
   const page = parseInt((resolvedParams.page as string) || '1', 10);
   const limit = 20;
-  const from = (page - 1) * limit;
-  const to = from + limit - 1;
 
-  // Assuming a 'coupons' table exists
-  const { data: coupons, count, error } = await supabase
-    .from('coupons')
-    .select('*', { count: 'exact' })
-    .order('created_at', { ascending: false })
-    .range(from, to);
+  const services = getAdminServices(supabase);
+  const result = await services.coupons.listCoupons({ page, limit });
 
-  const totalPages = count ? Math.ceil(count / limit) : 1;
+  const couponsDto = result.items.map((c) => ({
+    id: c.id,
+    code: c.code,
+    discountType: c.discountType,
+    discountValue: c.discountValue,
+    minOrderAmount: c.minOrderAmount,
+    maxUsageCount: c.maxUsageCount,
+    usageCount: c.usageCount,
+    isActive: c.isActive,
+    expiresAt: c.expiresAt,
+  }));
 
   return (
-    <CouponsClient 
-      initialCoupons={coupons || []}
-      currentPage={page}
-      totalPages={totalPages}
-      totalCount={count || 0}
-      dbError={error?.message}
+    <CouponsClient
+      initialCoupons={couponsDto}
+      currentPage={result.currentPage}
+      totalPages={result.totalPages}
+      totalCount={result.totalCount}
     />
   );
 }

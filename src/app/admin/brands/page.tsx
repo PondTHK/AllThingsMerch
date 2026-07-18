@@ -1,5 +1,6 @@
 import React from 'react';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { getAdminServices } from '@/lib/admin/container';
 import { BrandsClient } from './BrandsClient';
 
 export default async function AdminBrandsPage({
@@ -12,27 +13,26 @@ export default async function AdminBrandsPage({
     return <div className="p-12 text-center text-neutral-500">Supabase is not configured.</div>;
   }
 
-  // Await searchParams in Next.js 15
   const resolvedParams = await searchParams;
   const page = parseInt((resolvedParams.page as string) || '1', 10);
   const limit = 20;
-  const from = (page - 1) * limit;
-  const to = from + limit - 1;
 
-  const { data: brands, count } = await supabase
-    .from('brands')
-    .select('*', { count: 'exact' })
-    .order('name', { ascending: true })
-    .range(from, to);
+  const services = getAdminServices(supabase);
+  const result = await services.brands.listBrands({ page, limit });
 
-  const totalPages = count ? Math.ceil(count / limit) : 1;
+  const brandsDto = result.items.map((b) => ({
+    id: b.id,
+    name: b.name,
+    slug: b.slug,
+    isActive: b.isActive,
+  }));
 
   return (
-    <BrandsClient 
-      initialBrands={brands || []}
-      currentPage={page}
-      totalPages={totalPages}
-      totalCount={count || 0}
+    <BrandsClient
+      initialBrands={brandsDto}
+      currentPage={result.currentPage}
+      totalPages={result.totalPages}
+      totalCount={result.totalCount}
     />
   );
 }

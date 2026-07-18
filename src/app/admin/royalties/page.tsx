@@ -1,6 +1,7 @@
 import React from 'react';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
-import { RoyaltiesClient } from './RoyaltiesClient';
+import { getAdminServices } from '@/lib/admin/container';
+import { RoyaltiesClient, RoyaltyRowDto } from './RoyaltiesClient';
 
 export default async function AdminRoyaltiesPage() {
   const supabase = await getSupabaseServerClient();
@@ -8,47 +9,98 @@ export default async function AdminRoyaltiesPage() {
     return <div className="p-12 text-center text-neutral-500">Supabase is not configured.</div>;
   }
 
-  // Fetch all active contracts + license holder names
-  const { data: contracts } = await supabase
-    .from('license_contracts')
-    .select('*, license_holders(name)')
-    .eq('status', 'active')
-    .order('starts_at', { ascending: false });
+  const services = getAdminServices(supabase);
 
-  // Fetch fulfilled orders with their items and product->brand data
-  // So we can compute how much revenue is associated with each licensed brand
-  const { data: orders } = await supabase
-    .from('orders')
-    .select(`
-      id,
-      total_amount,
-      status,
-      created_at,
-      order_items (
+  // Fetch active contracts
+  const contracts = await services.contracts.getActiveContracts();
+
+  let brandRevenue: Record<string, { brandName: string; totalRevenue: number; orderCount: number }> = {};
+
+  // ---------------------------------------------------------------------------
+  // FAST PATH: Try to query the Database View first (O(1) payload size)
+  // ---------------------------------------------------------------------------
+  const { data: viewData, error: viewError } = await supabase
+    .from('brand_revenue_summary')
+    .select('*');
+
+  if (!viewError && viewData) {
+    // View exists! Use the pre-calculated data from SQL
+    for (const row of viewData) {
+      brandRevenue[row.brand_id] = {
+        brandName: row.brand_name,
+        totalRevenue: Number(row.total_revenue),
+        orderCount: Number(row.order_count)
+      };
+    }
+  } else {
+    // ---------------------------------------------------------------------------
+    // FALLBACK PATH: If the View hasn't been created in Supabase yet,
+    // fallback to querying all orders and calculating in JS.
+    // ---------------------------------------------------------------------------
+    const { data: rawOrders } = await supabase
+      .from('orders')
+      .select(`
         id,
-        quantity,
-        unit_price,
-        product_variants (
+        total_amount,
+        status,
+        created_at,
+        order_items (
           id,
-          products (
+          quantity,
+          unit_price,
+          product_variants (
             id,
-            name,
-            brand_id,
-            brands (
+            products (
               id,
-              name
+              name,
+              brand_id,
+              brands (
+                id,
+                name
+              )
             )
           )
         )
-      )
-    `)
-    .in('status', ['delivered', 'shipped'])
-    .order('created_at', { ascending: false });
+      `)
+      .in('status', ['delivered', 'shipped'])
+      .order('created_at', { ascending: false });
 
-  return (
-    <RoyaltiesClient
-      initialContracts={contracts || []}
-      initialOrders={orders || []}
-    />
-  );
+    for (const order of rawOrders || []) {
+      for (const item of order.order_items || []) {
+        const variant = item.product_variants as any;
+        const brand = variant?.products?.brands;
+        const brandId = variant?.products?.brand_id;
+        if (!brandId || !brand) continue;
+
+        const lineTotal = (item.unit_price || 0) * (item.quantity || 1);
+        if (!brandRevenue[brandId]) {
+          brandRevenue[brandId] = { brandName: brand.name, totalRevenue: 0, orderCount: 0 };
+        }
+        brandRevenue[brandId].totalRevenue += lineTotal;
+        brandRevenue[brandId].orderCount += 1;
+      }
+    }
+  }
+
+  // Match contracts to brand revenue (whether from View or JS calculation)
+  const royaltyRows: RoyaltyRowDto[] = contracts.map((contract) => {
+    const brandRevData = Object.values(brandRevenue).find(
+      (b) => b.brandName?.toLowerCase().includes(contract.holderName.toLowerCase().split(' ')[0])
+    );
+    const revenue = brandRevData?.totalRevenue || 0;
+    const royaltyOwed = revenue * (contract.royaltyRate / 100);
+
+    return {
+      id: contract.id,
+      holderName: contract.holderName,
+      ref: contract.contractReference,
+      royaltyRate: contract.royaltyRate,
+      revenue,
+      royaltyOwed,
+      status: contract.status,
+      expiresAt: contract.expiresAt,
+    };
+  });
+
+  return <RoyaltiesClient royaltyRows={royaltyRows} />;
 }
