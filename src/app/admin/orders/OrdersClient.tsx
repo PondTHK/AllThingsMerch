@@ -52,6 +52,30 @@ export function OrdersClient({
 
       if (error) throw error;
       
+      // Automatic Authenticity TAG Generation
+      if (newStatus === 'shipped' || newStatus === 'delivered') {
+        const order = orders.find(o => o.id === orderId);
+        if (order && order.order_items) {
+          for (const item of order.order_items) {
+            if (!item.authenticity_tags || item.authenticity_tags.length === 0) {
+               const uniqueCode = `ATM-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+               const serial = `SN-${item.sku.split('-')[0] || 'VAR'}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+               
+               const { error: tagError } = await supabase.from('authenticity_tags').insert({
+                 order_item_id: item.id,
+                 public_code: uniqueCode,
+                 serial_number: serial,
+                 status: 'active'
+               });
+               
+               if (tagError) {
+                 console.error('Failed to generate TAG for item:', item.id, tagError);
+               }
+            }
+          }
+        }
+      }
+
       router.refresh();
     } catch (error) {
       console.error('Failed to update order status:', error);

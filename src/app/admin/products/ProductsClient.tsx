@@ -5,6 +5,7 @@ import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { formatTHB } from '@/lib/money';
 import { Plus, Check, Eye, EyeOff, Package } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 type Product = any; // We can use the actual types from our schema or 'any' for simplicity here
 
@@ -369,6 +370,12 @@ export function ProductsClient({
                     </div>
                   </div>
 
+                  <Link
+                    href={`/admin/products/${prod.id}`}
+                    className="px-3.5 py-2 rounded-xl border border-neutral-300 bg-white text-black text-xs font-bold uppercase tracking-wider hover:bg-neutral-100 flex items-center gap-1.5"
+                  >
+                    <span>Edit</span>
+                  </Link>
                   <button
                     type="button"
                     onClick={() => toggleStatus(prod.id, prod.status)}
