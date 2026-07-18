@@ -25,7 +25,8 @@ export function CouponsClient({
   const [showForm, setShowForm] = useState(false);
   const [code, setCode] = useState('');
   const [discountType, setDiscountType] = useState('percentage');
-  const [discountAmount, setDiscountAmount] = useState('10');
+  const [discountValue, setDiscountValue] = useState('10');
+  const [startsAt, setStartsAt] = useState(new Date().toISOString().split('T')[0]);
   const [expiresAt, setExpiresAt] = useState('');
   
   const [isLoading, setIsLoading] = useState(false);
@@ -43,8 +44,10 @@ export function CouponsClient({
         .insert({
           code: code.trim().toUpperCase(),
           discount_type: discountType,
-          discount_amount: parseFloat(discountAmount),
-          expires_at: expiresAt || null,
+          discount_value: parseFloat(discountValue),
+          minimum_order_amount: 0,
+          starts_at: startsAt || new Date().toISOString(),
+          expires_at: expiresAt ? new Date(expiresAt).toISOString() : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
           is_active: true,
         })
         .select()
@@ -54,7 +57,7 @@ export function CouponsClient({
 
       setCoupons([newCoupon, ...coupons]);
       setCode('');
-      setDiscountAmount('10');
+      setDiscountValue('10');
       setShowForm(false);
       
       setSavedMsg(true);
@@ -184,8 +187,8 @@ export function CouponsClient({
                 required
                 min="1"
                 step={discountType === 'percentage' ? "1" : "0.01"}
-                value={discountAmount}
-                onChange={(e) => setDiscountAmount(e.target.value)}
+                value={discountValue}
+                onChange={(e) => setDiscountValue(e.target.value)}
                 placeholder="10"
                 className="w-full px-4 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs font-medium text-black focus:outline-none focus:border-black"
               />
@@ -193,10 +196,24 @@ export function CouponsClient({
 
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">
-                Expiry Date (Optional)
+                Start Date *
               </label>
               <input
                 type="date"
+                required
+                value={startsAt}
+                onChange={(e) => setStartsAt(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs font-medium text-black focus:outline-none focus:border-black"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">
+                Expiry Date *
+              </label>
+              <input
+                type="date"
+                required
                 value={expiresAt}
                 onChange={(e) => setExpiresAt(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs font-medium text-black focus:outline-none focus:border-black"
@@ -242,7 +259,7 @@ export function CouponsClient({
                     </span>
                   </div>
                   <div className="text-xs text-neutral-500 mt-2">
-                    Discount: <span className="font-bold text-black">{coupon.discount_amount}{coupon.discount_type === 'percentage' ? '%' : ' THB'}</span>
+                    Discount: <span className="font-bold text-black">{coupon.discount_value}{coupon.discount_type === 'percentage' ? '%' : ' THB'}</span>
                     {coupon.expires_at && <span> &bull; Expires: {new Date(coupon.expires_at).toLocaleDateString()}</span>}
                   </div>
                 </div>

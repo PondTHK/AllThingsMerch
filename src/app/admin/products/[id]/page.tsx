@@ -5,18 +5,19 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
-export default async function AdminProductEditPage({
-  params,
-}: {
+
+type Props = {
   params: Promise<{ id: string }>;
-}) {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
+
+export default async function AdminProductEditPage(props: Props) {
   const supabase = await getSupabaseServerClient();
   if (!supabase) {
     return <div className="p-12 text-center text-neutral-500">Supabase is not configured.</div>;
   }
 
-  const resolvedParams = await params;
-  const productId = resolvedParams.id;
+  const { id: productId } = await props.params;
 
   const [
     { data: product },
