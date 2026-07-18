@@ -7,11 +7,24 @@ import { useRouter } from 'next/navigation';
 
 type Tag = any; // Representing AuthenticityTag joined with order_items
 
-export function TagsClient({ initialTags }: { initialTags: Tag[] }) {
+interface TagsClientProps {
+  initialTags: Tag[];
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+}
+
+export function TagsClient({
+  initialTags,
+  currentPage,
+  totalPages,
+  totalCount,
+}: TagsClientProps) {
   const router = useRouter();
   const supabase = getSupabaseBrowserClient();
   const [tags, setTags] = useState<Tag[]>(initialTags);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const filteredTags = tags.filter((t) => {
     const q = searchQuery.toLowerCase();
@@ -25,18 +38,30 @@ export function TagsClient({ initialTags }: { initialTags: Tag[] }) {
 
   const updateStatus = async (tagId: string, newStatus: string) => {
     if (!supabase) return;
+    setIsUpdating(true);
+    const previousTags = [...tags];
 
     // Optimistic update
     setTags((prev) =>
       prev.map((t) => (t.id === tagId ? { ...t, status: newStatus } : t))
     );
 
-    await supabase
-      .from('authenticity_tags')
-      .update({ status: newStatus })
-      .eq('id', tagId);
-
-    router.refresh();
+    try {
+      const { error } = await supabase
+        .from('authenticity_tags')
+        .update({ status: newStatus })
+        .eq('id', tagId);
+        
+      if (error) throw error;
+      
+      router.refresh();
+    } catch (error) {
+      console.error('Failed to update TAG status:', error);
+      alert('Failed to update TAG status. Please check your connection and permissions.');
+      setTags(previousTags);
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   return (
@@ -122,6 +147,31 @@ export function TagsClient({ initialTags }: { initialTags: Tag[] }) {
           ))}
         </div>
       </div>
+      
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between border-t border-neutral-200 pt-4">
+          <p className="text-xs text-neutral-500">
+            Showing page {currentPage} of {totalPages} ({totalCount} total TAGs)
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => router.push(`/admin/tags?page=${currentPage - 1}`)}
+              disabled={currentPage <= 1 || isUpdating}
+              className="px-3 py-1.5 rounded-xl border border-neutral-300 bg-white text-xs font-bold disabled:opacity-50 hover:bg-neutral-50"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => router.push(`/admin/tags?page=${currentPage + 1}`)}
+              disabled={currentPage >= totalPages || isUpdating}
+              className="px-3 py-1.5 rounded-xl border border-neutral-300 bg-white text-xs font-bold disabled:opacity-50 hover:bg-neutral-50"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

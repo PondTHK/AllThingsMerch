@@ -8,7 +8,23 @@ import { useRouter } from 'next/navigation';
 
 type Product = any; // We can use the actual types from our schema or 'any' for simplicity here
 
-export function ProductsClient({ initialProducts }: { initialProducts: Product[] }) {
+interface ProductsClientProps {
+  initialProducts: Product[];
+  initialBrands: any[];
+  initialCategories: any[];
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+}
+
+export function ProductsClient({
+  initialProducts,
+  initialBrands,
+  initialCategories,
+  currentPage,
+  totalPages,
+  totalCount,
+}: ProductsClientProps) {
   const router = useRouter();
   const supabase = getSupabaseBrowserClient();
   const [products, setProducts] = useState<Product[]>(initialProducts);
@@ -17,8 +33,8 @@ export function ProductsClient({ initialProducts }: { initialProducts: Product[]
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [description, setDescription] = useState('');
-  const [brandId, setBrandId] = useState('b1111111-1111-4111-8111-111111111111');
-  const [categoryId, setCategoryId] = useState('c1111111-1111-4111-8111-111111111111');
+  const [brandId, setBrandId] = useState(initialBrands[0]?.id || '');
+  const [categoryId, setCategoryId] = useState(initialCategories[0]?.id || '');
   const [sku, setSku] = useState('');
   const [price, setPrice] = useState('2990');
   const [stockQuantity, setStockQuantity] = useState('20');
@@ -39,18 +55,26 @@ export function ProductsClient({ initialProducts }: { initialProducts: Product[]
   const toggleStatus = async (productId: string, currentStatus: string) => {
     if (!supabase) return;
     const nextStatus = currentStatus === 'active' ? 'draft' : 'active';
+    const previousProducts = [...products];
     
     // Optimistic update
     setProducts((prev) => 
       prev.map((p) => p.id === productId ? { ...p, status: nextStatus } : p)
     );
 
-    await supabase
-      .from('products')
-      .update({ status: nextStatus })
-      .eq('id', productId);
-      
-    router.refresh();
+    try {
+      const { error } = await supabase
+        .from('products')
+        .update({ status: nextStatus })
+        .eq('id', productId);
+        
+      if (error) throw error;
+      router.refresh();
+    } catch (error) {
+      console.error('Failed to toggle product status:', error);
+      alert('Failed to update product status. Please try again.');
+      setProducts(previousProducts);
+    }
   };
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -95,7 +119,11 @@ export function ProductsClient({ initialProducts }: { initialProducts: Product[]
         .select()
         .single();
 
-      if (variantError) throw variantError;
+      if (variantError) {
+        // Rollback pseudo-transaction
+        await supabase.from('products').delete().eq('id', newProduct.id);
+        throw variantError;
+      }
 
       // Update local state
       setProducts([{ ...newProduct, product_variants: [newVariant] }, ...products]);
@@ -204,10 +232,10 @@ export function ProductsClient({ initialProducts }: { initialProducts: Product[]
                 onChange={(e) => setBrandId(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs font-medium text-black focus:outline-none focus:border-black"
               >
-                <option value="b1111111-1111-4111-8111-111111111111">Oracle Red Bull Racing</option>
-                <option value="b2222222-2222-4222-8222-222222222222">Scuderia Ferrari F1</option>
-                <option value="b3333333-3333-4333-8333-333333333333">Cactus Jack Merch</option>
-                <option value="b4444444-4444-4444-8444-444444444444">KAWS Collectibles</option>
+                {initialBrands.length === 0 && <option value="">No Brands Available</option>}
+                {initialBrands.map((brand) => (
+                  <option key={brand.id} value={brand.id}>{brand.name}</option>
+                ))}
               </select>
             </div>
 
@@ -220,9 +248,10 @@ export function ProductsClient({ initialProducts }: { initialProducts: Product[]
                 onChange={(e) => setCategoryId(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs font-medium text-black focus:outline-none focus:border-black"
               >
-                <option value="c1111111-1111-4111-8111-111111111111">Formula 1 Apparel</option>
-                <option value="c2222222-2222-4222-8222-222222222222">Artist &amp; Concert Merch</option>
-                <option value="c3333333-3333-4333-8333-333333333333">Art Toys &amp; Collectibles</option>
+                {initialCategories.length === 0 && <option value="">No Categories Available</option>}
+                {initialCategories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
               </select>
             </div>
 
@@ -363,6 +392,31 @@ export function ProductsClient({ initialProducts }: { initialProducts: Product[]
           })}
         </div>
       </div>
+      )}
+      
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between border-t border-neutral-200 pt-4">
+          <p className="text-xs text-neutral-500">
+            Showing page {currentPage} of {totalPages} ({totalCount} total products)
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => router.push(`/admin/products?page=${currentPage - 1}`)}
+              disabled={currentPage <= 1 || isLoading}
+              className="px-3 py-1.5 rounded-xl border border-neutral-300 bg-white text-xs font-bold disabled:opacity-50 hover:bg-neutral-50"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => router.push(`/admin/products?page=${currentPage + 1}`)}
+              disabled={currentPage >= totalPages || isLoading}
+              className="px-3 py-1.5 rounded-xl border border-neutral-300 bg-white text-xs font-bold disabled:opacity-50 hover:bg-neutral-50"
+            >
+              Next
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

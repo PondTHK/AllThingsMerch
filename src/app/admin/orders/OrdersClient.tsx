@@ -8,11 +8,24 @@ import { useRouter } from 'next/navigation';
 
 type Order = any; // Assuming 'any' or proper type matching Supabase response
 
-export function OrdersClient({ initialOrders }: { initialOrders: Order[] }) {
+interface OrdersClientProps {
+  initialOrders: Order[];
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+}
+
+export function OrdersClient({
+  initialOrders,
+  currentPage,
+  totalPages,
+  totalCount,
+}: OrdersClientProps) {
   const router = useRouter();
   const supabase = getSupabaseBrowserClient();
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const filteredOrders =
     filterStatus === 'all'
@@ -21,18 +34,33 @@ export function OrdersClient({ initialOrders }: { initialOrders: Order[] }) {
 
   const updateStatus = async (orderId: string, newStatus: string) => {
     if (!supabase) return;
+    setIsUpdating(true);
+
+    // Save previous state for rollback
+    const previousOrders = [...orders];
 
     // Optimistic update
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
     );
 
-    await supabase
-      .from('orders')
-      .update({ status: newStatus })
-      .eq('id', orderId);
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: newStatus })
+        .eq('id', orderId);
 
-    router.refresh();
+      if (error) throw error;
+      
+      router.refresh();
+    } catch (error) {
+      console.error('Failed to update order status:', error);
+      alert('Failed to update order status. Please check your connection and permissions.');
+      // Revert to previous state
+      setOrders(previousOrders);
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   return (
@@ -153,6 +181,31 @@ export function OrdersClient({ initialOrders }: { initialOrders: Order[] }) {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between border-t border-neutral-200 pt-4">
+          <p className="text-xs text-neutral-500">
+            Showing page {currentPage} of {totalPages} ({totalCount} total orders)
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => router.push(`/admin/orders?page=${currentPage - 1}`)}
+              disabled={currentPage <= 1 || isUpdating}
+              className="px-3 py-1.5 rounded-xl border border-neutral-300 bg-white text-xs font-bold disabled:opacity-50 hover:bg-neutral-50"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => router.push(`/admin/orders?page=${currentPage + 1}`)}
+              disabled={currentPage >= totalPages || isUpdating}
+              className="px-3 py-1.5 rounded-xl border border-neutral-300 bg-white text-xs font-bold disabled:opacity-50 hover:bg-neutral-50"
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
     </div>

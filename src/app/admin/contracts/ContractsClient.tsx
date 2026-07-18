@@ -55,7 +55,10 @@ export function ContractsClient({ initialContracts }: { initialContracts: Contra
         .select()
         .single();
 
-      if (contractError) throw contractError;
+      if (contractError) {
+        await supabase.from('license_holders').delete().eq('id', newHolder.id);
+        throw contractError;
+      }
 
       // Optimistic Update
       setContracts([{ ...newContract, license_holders: { name: newHolder.name } }, ...contracts]);

@@ -7,15 +7,31 @@ import { useRouter } from 'next/navigation';
 
 type Product = any;
 
-export function InventoryClient({ initialProducts }: { initialProducts: Product[] }) {
+interface InventoryClientProps {
+  initialProducts: Product[];
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+}
+
+export function InventoryClient({
+  initialProducts,
+  currentPage,
+  totalPages,
+  totalCount,
+}: InventoryClientProps) {
   const router = useRouter();
   const supabase = getSupabaseBrowserClient();
   const [products, setProducts] = useState<Product[]>(initialProducts);
   // Per-variant manual input state: variantId -> { inputValue, saving, saved }
   const [manualInputs, setManualInputs] = useState<Record<string, { value: string; saving: boolean; saved: boolean }>>({});
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const adjustStock = async (variantId: string, deltaAmount: number) => {
     if (!supabase) return;
+    setIsUpdating(true);
+    
+    const previousProducts = [...products];
 
     // Optimistic update
     setProducts((prev) =>
@@ -29,39 +45,49 @@ export function InventoryClient({ initialProducts }: { initialProducts: Product[
       }))
     );
 
-    // Call Supabase RPC or fetch current and update
-    // Since we don't have a specific RPC for increment, we can do a simple read then write or just assume the frontend has the latest stock.
-    // In production, we'd use a postgres function (RPC) to increment safely.
-    // For now, let's fetch current stock and add.
-    const { data: currentVariant } = await supabase
-      .from('product_variants')
-      .select('stock_quantity')
-      .eq('id', variantId)
-      .single();
-
-    if (currentVariant) {
-      const newQuantity = Math.max(0, currentVariant.stock_quantity + deltaAmount);
-      await supabase
+    try {
+      const { data: currentVariant, error: fetchError } = await supabase
         .from('product_variants')
-        .update({ stock_quantity: newQuantity })
-        .eq('id', variantId);
-        
-      // Also log stock movement
-      await supabase.from('stock_movements').insert({
-        product_variant_id: variantId,
-        movement_type: deltaAmount > 0 ? 'receive' : 'adjustment',
-        quantity: Math.abs(deltaAmount),
-        note: 'Admin manual adjustment',
-      });
-    }
+        .select('stock_quantity')
+        .eq('id', variantId)
+        .single();
 
-    router.refresh();
+      if (fetchError) throw fetchError;
+
+      if (currentVariant) {
+        const newQuantity = Math.max(0, currentVariant.stock_quantity + deltaAmount);
+        const { error: updateError } = await supabase
+          .from('product_variants')
+          .update({ stock_quantity: newQuantity })
+          .eq('id', variantId);
+          
+        if (updateError) throw updateError;
+
+        // Also log stock movement
+        const { error: moveError } = await supabase.from('stock_movements').insert({
+          product_variant_id: variantId,
+          movement_type: deltaAmount > 0 ? 'receive' : 'adjustment',
+          quantity: Math.abs(deltaAmount),
+          note: 'Admin manual adjustment',
+        });
+        
+        if (moveError) throw moveError;
+      }
+      router.refresh();
+    } catch (error) {
+      console.error('Failed to adjust stock:', error);
+      alert('Failed to adjust stock. Please check your connection and permissions.');
+      setProducts(previousProducts);
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const setStockAbsolute = async (variantId: string, newQty: number) => {
     if (!supabase || newQty < 0) return;
 
     setManualInputs((prev) => ({ ...prev, [variantId]: { ...prev[variantId], saving: true, saved: false } }));
+    const previousProducts = [...products];
 
     // Optimistic update
     setProducts((prev) =>
@@ -73,32 +99,42 @@ export function InventoryClient({ initialProducts }: { initialProducts: Product[
       }))
     );
 
-    const currentQty = products
-      .flatMap((p: any) => p.product_variants)
-      .find((v: any) => v.id === variantId)?.stock_quantity ?? newQty;
+    try {
+      const currentQty = products
+        .flatMap((p: any) => p.product_variants)
+        .find((v: any) => v.id === variantId)?.stock_quantity ?? newQty;
 
-    const delta = newQty - currentQty;
+      const delta = newQty - currentQty;
 
-    await supabase
-      .from('product_variants')
-      .update({ stock_quantity: newQty })
-      .eq('id', variantId);
+      const { error: updateError } = await supabase
+        .from('product_variants')
+        .update({ stock_quantity: newQty })
+        .eq('id', variantId);
+        
+      if (updateError) throw updateError;
 
-    if (delta !== 0) {
-      await supabase.from('stock_movements').insert({
-        product_variant_id: variantId,
-        movement_type: delta > 0 ? 'receive' : 'adjustment',
-        quantity: Math.abs(delta),
-        note: 'Admin manual set',
-      });
+      if (delta !== 0) {
+        const { error: moveError } = await supabase.from('stock_movements').insert({
+          product_variant_id: variantId,
+          movement_type: delta > 0 ? 'receive' : 'adjustment',
+          quantity: Math.abs(delta),
+          note: 'Admin manual set',
+        });
+        if (moveError) throw moveError;
+      }
+
+      setManualInputs((prev) => ({ ...prev, [variantId]: { value: String(newQty), saving: false, saved: true } }));
+      setTimeout(() => {
+        setManualInputs((prev) => ({ ...prev, [variantId]: { ...prev[variantId], saved: false } }));
+      }, 2000);
+
+      router.refresh();
+    } catch (error) {
+      console.error('Failed to set absolute stock:', error);
+      alert('Failed to set stock. Please check your connection and permissions.');
+      setProducts(previousProducts);
+      setManualInputs((prev) => ({ ...prev, [variantId]: { ...prev[variantId], saving: false, saved: false } }));
     }
-
-    setManualInputs((prev) => ({ ...prev, [variantId]: { value: String(newQty), saving: false, saved: true } }));
-    setTimeout(() => {
-      setManualInputs((prev) => ({ ...prev, [variantId]: { ...prev[variantId], saved: false } }));
-    }, 2000);
-
-    router.refresh();
   };
 
   return (
@@ -243,6 +279,31 @@ export function InventoryClient({ initialProducts }: { initialProducts: Product[
           ))}
         </div>
       </div>
+      
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between border-t border-neutral-200 pt-4">
+          <p className="text-xs text-neutral-500">
+            Showing page {currentPage} of {totalPages} ({totalCount} total products)
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => router.push(`/admin/inventory?page=${currentPage - 1}`)}
+              disabled={currentPage <= 1 || isUpdating}
+              className="px-3 py-1.5 rounded-xl border border-neutral-300 bg-white text-xs font-bold disabled:opacity-50 hover:bg-neutral-50"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => router.push(`/admin/inventory?page=${currentPage + 1}`)}
+              disabled={currentPage >= totalPages || isUpdating}
+              className="px-3 py-1.5 rounded-xl border border-neutral-300 bg-white text-xs font-bold disabled:opacity-50 hover:bg-neutral-50"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
