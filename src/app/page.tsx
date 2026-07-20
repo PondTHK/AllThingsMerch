@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { getAllProducts } from '@/lib/repositories/mock-data';
+import { getRepository } from '@/lib/repositories';
+import { Product } from '@/types';
 import { ProductCard } from '@/components/products/ProductCard';
 import { formatTHB } from '@/lib/money';
 import { ArrowRight, ShieldCheck } from 'lucide-react';
@@ -11,16 +12,36 @@ import { ArrowRight, ShieldCheck } from 'lucide-react';
 type TabId = 'ALL' | 'F1' | 'ARTIST' | 'SPORTS' | 'COLLECTIBLES';
 
 export default function HomePage() {
-  const allProducts = getAllProducts();
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabId>('ALL');
+
+  useEffect(() => {
+    let mounted = true;
+    getRepository()
+      .getProducts()
+      .then((products) => {
+        if (mounted) {
+          setAllProducts(products);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to fetch products on home page:', err);
+        if (mounted) setLoading(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const trendingProducts = allProducts.slice(0, 3);
 
   const filteredBestSellers = allProducts.filter((product) => {
-    if (activeTab === 'F1') return product.categoryId === 'cat-f1';
-    if (activeTab === 'ARTIST') return product.categoryId === 'cat-music';
-    if (activeTab === 'SPORTS') return product.categoryId === 'cat-football';
-    if (activeTab === 'COLLECTIBLES') return product.categoryId === 'cat-collectibles';
+    if (activeTab === 'F1') return product.categoryId === 'cat-f1' || product.category?.slug === 'formula-1';
+    if (activeTab === 'ARTIST') return product.categoryId === 'cat-music' || product.category?.slug === 'music-merch';
+    if (activeTab === 'SPORTS') return product.categoryId === 'cat-football' || product.category?.slug === 'sports';
+    if (activeTab === 'COLLECTIBLES') return product.categoryId === 'cat-collectibles' || product.category?.slug === 'collectibles';
     return true;
   });
 

@@ -1,43 +1,38 @@
-'use client';
-
-import React, { useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useAuthStore } from '@/lib/auth/useAuthStore';
-import { useAdminStore } from '@/lib/admin/useAdminStore';
-import { useHydrated } from '@/lib/cart/useHydrated';
-import {
-  LayoutDashboard,
-  Package,
-  Layers,
-  ClipboardList,
-  FileText,
-  ShieldCheck,
-  ArrowLeft,
-  ShieldAlert,
-  Ticket,
-  Coins,
-  MessageSquare,
-} from 'lucide-react';
+import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
+import { ArrowLeft, ShieldAlert } from 'lucide-react';
+import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { NavSidebar } from './NavSidebar';
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const isHydrated = useHydrated();
-  const user = useAuthStore((state) => state.user);
-  const loginAsDemoAdmin = useAuthStore((state) => state.loginAsDemoAdmin);
-  const syncOrders = useAdminStore((state) => state.syncOrdersFromStorage);
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies();
+  const demoRole = cookieStore.get('atm_demo_role')?.value;
 
-  useEffect(() => {
-    if (isHydrated) {
-      syncOrders();
-    }
-  }, [isHydrated, syncOrders]);
-
-  if (!isHydrated) {
-    return <div className="p-16 text-center text-neutral-500">Loading Curator Admin Portal...</div>;
+  const supabase = await getSupabaseServerClient();
+  if (!supabase && demoRole !== 'admin') {
+    return <div className="p-16 text-center text-neutral-500">Supabase is not configured.</div>;
   }
 
-  if (!user || user.role !== 'admin') {
+  let user = null;
+  let role = demoRole;
+  let fullName = 'Curator Admin';
+
+  if (supabase) {
+    const { data } = await supabase.auth.getUser();
+    if (data?.user) {
+      user = data.user;
+      role = user.app_metadata?.role || user.user_metadata?.role || demoRole;
+      fullName = user.user_metadata?.full_name || user.user_metadata?.fullName || 'Curator Admin';
+    }
+  }
+
+  if (!user && demoRole !== 'admin') {
+    redirect('/login');
+  }
+
+  if (role !== 'admin') {
     return (
       <div className="max-w-2xl mx-auto px-4 py-24 text-center space-y-6">
         <div className="w-16 h-16 rounded-full bg-neutral-100 border border-black mx-auto flex items-center justify-center text-black">
@@ -48,13 +43,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           This portal is reserved for authorized merchandising curators, inventory controllers, and IP licensing administrators.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-          <button
-            type="button"
-            onClick={() => loginAsDemoAdmin()}
-            className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-black text-white font-bold text-xs uppercase tracking-wider hover:bg-neutral-800 transition-colors"
-          >
-            Instant Admin Demo Session
-          </button>
           <Link
             href="/"
             className="w-full sm:w-auto px-8 py-3.5 rounded-xl border border-neutral-300 bg-white text-black font-bold text-xs uppercase tracking-wider hover:bg-neutral-100"
@@ -66,18 +54,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  const navItems = [
-    { label: 'Overview', href: '/admin', icon: LayoutDashboard },
-    { label: 'Catalog Products', href: '/admin/products', icon: Package },
-    { label: 'Inventory & Stock', href: '/admin/inventory', icon: Layers },
-    { label: 'Customer Orders', href: '/admin/orders', icon: ClipboardList },
-    { label: 'Authenticity TAGs', href: '/admin/tags', icon: ShieldCheck },
-    { label: 'Discount Coupons', href: '/admin/coupons', icon: Ticket },
-    { label: 'License Contracts', href: '/admin/contracts', icon: FileText },
-    { label: 'Royalty Reports', href: '/admin/royalties', icon: Coins },
-    { label: 'Customer Reviews', href: '/admin/reviews', icon: MessageSquare },
-  ];
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       {/* Admin Top Banner */}
@@ -88,7 +64,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
           <h1 className="text-3xl font-black text-black">Merchandise &amp; IP Operations</h1>
           <p className="text-xs text-neutral-600 mt-1">
-            Logged in as <span className="font-bold text-black">{user.fullName}</span> ({user.email})
+            Logged in as <span className="font-bold text-black">{fullName}</span> ({user?.email || 'admin@allthingsmerch.demo'})
           </p>
         </div>
 
@@ -103,26 +79,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Navigation Sidebar */}
-        <div className="lg:col-span-3 space-y-1.5">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const active = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
-                  active
-                    ? 'bg-black text-white'
-                    : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200 hover:text-black'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-        </div>
+        <NavSidebar />
 
         {/* Admin Main Content Area */}
         <div className="lg:col-span-9">{children}</div>

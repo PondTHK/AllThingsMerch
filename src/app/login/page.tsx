@@ -4,7 +4,8 @@ import React, { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/auth/useAuthStore';
-import { Lock, UserCheck, ShieldAlert, ArrowRight } from 'lucide-react';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { Lock, ArrowRight } from 'lucide-react';
 
 function LoginContent() {
   const router = useRouter();
@@ -12,24 +13,13 @@ function LoginContent() {
   const redirect = searchParams?.get('redirect') || '/account';
 
   const login = useAuthStore((state) => state.login);
-  const loginAsDemoCollector = useAuthStore((state) => state.loginAsDemoCollector);
-  const loginAsDemoAdmin = useAuthStore((state) => state.loginAsDemoAdmin);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleDemoCollectorLogin = () => {
-    loginAsDemoCollector();
-    router.push(redirect);
-  };
-
-  const handleDemoAdminLogin = () => {
-    loginAsDemoAdmin();
-    router.push('/admin');
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -38,16 +28,49 @@ function LoginContent() {
       return;
     }
 
-    // Register session in auth store
+    setLoading(true);
+    const client = getSupabaseBrowserClient();
+    if (client) {
+      const { data, error: signInError } = await client.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (signInError) {
+        setError(`Supabase Sign In Error: ${signInError.message}`);
+        setLoading(false);
+        return;
+      }
+
+      if (data.user) {
+        const role = (data.user.app_metadata?.role ||
+          data.user.user_metadata?.role ||
+          (email.includes('admin') ? 'admin' : 'customer')) as 'admin' | 'customer';
+        login({
+          id: data.user.id,
+          email: data.user.email || email.trim(),
+          fullName: data.user.user_metadata?.full_name || email.split('@')[0].toUpperCase(),
+          role,
+          createdAt: data.user.created_at || new Date().toISOString(),
+        });
+        setLoading(false);
+        router.push(role === 'admin' ? '/admin' : redirect);
+        return;
+      }
+    }
+
+    // Only fallback to local mock storage if Supabase env is NOT configured
+    const role = email.includes('admin') ? 'admin' : 'customer';
     login({
       id: `usr-${Date.now()}`,
       email: email.trim(),
       fullName: email.split('@')[0].toUpperCase(),
-      role: email.includes('admin') ? 'admin' : 'customer',
+      role,
       createdAt: new Date().toISOString(),
     });
 
-    router.push(redirect);
+    setLoading(false);
+    router.push(role === 'admin' ? '/admin' : redirect);
   };
 
   return (
@@ -58,37 +81,6 @@ function LoginContent() {
           <p className="text-xs uppercase tracking-wider text-neutral-600">
             Access Your Verified Orders, Saved Addresses &amp; Authenticity TAGs
           </p>
-        </div>
-
-        {/* Quick Demo Logins */}
-        <div className="space-y-3 p-5 rounded-2xl bg-white border border-neutral-300">
-          <div className="flex items-center gap-2 text-xs font-bold text-black uppercase tracking-wider">
-            <ShieldAlert className="w-4 h-4" />
-            <span>Instant Demo Session Access</span>
-          </div>
-          <p className="text-xs text-neutral-600">
-            Test full customer or admin capabilities without password credentials:
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-            <button
-              type="button"
-              onClick={handleDemoCollectorLogin}
-              className="py-2.5 px-4 rounded-xl bg-black text-white text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors flex items-center justify-center gap-1.5"
-            >
-              <UserCheck className="w-3.5 h-3.5" />
-              <span>Collector Demo</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleDemoAdminLogin}
-              className="py-2.5 px-4 rounded-xl border border-black bg-white text-black text-xs font-bold uppercase tracking-wider hover:bg-neutral-100 transition-colors flex items-center justify-center gap-1.5"
-            >
-              <Lock className="w-3.5 h-3.5" />
-              <span>Admin Demo</span>
-            </button>
-          </div>
         </div>
 
         {/* Standard Email/Password form */}
@@ -102,7 +94,7 @@ function LoginContent() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="collector@allthingsmerch.demo"
+              placeholder="your.email@example.com"
               className="w-full px-4 py-3 rounded-xl bg-white border border-neutral-300 text-sm font-medium text-black focus:outline-none focus:border-black"
             />
           </div>

@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useMemo, Suspense } from 'react';
+import React, { useState, useMemo, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { getAllProducts, MOCK_BRANDS, MOCK_CATEGORIES } from '@/lib/repositories/mock-data';
+import { getRepository } from '@/lib/repositories';
+import { Product, Brand, Category } from '@/types';
 import { ProductCard } from '@/components/products/ProductCard';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 
@@ -18,7 +19,33 @@ function ProductsCatalogContent() {
   const [selectedBrand, setSelectedBrand] = useState(initialBrand);
   const [sortBy, setSortBy] = useState<'newest' | 'price-asc' | 'price-desc'>('newest');
 
-  const allProducts = getAllProducts();
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    const repo = getRepository();
+    Promise.all([
+      repo.getProducts(),
+      repo.getBrands(),
+      repo.getCategories(),
+    ]).then(([pData, bData, cData]) => {
+      if (mounted) {
+        setAllProducts(pData);
+        setBrands(bData);
+        setCategories(cData);
+        setLoading(false);
+      }
+    }).catch((err) => {
+      console.error('Failed to fetch products catalog:', err);
+      if (mounted) setLoading(false);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const filteredProducts = useMemo(() => {
     return allProducts
@@ -33,12 +60,12 @@ function ProductsCatalogContent() {
         }
 
         // Category filter
-        if (selectedCategory !== 'ALL' && product.category?.slug !== selectedCategory) {
+        if (selectedCategory !== 'ALL' && product.category?.slug !== selectedCategory && product.categoryId !== selectedCategory) {
           return false;
         }
 
         // Brand filter
-        if (selectedBrand !== 'ALL' && product.brand?.slug !== selectedBrand) {
+        if (selectedBrand !== 'ALL' && product.brand?.slug !== selectedBrand && product.brandId !== selectedBrand) {
           return false;
         }
 
@@ -125,7 +152,7 @@ function ProductsCatalogContent() {
             className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-100 border border-neutral-300 text-xs font-semibold text-black focus:outline-none focus:border-black"
           >
             <option value="ALL">All Categories</option>
-            {MOCK_CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <option key={cat.id} value={cat.slug}>
                 {cat.name}
               </option>
@@ -141,7 +168,7 @@ function ProductsCatalogContent() {
             className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-100 border border-neutral-300 text-xs font-semibold text-black focus:outline-none focus:border-black"
           >
             <option value="ALL">All Brands</option>
-            {MOCK_BRANDS.map((brand) => (
+            {brands.map((brand) => (
               <option key={brand.id} value={brand.slug}>
                 {brand.name}
               </option>
@@ -173,7 +200,7 @@ function ProductsCatalogContent() {
         >
           All
         </button>
-        {MOCK_CATEGORIES.map((cat) => (
+        {categories.map((cat) => (
           <button
             key={cat.id}
             type="button"

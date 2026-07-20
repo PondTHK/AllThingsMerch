@@ -39,10 +39,16 @@ export const useAuthStore = create<AuthState>()(
       addresses: DEFAULT_DEMO_ADDRESSES,
 
       login: (user) => {
+        if (typeof document !== 'undefined') {
+          document.cookie = `atm_demo_role=${user.role}; path=/; max-age=86400;`;
+        }
         set({ user });
       },
 
       logout: () => {
+        if (typeof document !== 'undefined') {
+          document.cookie = 'atm_demo_role=; path=/; max-age=0;';
+        }
         set({ user: null });
       },
 
@@ -54,6 +60,9 @@ export const useAuthStore = create<AuthState>()(
       },
 
       loginAsDemoCollector: () => {
+        if (typeof document !== 'undefined') {
+          document.cookie = 'atm_demo_role=customer; path=/; max-age=86400;';
+        }
         set({
           user: {
             id: 'demo-collector-01',
@@ -67,6 +76,9 @@ export const useAuthStore = create<AuthState>()(
       },
 
       loginAsDemoAdmin: () => {
+        if (typeof document !== 'undefined') {
+          document.cookie = 'atm_demo_role=admin; path=/; max-age=86400;';
+        }
         set({
           user: {
             id: 'demo-admin-01',
