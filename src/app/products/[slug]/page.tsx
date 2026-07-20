@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { getProductBySlug, getAllProducts } from '@/lib/repositories/mock-data';
+import { getRepository } from '@/lib/repositories';
+import { Product, ProductVariant } from '@/types';
 import { formatTHB } from '@/lib/money';
 import { ShieldCheck, Check, ArrowLeft, ShoppingBag } from 'lucide-react';
 import { ProductCard } from '@/components/products/ProductCard';
@@ -13,12 +14,47 @@ import { useCartStore } from '@/lib/cart/useCartStore';
 export default function ProductDetailPage() {
   const params = useParams();
   const slug = typeof params?.slug === 'string' ? params.slug : '';
-  const product = getProductBySlug(slug);
 
-  const [selectedVariant, setSelectedVariant] = useState(product?.variants[0]);
+  const [product, setProduct] = useState<Product | undefined>(undefined);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>(undefined);
   const [quantity, setQuantity] = useState(1);
   const [addedMessage, setAddedMessage] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
+
+  useEffect(() => {
+    let mounted = true;
+    if (!slug) {
+      setLoading(false);
+      return;
+    }
+    const repo = getRepository();
+    Promise.all([
+      repo.getProductBySlug(slug),
+      repo.getProducts(),
+    ]).then(([prod, all]) => {
+      if (mounted) {
+        setProduct(prod);
+        setAllProducts(all);
+        if (prod && prod.variants.length > 0) {
+          setSelectedVariant(prod.variants[0]);
+        }
+        setLoading(false);
+      }
+    }).catch((err) => {
+      console.error('Failed to load product details:', err);
+      if (mounted) setLoading(false);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, [slug]);
+
+  if (loading) {
+    return <div className="p-20 text-center text-neutral-500 font-bold">Loading product details...</div>;
+  }
 
   if (!product) {
     return (
@@ -46,7 +82,7 @@ export default function ProductDetailPage() {
     }, 3000);
   };
 
-  const relatedProducts = getAllProducts()
+  const relatedProducts = allProducts
     .filter((p) => p.id !== product.id && (p.categoryId === product.categoryId || p.brandId === product.brandId))
     .slice(0, 4);
 
