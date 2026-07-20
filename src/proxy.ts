@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -32,14 +32,13 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const isAdminPath = request.nextUrl.pathname.startsWith('/admin');
+  const demoRoleCookie = request.cookies.get('atm_demo_role')?.value;
 
-  if (isAdminPath && !user) {
-    // Not logged in → redirect to login page
+  if (isAdminPath && !user && demoRoleCookie !== 'admin') {
+    // Not logged in via Supabase Auth and not logged in as demo admin → redirect to login page
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
-    // NOTE: Role check (admin vs non-admin) is handled in admin/layout.tsx
-    // which shows a proper "Access Denied" UI instead of a silent redirect.
   }
 
   return supabaseResponse;
@@ -52,7 +51,6 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * Feel free to modify this pattern to include more paths.
      */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],

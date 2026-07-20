@@ -4,6 +4,7 @@ import React, { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/auth/useAuthStore';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { Lock, UserCheck, ShieldAlert, ArrowRight } from 'lucide-react';
 
 function LoginContent() {
@@ -18,6 +19,7 @@ function LoginContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleDemoCollectorLogin = () => {
     loginAsDemoCollector();
@@ -29,7 +31,7 @@ function LoginContent() {
     router.push('/admin');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -38,16 +40,48 @@ function LoginContent() {
       return;
     }
 
-    // Register session in auth store
+    setLoading(true);
+    const client = getSupabaseBrowserClient();
+    if (client) {
+      const { data, error: signInError } = await client.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (signInError) {
+        setError(`Supabase Sign In Error: ${signInError.message}`);
+        setLoading(false);
+        return;
+      }
+
+      if (data.user) {
+        const role = (data.user.app_metadata?.role ||
+          data.user.user_metadata?.role ||
+          (email.includes('admin') ? 'admin' : 'customer')) as 'admin' | 'customer';
+        login({
+          id: data.user.id,
+          email: data.user.email || email.trim(),
+          fullName: data.user.user_metadata?.full_name || email.split('@')[0].toUpperCase(),
+          role,
+          createdAt: data.user.created_at || new Date().toISOString(),
+        });
+        setLoading(false);
+        router.push(role === 'admin' ? '/admin' : redirect);
+        return;
+      }
+    }
+
+    const role = email.includes('admin') ? 'admin' : 'customer';
     login({
       id: `usr-${Date.now()}`,
       email: email.trim(),
       fullName: email.split('@')[0].toUpperCase(),
-      role: email.includes('admin') ? 'admin' : 'customer',
+      role,
       createdAt: new Date().toISOString(),
     });
 
-    router.push(redirect);
+    setLoading(false);
+    router.push(role === 'admin' ? '/admin' : redirect);
   };
 
   return (

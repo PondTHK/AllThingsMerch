@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/auth/useAuthStore';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { UserPlus } from 'lucide-react';
 
 export default function RegisterPage() {
@@ -16,8 +17,9 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -31,6 +33,42 @@ export default function RegisterPage() {
       return;
     }
 
+    setLoading(true);
+    const client = getSupabaseBrowserClient();
+    if (client) {
+      const { data, error: signUpError } = await client.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          data: {
+            full_name: fullName.trim(),
+            phone: phone.trim(),
+            role: 'customer',
+          },
+        },
+      });
+
+      if (signUpError) {
+        setError(`Supabase Registration Error: ${signUpError.message}`);
+        setLoading(false);
+        return;
+      }
+
+      if (data.user) {
+        login({
+          id: data.user.id,
+          email: data.user.email || email.trim(),
+          fullName: data.user.user_metadata?.full_name || fullName.trim(),
+          phone: phone.trim(),
+          role: 'customer',
+          createdAt: data.user.created_at || new Date().toISOString(),
+        });
+        setLoading(false);
+        router.push('/account');
+        return;
+      }
+    }
+
     login({
       id: `usr-${Date.now()}`,
       email: email.trim(),
@@ -40,6 +78,7 @@ export default function RegisterPage() {
       createdAt: new Date().toISOString(),
     });
 
+    setLoading(false);
     router.push('/account');
   };
 
