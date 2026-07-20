@@ -76,7 +76,7 @@ export class SupabaseAdminBrandRepo implements IAdminBrandRepository {
 
     const { error } = await this.client
       .from('brands')
-      .update({ is_active: !brand.isActive, updated_at: new Date().toISOString() })
+      .update({ is_active: !brand.isActive })
       .eq('id', id);
 
     if (error) throw new RepositoryError('Failed to toggle brand status', error);

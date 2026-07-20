@@ -71,7 +71,7 @@ export class SupabaseAdminInventoryRepo implements IAdminInventoryRepository {
 
     const { error: updateErr } = await this.client
       .from('product_variants')
-      .update({ stock_quantity: newQty, updated_at: new Date().toISOString() })
+      .update({ stock_quantity: newQty })
       .eq('id', variantId);
 
     if (updateErr) throw new RepositoryError('Failed to update stock', updateErr);
@@ -99,7 +99,7 @@ export class SupabaseAdminInventoryRepo implements IAdminInventoryRepository {
 
     const { error: updateErr } = await this.client
       .from('product_variants')
-      .update({ stock_quantity: quantity, updated_at: new Date().toISOString() })
+      .update({ stock_quantity: quantity })
       .eq('id', variantId);
 
     if (updateErr) throw new RepositoryError('Failed to set stock', updateErr);

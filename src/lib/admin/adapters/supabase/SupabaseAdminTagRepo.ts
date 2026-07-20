@@ -77,7 +77,7 @@ export class SupabaseAdminTagRepo implements IAdminTagRepository {
   async updateStatus(id: string, status: TagStatusValue): Promise<void> {
     const { error } = await this.client
       .from('authenticity_tags')
-      .update({ status, updated_at: new Date().toISOString() })
+      .update({ status })
       .eq('id', id);
 
     if (error) throw new RepositoryError('Failed to update tag status', error);

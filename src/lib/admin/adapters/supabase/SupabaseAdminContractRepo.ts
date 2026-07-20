@@ -74,7 +74,7 @@ export class SupabaseAdminContractRepo implements IAdminContractRepository {
   async updateStatus(id: string, status: ContractStatusValue): Promise<void> {
     const { error } = await this.client
       .from('license_contracts')
-      .update({ status, updated_at: new Date().toISOString() })
+      .update({ status })
       .eq('id', id);
 
     if (error) throw new RepositoryError('Failed to update contract status', error);

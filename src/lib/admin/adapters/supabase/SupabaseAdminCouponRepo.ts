@@ -51,17 +51,21 @@ export class SupabaseAdminCouponRepo implements IAdminCouponRepository {
   }
 
   async create(input: CreateCouponInput): Promise<AdminCoupon> {
+    const now = new Date();
+    const defaultExpires = new Date();
+    defaultExpires.setFullYear(now.getFullYear() + 1);
+
     const { data, error } = await this.client
       .from('coupons')
       .insert({
         code: input.code,
         discount_type: input.discountType,
         discount_value: input.discountValue,
-        min_order_amount: input.minOrderAmount ?? null,
-        max_usage_count: input.maxUsageCount ?? null,
-        expires_at: input.expiresAt ?? null,
+        minimum_order_amount: input.minOrderAmount ?? null,
+        usage_limit: input.maxUsageCount ?? null,
+        starts_at: now.toISOString(),
+        expires_at: input.expiresAt ?? defaultExpires.toISOString(),
         is_active: true,
-        usage_count: 0,
       })
       .select()
       .single();

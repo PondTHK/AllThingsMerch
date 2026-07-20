@@ -21,7 +21,7 @@ export async function adjustStockAction(variantId: string, deltaAmount: number) 
     return { success: true };
   } catch (error: any) {
     console.error('Failed to adjust stock:', error);
-    return { success: false, error: error.message || 'Failed to adjust stock' };
+    return { success: false, error: error.cause?.message || error.cause?.details || error.message || 'Failed to adjust stock' };
   }
 }
 
@@ -36,6 +36,6 @@ export async function setStockAbsoluteAction(variantId: string, newQty: number) 
     return { success: true };
   } catch (error: any) {
     console.error('Failed to set absolute stock:', error);
-    return { success: false, error: error.message || 'Failed to set stock' };
+    return { success: false, error: error.cause?.message || error.cause?.details || error.message || 'Failed to set stock' };
   }
 }

@@ -18,7 +18,7 @@ export async function createCouponAction(input: CreateCouponInput) {
     revalidatePath('/admin/coupons');
     return { success: true };
   } catch (error: any) {
-    return { success: false, error: error.message || 'Failed to create coupon' };
+    return { success: false, error: error.cause?.message || error.cause?.details || error.message || 'Failed to create coupon' };
   }
 }
 
@@ -29,7 +29,7 @@ export async function toggleCouponActiveAction(id: string) {
     revalidatePath('/admin/coupons');
     return { success: true };
   } catch (error: any) {
-    return { success: false, error: error.message || 'Failed to toggle coupon status' };
+    return { success: false, error: error.cause?.message || error.cause?.details || error.message || 'Failed to toggle coupon status' };
   }
 }
 
@@ -40,6 +40,6 @@ export async function deleteCouponAction(id: string) {
     revalidatePath('/admin/coupons');
     return { success: true };
   } catch (error: any) {
-    return { success: false, error: error.message || 'Failed to delete coupon' };
+    return { success: false, error: error.cause?.message || error.cause?.details || error.message || 'Failed to delete coupon' };
   }
 }
