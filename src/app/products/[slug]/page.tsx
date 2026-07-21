@@ -5,9 +5,10 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getRepository } from '@/lib/repositories';
-import { Product, ProductVariant } from '@/types';
+import { getProductReviewsAction } from '@/lib/reviews/actions';
+import { Product, ProductVariant, Review } from '@/types';
 import { formatTHB } from '@/lib/money';
-import { ShieldCheck, Check, ArrowLeft, ShoppingBag } from 'lucide-react';
+import { ShieldCheck, Check, ArrowLeft, ShoppingBag, Star } from 'lucide-react';
 import { ProductCard } from '@/components/products/ProductCard';
 import { useCartStore } from '@/lib/cart/useCartStore';
 
@@ -17,6 +18,7 @@ export default function ProductDetailPage() {
 
   const [product, setProduct] = useState<Product | undefined>(undefined);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>(undefined);
@@ -40,6 +42,13 @@ export default function ProductDetailPage() {
         setAllProducts(all);
         if (prod && prod.variants.length > 0) {
           setSelectedVariant(prod.variants[0]);
+        }
+        if (prod) {
+          getProductReviewsAction(prod.id)
+            .then((revs) => {
+              if (mounted) setReviews(revs);
+            })
+            .catch((err) => console.error('Failed to load reviews:', err));
         }
         setLoading(false);
       }
@@ -287,6 +296,56 @@ export default function ProductDetailPage() {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Customer Reviews Section */}
+      <div className="pt-16 mt-16 border-t border-neutral-200">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h3 className="text-xl sm:text-2xl font-black uppercase tracking-wider text-black">
+              Verified Collector Reviews
+            </h3>
+            <p className="text-xs text-neutral-600 mt-1">
+              Feedback from authenticated 1-to-1 merchandise owners
+            </p>
+          </div>
+          <span className="px-3 py-1 rounded bg-black text-white text-xs font-bold uppercase tracking-wider">
+            {reviews.length} {reviews.length === 1 ? 'Review' : 'Reviews'}
+          </span>
+        </div>
+
+        {reviews.length === 0 ? (
+          <div className="p-8 rounded-2xl bg-neutral-100 border border-neutral-200 text-center text-xs text-neutral-600 font-medium">
+            No reviews published yet for this merchandise drop. Owners can verify their item and submit feedback inside their Account Orders dashboard.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {reviews.map((rev) => (
+              <div key={rev.id} className="p-6 rounded-2xl bg-neutral-100 border border-neutral-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className={`w-4 h-4 ${star <= rev.rating ? 'text-black fill-black' : 'text-neutral-300'}`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">
+                    {new Date(rev.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+                <p className="text-xs text-black font-medium leading-relaxed">
+                  &ldquo;{rev.comment}&rdquo;
+                </p>
+                <div className="text-[11px] font-bold text-neutral-600 flex items-center gap-1.5 pt-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-black" />
+                  <span>{rev.userName || 'Verified Collector'}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Related Products Section */}
