@@ -117,7 +117,7 @@ export default function CheckoutPage() {
       if (appliedCoupon) {
         getRepository().updateCoupon(appliedCoupon.id, {
           currentGlobalUses: appliedCoupon.currentGlobalUses + 1,
-        }).catch(err => console.error('Failed to increment coupon use count:', err));
+        }).catch((err: unknown) => console.error('Failed to increment coupon use count:', err));
       }
 
       // Transition reservation to sale in Admin Store

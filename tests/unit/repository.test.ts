@@ -1,28 +1,22 @@
 import { describe, it, expect } from 'vitest';
 import { getRepository } from '@/lib/repositories';
-import { isSupabaseConfigured } from '@/lib/supabase/client';
 
-describe('Data Repository Adapter & Mode Switching', () => {
-  it('defaults to Demo mode when Supabase credentials are not provided', async () => {
-    expect(isSupabaseConfigured()).toBe(false);
+describe('Data Repository Adapter & Live Supabase Mode', () => {
+  it('always returns Supabase mode as all systems are configured for live Supabase', async () => {
     const repo = getRepository();
-    expect(repo.mode).toBe('demo');
-
-    const products = await repo.getProducts();
-    expect(products.length).toBeGreaterThan(0);
-    expect(products[0].id).toBeDefined();
-
-    const polo = await repo.getProductBySlug('red-bull-racing-2026-team-polo');
-    expect(polo).toBeDefined();
-    expect(polo?.name).toContain('Red Bull');
+    expect(repo.mode).toBe('supabase');
   });
 
-  it('fetches brands and categories in Demo mode accurately', async () => {
+  it('safely returns empty lists without falling back to Demo mode when Supabase client is absent during unit test', async () => {
     const repo = getRepository();
+    const products = await repo.getProducts();
     const brands = await repo.getBrands();
     const categories = await repo.getCategories();
+    const coupons = await repo.getCoupons();
 
-    expect(brands.length).toBeGreaterThan(0);
-    expect(categories.length).toBeGreaterThan(0);
+    expect(Array.isArray(products)).toBe(true);
+    expect(Array.isArray(brands)).toBe(true);
+    expect(Array.isArray(categories)).toBe(true);
+    expect(Array.isArray(coupons)).toBe(true);
   });
 });

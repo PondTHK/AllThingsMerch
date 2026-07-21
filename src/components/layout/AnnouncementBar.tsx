@@ -22,7 +22,7 @@ export function AnnouncementBar() {
             Free Nationwide Shipping on Orders over 3,000 THB
           </span>
           <span className="px-2 py-0.5 rounded-full bg-neutral-900 text-neutral-300 text-[10px] font-semibold tracking-wider uppercase border border-neutral-700">
-            Demo Mode
+            Live Supabase
           </span>
         </div>
       </div>

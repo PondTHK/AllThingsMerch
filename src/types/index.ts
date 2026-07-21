@@ -100,6 +100,7 @@ export interface CartItem {
   color?: string;
   unitPrice: number;
   quantity: number;
+  stockQuantity?: number;
   imageUrl: string;
   brandName?: string;
   isLimited?: boolean;
