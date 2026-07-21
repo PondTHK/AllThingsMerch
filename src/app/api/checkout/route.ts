@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { fulfillMockOrder } from '@/lib/orders/mock-checkout';
+import { placeOrderAction } from '@/app/checkout/actions';
 import { CartItem, ShippingAddress, Coupon } from '@/types';
 
 export async function POST(request: Request) {
@@ -8,7 +8,7 @@ export async function POST(request: Request) {
     const { items, shippingAddress, paymentMethod, coupon } = body as {
       items: CartItem[];
       shippingAddress: ShippingAddress;
-      paymentMethod: string;
+      paymentMethod: any;
       coupon?: Coupon | null;
     };
 
@@ -19,9 +19,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const order = await fulfillMockOrder(items, shippingAddress, paymentMethod, coupon);
+    const orderResult = await placeOrderAction(items, shippingAddress, paymentMethod, coupon?.code);
 
-    return NextResponse.json({ order });
+    return NextResponse.json({ orderNumber: orderResult.orderNumber });
   } catch (err: unknown) {
     console.error('Checkout API error:', err);
     return NextResponse.json(
