@@ -21,15 +21,15 @@ export async function placeOrderAction(
     throw new Error('You must be logged in to place an order.');
   }
 
-  // 1. Fetch current variants to verify prices
+  // 1. Fetch current variants to verify prices & metadata
   const variantIds = items.map((i) => i.variantId);
   const { data: variants, error: variantsError } = await supabase
     .from('product_variants')
-    .select('id, price, stock_quantity')
+    .select('id, product_id, price, stock_quantity, sku, size, color')
     .in('id', variantIds);
 
   if (variantsError || !variants) {
-    throw new Error('Failed to verify product prices.');
+    throw new Error(`Failed to verify product prices and metadata: ${variantsError?.message}`);
   }
 
   // 2. Calculate subtotal using verified DB prices
@@ -37,10 +37,9 @@ export async function placeOrderAction(
   for (const item of items) {
     const dbVariant = variants.find((v) => v.id === item.variantId);
     if (!dbVariant) {
-      throw new Error(`Product variant ${item.productName} is no longer available.`);
+      throw new Error(`Product variant "${item.productName}" is no longer available.`);
     }
-    // Note: We could check stock_quantity here and throw if insufficient
-    subtotal += Number(dbVariant.price) * item.quantity;
+    subtotal += Number(dbVariant.price) * (item.quantity || 1);
   }
 
   // 3. Process Coupon if provided
@@ -99,26 +98,42 @@ export async function placeOrderAction(
       total_amount: totalAmount,
       coupon_id: couponId,
       shipping_address: shippingAddress,
-      payment_method: paymentMethod,
+      payment_method: paymentMethod || 'credit-card',
     })
     .select()
     .single();
 
-  if (orderError) throw new Error(`Failed to create order: ${orderError.message}`);
+  if (orderError) throw new Error(`Failed to create order (${orderError.code}): ${orderError.message}`);
 
   // 7. Insert Order Items
   const orderItemsData = items.map((item) => {
-    const dbVariant = variants.find((v) => v.id === item.variantId)!;
+    const dbVariant = variants.find((v) => v.id === item.variantId);
+    if (!dbVariant) {
+      throw new Error(`Variant ${item.variantId} not found in database.`);
+    }
+
+    const productId = item.productId || dbVariant.product_id;
+    const sku = item.sku || dbVariant.sku || 'SKU-UNKNOWN';
+    const productName = item.productName || 'Merchandise Item';
+    const unitPrice = Number(dbVariant.price) || Number(item.unitPrice) || 0;
+    const quantity = Number(item.quantity) || 1;
+    const lineTotal = unitPrice * quantity;
+
+    if (!productId) {
+      throw new Error(`Missing product_id for item "${productName}"`);
+    }
+
     return {
       order_id: order.id,
-      product_id: item.productId,
-      product_variant_id: item.variantId,
-      product_name: item.productName,
-      sku: item.sku,
-      unit_price: Number(dbVariant.price),
-      quantity: item.quantity,
-      line_total: Number(dbVariant.price) * item.quantity,
-      royalty_rate_snapshot: 0, // Should fetch from contract, but 0 is fine for demo
+      product_id: productId,
+      product_variant_id: dbVariant.id,
+      product_name: productName,
+      variant_name: dbVariant.size || dbVariant.color || item.size || item.color || null,
+      sku: sku,
+      unit_price: unitPrice,
+      quantity: quantity,
+      line_total: lineTotal,
+      royalty_rate_snapshot: 0,
     };
   });
 
@@ -127,7 +142,11 @@ export async function placeOrderAction(
     .insert(orderItemsData)
     .select();
 
-  if (itemsError || !insertedItems) throw new Error(`Failed to add order items: ${itemsError?.message}`);
+  if (itemsError || !insertedItems) {
+    throw new Error(
+      `Failed to add order items (${itemsError?.code}): ${itemsError?.message} | details: ${itemsError?.details} | hint: ${itemsError?.hint}`
+    );
+  }
 
   // 8. Generate 1-to-1 Authenticity TAGs and deduct stock for each fulfilled item
   const tagsData = [];
