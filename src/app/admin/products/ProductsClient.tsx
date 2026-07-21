@@ -137,12 +137,12 @@ export function ProductsClient({
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-neutral-200 pb-4 gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-200 pb-4 gap-4">
         <div>
-          <h2 className="text-xl font-black uppercase tracking-wider text-black">
+          <h2 className="text-xl font-bold text-slate-900">
             Catalog Product Management
           </h2>
-          <p className="text-xs text-neutral-600 mt-1">
+          <p className="text-sm text-slate-500 mt-1">
             Create new merchandising releases and toggle storefront availability.
           </p>
         </div>
@@ -150,15 +150,15 @@ export function ProductsClient({
         <button
           type="button"
           onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2.5 rounded-xl bg-black text-white text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 hover:bg-neutral-800 transition-colors"
+          className="px-4 py-2.5 rounded-xl bg-blue-600/90 backdrop-blur-md text-white text-sm font-medium flex items-center gap-2 hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-600/20 hover:-translate-y-0.5 active:scale-95 transition-all duration-300 border border-blue-500/50"
         >
-          <Plus className="w-3.5 h-3.5" />
+          <Plus className="w-4 h-4" />
           <span>New Product Release</span>
         </button>
       </div>
 
       {createdMsg && (
-        <div className="p-4 rounded-xl bg-neutral-100 border border-black flex items-center gap-2 text-xs font-bold text-black">
+        <div className="p-4 rounded-xl bg-green-50/80 backdrop-blur-md border border-green-200/60 flex items-center gap-2 text-sm font-medium text-green-800 shadow-sm">
           <Check className="w-4 h-4" />
           <span>New product release added successfully to catalog.</span>
         </div>
@@ -167,15 +167,15 @@ export function ProductsClient({
       {showForm && (
         <form
           onSubmit={handleCreate}
-          className="p-6 rounded-2xl bg-neutral-100 border border-neutral-300 space-y-4 max-w-2xl"
+          className="p-6 rounded-2xl bg-white/70 backdrop-blur-xl border border-white/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-4 max-w-2xl transition-all duration-300"
         >
-          <h3 className="text-xs font-bold uppercase tracking-wider text-black">
+          <h3 className="text-sm font-semibold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600">
             New Merch Specification
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
-              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 Product Name *
               </label>
               <input
@@ -184,12 +184,12 @@ export function ProductsClient({
                 value={name}
                 onChange={(e) => handleNameChange(e.target.value)}
                 placeholder="Red Bull Racing 2026 Special Edition Cap"
-                className="w-full px-4 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs font-medium text-black focus:outline-none focus:border-black"
+                className="w-full px-4 py-2.5 rounded-xl bg-white/50 backdrop-blur-sm border border-slate-200/60 text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 focus:bg-white transition-all duration-300"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 URL Slug *
               </label>
               <input
@@ -197,12 +197,12 @@ export function ProductsClient({
                 required
                 value={slug}
                 onChange={(e) => setSlug(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs font-mono text-black focus:outline-none focus:border-black"
+                className="w-full px-4 py-2.5 rounded-lg bg-slate-50 border border-slate-300 text-sm font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 Variant SKU Code *
               </label>
               <input
@@ -210,18 +210,18 @@ export function ProductsClient({
                 required
                 value={sku}
                 onChange={(e) => setSku(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs font-mono text-black focus:outline-none focus:border-black"
+                className="w-full px-4 py-2.5 rounded-lg bg-slate-50 border border-slate-300 text-sm font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 Licensed Brand
               </label>
               <select
                 value={brandId}
                 onChange={(e) => setBrandId(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs font-medium text-black focus:outline-none focus:border-black"
+                className="w-full px-4 py-2.5 rounded-lg bg-white border border-slate-300 text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
               >
                 {initialBrands.length === 0 && <option value="">No Brands Available</option>}
                 {initialBrands.map((brand) => (
@@ -231,13 +231,13 @@ export function ProductsClient({
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 Category
               </label>
               <select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs font-medium text-black focus:outline-none focus:border-black"
+                className="w-full px-4 py-2.5 rounded-lg bg-white border border-slate-300 text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
               >
                 {initialCategories.length === 0 && <option value="">No Categories Available</option>}
                 {initialCategories.map((cat) => (
@@ -247,7 +247,7 @@ export function ProductsClient({
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 Price (THB) *
               </label>
               <input
@@ -255,12 +255,12 @@ export function ProductsClient({
                 required
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs font-medium text-black focus:outline-none focus:border-black"
+                className="w-full px-4 py-2.5 rounded-lg bg-white border border-slate-300 text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 Initial Stock Quantity *
               </label>
               <input
@@ -268,35 +268,35 @@ export function ProductsClient({
                 required
                 value={stockQuantity}
                 onChange={(e) => setStockQuantity(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs font-medium text-black focus:outline-none focus:border-black"
+                className="w-full px-4 py-2.5 rounded-lg bg-white border border-slate-300 text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
               />
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 Description
               </label>
               <textarea
                 rows={2}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full px-4 py-2 rounded-xl bg-white border border-neutral-300 text-xs text-black focus:outline-none focus:border-black"
+                className="w-full px-4 py-2 rounded-lg bg-white border border-slate-300 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
               />
             </div>
           </div>
 
-          <div className="flex items-center gap-3 pt-2">
+          <div className="flex items-center gap-3 pt-4">
             <button
               type="submit"
               disabled={isLoading}
-              className="px-6 py-2.5 rounded-xl bg-black text-white text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl bg-blue-600/90 backdrop-blur-md text-white text-sm font-medium hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-600/20 hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 transition-all duration-300 border border-blue-500/50"
             >
               {isLoading ? 'Publishing...' : 'Publish Product'}
             </button>
             <button
               type="button"
               onClick={() => setShowForm(false)}
-              className="px-6 py-2.5 rounded-xl border border-neutral-300 bg-white text-black text-xs font-bold uppercase tracking-wider hover:bg-neutral-200"
+              className="px-6 py-2.5 rounded-xl border border-white/80 bg-white/50 backdrop-blur-md text-slate-700 text-sm font-medium hover:bg-white hover:shadow-sm hover:-translate-y-0.5 active:scale-95 transition-all duration-300 shadow-sm"
             >
               Cancel
             </button>
@@ -306,80 +306,82 @@ export function ProductsClient({
 
       {/* Products Table */}
       {products.length === 0 ? (
-        <div className="rounded-2xl bg-neutral-100 border border-neutral-200 p-12 text-center space-y-3">
-          <Package className="w-10 h-10 mx-auto text-neutral-400" />
-          <h3 className="text-base font-bold text-black">No Products in Catalog</h3>
-          <p className="text-xs text-neutral-600 max-w-xs mx-auto">
+        <div className="rounded-2xl bg-white/70 backdrop-blur-xl border border-white/80 p-12 text-center space-y-3 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+          <Package className="w-10 h-10 mx-auto text-slate-300" />
+          <h3 className="text-base font-medium text-slate-900">No Products in Catalog</h3>
+          <p className="text-sm text-slate-500 max-w-sm mx-auto">
             Add your first merchandise release using the &quot;New Product Release&quot; button above.
           </p>
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-black text-white text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors mt-2"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600/90 backdrop-blur-md text-white text-sm font-medium hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-600/20 hover:-translate-y-0.5 active:scale-95 transition-all duration-300 border border-blue-500/50 mt-2"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-4 h-4" />
             <span>New Product Release</span>
           </button>
         </div>
       ) : (
-      <div className="border border-neutral-200 rounded-2xl bg-white overflow-hidden">
-        <div className="divide-y divide-neutral-200">
+      <div className="border border-white/80 rounded-2xl bg-white/70 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+        <div className="divide-y divide-slate-200/50">
           {products.map((prod) => {
             const isActive = prod.status === 'active';
 
             return (
               <div
                 key={prod.id}
-                className="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-neutral-50 transition-colors"
+                className="p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-white/60 transition-colors duration-300"
               >
                 <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-black text-sm">{prod.name}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="font-semibold text-slate-900">{prod.name}</span>
                     <span
-                      className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                        isActive ? 'bg-black text-white' : 'bg-neutral-300 text-neutral-700'
+                      className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        isActive ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-600'
                       }`}
                     >
                       {prod.status}
                     </span>
                   </div>
-                  <div className="text-xs text-neutral-500 mt-1">
-                    Slug: <span className="font-mono">{prod.slug}</span> &bull; SKU:{' '}
-                    <span className="font-mono">{prod.primaryVariantSku}</span> &bull; Stock:{' '}
-                    <span className="font-bold text-black">{prod.totalStock} Units</span>
+                  <div className="text-sm text-slate-500 mt-1">
+                    Slug: <span className="font-mono text-slate-600">{prod.slug}</span> &bull; SKU:{' '}
+                    <span className="font-mono text-slate-600">{prod.primaryVariantSku}</span> &bull; Stock:{' '}
+                    <span className="font-medium text-slate-700">{prod.totalStock} Units</span>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
                   <div className="text-right">
-                    <div className="font-black text-black text-sm">
+                    <div className="font-semibold text-slate-900">
                       {formatTHB(prod.primaryVariantPrice)}
                     </div>
                   </div>
 
-                  <Link
-                    href={`/admin/products/${prod.id}`}
-                    className="px-3.5 py-2 rounded-xl border border-neutral-300 bg-white text-black text-xs font-bold uppercase tracking-wider hover:bg-neutral-100 flex items-center gap-1.5"
-                  >
-                    <span>Edit</span>
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => toggleStatus(prod.id, prod.status)}
-                    className="px-3.5 py-2 rounded-xl border border-neutral-300 bg-white text-black text-xs font-bold uppercase tracking-wider hover:bg-neutral-100 flex items-center gap-1.5"
-                  >
-                    {isActive ? (
-                      <>
-                        <EyeOff className="w-3.5 h-3.5 text-neutral-500" />
-                        <span>Set Draft</span>
-                      </>
-                    ) : (
-                      <>
-                        <Eye className="w-3.5 h-3.5 text-black" />
-                        <span>Publish</span>
-                      </>
-                    )}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/admin/products/${prod.id}`}
+                      className="px-3 py-1.5 rounded-xl border border-slate-200/60 bg-white/50 backdrop-blur-sm text-slate-700 text-sm font-medium hover:bg-white hover:shadow-sm hover:-translate-y-0.5 active:scale-95 flex items-center gap-1.5 transition-all duration-300"
+                    >
+                      <span>Edit</span>
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => toggleStatus(prod.id, prod.status)}
+                      className="px-3 py-1.5 rounded-xl border border-slate-200/60 bg-white/50 backdrop-blur-sm text-slate-700 text-sm font-medium hover:bg-white hover:shadow-sm hover:-translate-y-0.5 active:scale-95 flex items-center gap-1.5 transition-all duration-300"
+                    >
+                      {isActive ? (
+                        <>
+                          <EyeOff className="w-4 h-4 text-slate-400" />
+                          <span>Draft</span>
+                        </>
+                      ) : (
+                        <>
+                          <Eye className="w-4 h-4 text-slate-700" />
+                          <span>Publish</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -390,22 +392,22 @@ export function ProductsClient({
       
       {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-neutral-200 pt-4">
-          <p className="text-xs text-neutral-500">
+        <div className="flex items-center justify-between border-t border-slate-200 pt-4">
+          <p className="text-sm text-slate-500">
             Showing page {currentPage} of {totalPages} ({totalCount} total products)
           </p>
           <div className="flex items-center gap-2">
             <button
               onClick={() => router.push(`/admin/products?page=${currentPage - 1}`)}
               disabled={currentPage <= 1 || isLoading}
-              className="px-3 py-1.5 rounded-xl border border-neutral-300 bg-white text-xs font-bold disabled:opacity-50 hover:bg-neutral-50"
+              className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-sm font-medium disabled:opacity-50 hover:bg-slate-50"
             >
               Previous
             </button>
             <button
               onClick={() => router.push(`/admin/products?page=${currentPage + 1}`)}
               disabled={currentPage >= totalPages || isLoading}
-              className="px-3 py-1.5 rounded-xl border border-neutral-300 bg-white text-xs font-bold disabled:opacity-50 hover:bg-neutral-50"
+              className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-sm font-medium disabled:opacity-50 hover:bg-slate-50"
             >
               Next
             </button>

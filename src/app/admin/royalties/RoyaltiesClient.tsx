@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { BarChart2, TrendingUp, DollarSign, FileText } from 'lucide-react';
 import { formatTHB } from '@/lib/money';
 
@@ -15,9 +16,29 @@ export interface RoyaltyRowDto {
   expiresAt: string;
 }
 
+function CustomTooltip({ active, payload, label }: any) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="bg-white border border-neutral-200 rounded-xl px-4 py-3 shadow-lg text-xs">
+      <p className="font-bold text-black mb-1 truncate max-w-[160px]">{label}</p>
+      {payload.map((p: any) => (
+        <p key={p.dataKey} className="text-neutral-600">
+          {p.name}: <span className="font-bold text-black">{formatTHB(p.value)}</span>
+        </p>
+      ))}
+    </div>
+  );
+}
+
 export function RoyaltiesClient({ royaltyRows }: { royaltyRows: RoyaltyRowDto[] }) {
   const totalRevenue = royaltyRows.reduce((sum, r) => sum + r.revenue, 0);
   const totalRoyaltyOwed = royaltyRows.reduce((sum, r) => sum + r.royaltyOwed, 0);
+
+  const chartData = royaltyRows.map((r) => ({
+    name: r.holderName.split(' ')[0], // Short label
+    Revenue: r.revenue,
+    'Royalty Owed': r.royaltyOwed,
+  }));
 
   return (
     <div className="space-y-8">
@@ -54,7 +75,33 @@ export function RoyaltiesClient({ royaltyRows }: { royaltyRows: RoyaltyRowDto[] 
         </div>
       </div>
 
-      {/* Per-Contract Breakdown */}
+      {/* Bar Chart — Revenue vs Royalty per brand */}
+      {royaltyRows.length > 0 && (
+        <div className="p-5 rounded-2xl bg-white border border-neutral-200 space-y-3">
+          <div>
+            <h3 className="text-xs font-black uppercase tracking-wider text-black">Revenue vs. Royalty per Brand</h3>
+            <p className="text-[11px] text-neutral-500 mt-0.5">Visual breakdown of attributed revenue and royalties owed</p>
+          </div>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#737373' }} axisLine={false} tickLine={false} />
+              <YAxis
+                tick={{ fontSize: 10, fill: '#737373' }}
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={(v) => `฿${(v / 1000).toFixed(0)}k`}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 10, color: '#737373' }} />
+              <Bar dataKey="Revenue" fill="#0f172a" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Royalty Owed" fill="#10b981" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Per-Contract Breakdown Table */}
       {royaltyRows.length === 0 ? (
         <div className="rounded-2xl bg-neutral-100 border border-neutral-200 p-12 text-center">
           <BarChart2 className="w-10 h-10 mx-auto text-neutral-400" />
@@ -72,7 +119,10 @@ export function RoyaltiesClient({ royaltyRows }: { royaltyRows: RoyaltyRowDto[] 
           </div>
           <div className="divide-y divide-neutral-200">
             {royaltyRows.map((row) => (
-              <div key={row.id} className="grid grid-cols-12 gap-4 px-5 py-4 hover:bg-neutral-50 transition-colors items-center">
+              <div
+                key={row.id}
+                className="grid grid-cols-12 gap-4 px-5 py-4 hover:bg-neutral-50 transition-colors items-center"
+              >
                 <div className="col-span-4">
                   <p className="font-bold text-black text-sm">{row.holderName}</p>
                   <p className="text-xs text-neutral-500 font-mono mt-0.5">{row.ref}</p>
@@ -107,7 +157,8 @@ export function RoyaltiesClient({ royaltyRows }: { royaltyRows: RoyaltyRowDto[] 
       )}
 
       <p className="text-xs text-neutral-400">
-        * Revenue is calculated from fulfilled orders (status: shipped or delivered) attributed to each licensed brand. Orders with no brand data are excluded.
+        * Revenue is calculated from fulfilled orders (status: shipped or delivered) attributed to each licensed brand.
+        Orders with no brand data are excluded.
       </p>
     </div>
   );

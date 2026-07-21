@@ -1,9 +1,13 @@
-'use strict';
+'use client';
 
 import React from 'react';
+import { usePathname } from 'next/navigation';
 import { ShieldCheck } from 'lucide-react';
 
 export function AnnouncementBar() {
+  const pathname = usePathname();
+  if (pathname?.startsWith('/admin')) return null;
+
   return (
     <div className="bg-black text-white px-4 py-2 text-xs border-b border-neutral-800">
       <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">

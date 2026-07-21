@@ -4,6 +4,7 @@ import './globals.css';
 import { AnnouncementBar } from '@/components/layout/AnnouncementBar';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { SupabaseAuthProvider } from '@/components/providers/SupabaseAuthProvider';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -32,10 +33,12 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-white text-black selection:bg-black selection:text-white">
-        <AnnouncementBar />
-        <Header />
-        <main className="flex-1 flex flex-col">{children}</main>
-        <Footer />
+        <SupabaseAuthProvider>
+          <AnnouncementBar />
+          <Header />
+          <main className="flex-1 flex flex-col">{children}</main>
+          <Footer />
+        </SupabaseAuthProvider>
       </body>
     </html>
   );

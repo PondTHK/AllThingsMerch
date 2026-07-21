@@ -1,15 +1,11 @@
-'use client';
-
 import React from 'react';
 import Link from 'next/link';
-import { getOrderHistory } from '@/lib/orders/mock-checkout';
-import { useHydrated } from '@/lib/cart/useHydrated';
+import { getUserOrdersAction } from './actions';
 import { formatTHB } from '@/lib/money';
 import { Package, ArrowRight, ShieldCheck } from 'lucide-react';
 
-export default function AccountOrdersPage() {
-  const isHydrated = useHydrated();
-  const orders = isHydrated ? getOrderHistory() : [];
+export default async function AccountOrdersPage() {
+  const orders = await getUserOrdersAction();
 
   return (
     <div className="space-y-6">
