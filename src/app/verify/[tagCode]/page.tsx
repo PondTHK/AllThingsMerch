@@ -1,9 +1,9 @@
 'use client';
 
-import React, { use } from 'react';
+import React, { use, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useTagStore } from '@/lib/authenticity/useTagStore';
-import { useHydrated } from '@/lib/cart/useHydrated';
+import { verifyAuthenticityTagAction } from '@/app/verify/actions';
+import { AuthenticityTagRecord } from '@/types';
 import { ShieldCheck, ShieldAlert, ArrowLeft, ExternalLink } from 'lucide-react';
 
 export default function VerifyTagDetailPage({
@@ -13,14 +13,30 @@ export default function VerifyTagDetailPage({
 }) {
   const { tagCode } = use(params);
   const decodedCode = decodeURIComponent(tagCode);
-  const isHydrated = useHydrated();
-  const verifyTag = useTagStore((state) => state.verifyTag);
+  const [record, setRecord] = useState<AuthenticityTagRecord | null | undefined>(undefined);
 
-  if (!isHydrated) {
-    return <div className="p-16 text-center text-neutral-500">Checking Serial Provenance...</div>;
+  useEffect(() => {
+    let mounted = true;
+    if (!decodedCode) {
+      setRecord(null);
+      return;
+    }
+    verifyAuthenticityTagAction(decodedCode)
+      .then((data) => {
+        if (mounted) setRecord(data);
+      })
+      .catch((err) => {
+        console.error('Failed to verify TAG code against database:', err);
+        if (mounted) setRecord(null);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [decodedCode]);
+
+  if (record === undefined) {
+    return <div className="p-16 text-center text-neutral-500 font-bold">Checking Official Cryptographic Provenance Registry...</div>;
   }
-
-  const record = verifyTag(decodedCode);
 
   if (!record) {
     return (
@@ -135,7 +151,7 @@ export default function VerifyTagDetailPage({
           </Link>
 
           <Link
-            href={`/products/${record.productId === 'p1111111-1111-4111-8111-111111111111' ? 'red-bull-racing-2026-team-polo' : 'scuderia-ferrari-2026-team-softshell-jacket'}`}
+            href="/products"
             className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-black text-white text-xs font-bold uppercase tracking-wider hover:bg-neutral-800"
           >
             <span>View Catalog Listing</span>
