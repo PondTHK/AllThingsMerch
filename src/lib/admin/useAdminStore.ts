@@ -3,8 +3,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Product, Order, LicenseContract, ProductVariant, StockMovement } from '@/types';
-import { MOCK_PRODUCTS } from '@/lib/repositories/mock-data';
-import { getOrderHistory } from '@/lib/orders/mock-checkout';
 
 export interface AdminState {
   products: Product[];
@@ -125,23 +123,13 @@ const DEFAULT_CONTRACTS: LicenseContract[] = [
 export const useAdminStore = create<AdminState>()(
   persist(
     (set, get) => ({
-      products: MOCK_PRODUCTS,
+      products: [],
       orders: [],
       contracts: DEFAULT_CONTRACTS,
       stockMovements: [],
 
       syncOrdersFromStorage: () => {
-        const localHistory = getOrderHistory();
-        const currentOrders = get().orders;
-        const merged = [...currentOrders];
-
-        localHistory.forEach((item) => {
-          if (!merged.some((m) => m.orderNumber === item.orderNumber)) {
-            merged.push(item);
-          }
-        });
-
-        set({ orders: merged });
+        // No-op: Orders are managed in live Supabase database
       },
 
       addProduct: (data) => {

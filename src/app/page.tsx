@@ -265,10 +265,10 @@ export default function HomePage() {
             </p>
             <div className="pt-2">
               <Link
-                href="/verify/DEMO-TAG-2026"
+                href="/verify"
                 className="inline-block px-6 py-3 bg-black text-white font-bold text-xs uppercase tracking-wider hover:bg-neutral-800 transition-colors"
               >
-                Test Verification (DEMO-TAG-2026)
+                Verify Item Provenance
               </Link>
             </div>
           </div>

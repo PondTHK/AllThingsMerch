@@ -23,7 +23,7 @@ export default function VerifySearchPage() {
   };
 
   const sampleCodes = [
-    { code: 'DEMO-TAG-2026', label: 'Oracle Red Bull Racing Team Polo' },
+    { code: 'TAG-2026-RBR-001', label: 'Oracle Red Bull Racing Team Polo' },
     { code: 'SF-2026-SF1-00042', label: 'Scuderia Ferrari Softshell Jacket' },
     { code: 'CJ-2026-UTOPIA-007', label: 'Cactus Jack Heavyweight Hoodie' },
   ];

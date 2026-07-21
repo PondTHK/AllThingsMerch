@@ -79,13 +79,13 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/verify/DEMO-TAG-2026" className="hover:text-white transition-colors">
+                <Link href="/verify" className="hover:text-white transition-colors">
                   Verify Authenticity TAG
                 </Link>
               </li>
               <li>
                 <Link href="/admin" className="hover:text-white transition-colors">
-                  Admin Demo
+                  Admin Portal
                 </Link>
               </li>
             </ul>
