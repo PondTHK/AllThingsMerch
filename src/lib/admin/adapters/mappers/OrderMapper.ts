@@ -25,7 +25,7 @@ export class OrderMapper {
         const tag = item.authenticity_tags?.[0] ?? null;
         return {
           id: item.id,
-          variantId: item.variant_id ?? '',
+          variantId: item.product_variant_id ?? '',
           productId: item.product_id ?? '',
           productName: item.product_name ?? '',
           sku: item.sku ?? '',
@@ -44,7 +44,7 @@ export class OrderMapper {
       OrderStatus.of(row.status ?? 'pending_payment'),
       items,
       Money.fromTHB(Number(row.subtotal) || 0),
-      Money.fromTHB(Number(row.shipping_fee) || 0),
+      Money.fromTHB(Number(row.shipping_amount) || 0),
       Money.fromTHB(Number(row.total_amount) || 0),
       shippingAddress,
       row.payment_method ?? '',

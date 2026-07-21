@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useCartStore } from '@/lib/cart/useCartStore';
-import { useHydrated } from '@/lib/cart/useHydrated';
-import { fulfillMockOrder, validateAndRecalculateCart } from '@/lib/orders/mock-checkout';
+import { useAuthStore } from '@/lib/auth/useAuthStore';
+import { validateAndRecalculateCart } from '@/lib/orders/mock-checkout';
+import { placeOrderAction } from './actions';
 import { formatTHB } from '@/lib/money';
 import { ShieldAlert, ShieldCheck, Lock, ArrowLeft } from 'lucide-react';
 
@@ -13,7 +14,8 @@ type PaymentMethodId = 'credit-card' | 'promptpay' | 'cod';
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const isHydrated = useHydrated();
+  const [isHydrated, setIsHydrated] = useState(false);
+  useEffect(() => { setIsHydrated(true); }, []);
   const items = useCartStore((s) => s.items);
   const clearCart = useCartStore((s) => s.clearCart);
 
@@ -23,11 +25,19 @@ export default function CheckoutPage() {
   const [street, setStreet] = useState('999 Sukhumvit Road, Khlong Toei');
   const [city, setCity] = useState('Bangkok');
   const [postalCode, setPostalCode] = useState('10110');
+  const user = useAuthStore((s) => s.user);
+  const [couponCode, setCouponCode] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId>('credit-card');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  if (!isHydrated) {
+  React.useEffect(() => {
+    if (isHydrated && !user) {
+      router.push('/login?redirect=/checkout');
+    }
+  }, [isHydrated, user, router]);
+
+  if (!isHydrated || !user) {
     return <div className="p-16 text-center text-neutral-500">Loading checkout...</div>;
   }
 
@@ -50,7 +60,7 @@ export default function CheckoutPage() {
     );
   }
 
-  const handleConfirmOrder = (e: React.FormEvent) => {
+  const handleConfirmOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsSubmitting(true);
@@ -60,7 +70,7 @@ export default function CheckoutPage() {
         throw new Error('Please fill out all required shipping address fields.');
       }
 
-      const order = fulfillMockOrder(
+      const res = await placeOrderAction(
         items,
         {
           fullName: fullName.trim(),
@@ -70,11 +80,12 @@ export default function CheckoutPage() {
           city: city.trim(),
           postalCode: postalCode.trim(),
         },
-        paymentMethod
+        paymentMethod,
+        couponCode.trim() || undefined
       );
 
       clearCart();
-      router.push(`/checkout/success?orderNumber=${encodeURIComponent(order.orderNumber)}`);
+      router.push(`/checkout/success?orderNumber=${encodeURIComponent(res.orderNumber)}`);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to complete mock checkout.';
       setError(msg);
@@ -90,10 +101,10 @@ export default function CheckoutPage() {
           <ShieldAlert className="w-5 h-5 text-black shrink-0" />
           <div className="text-xs">
             <span className="font-bold text-black uppercase tracking-wider block">
-              DEMO MODE CHECKOUT
+              SECURE CHECKOUT
             </span>
             <span className="text-neutral-600">
-              No real financial charge will be processed. This simulates full verification, TAG assignment, and royalty snapshot capture.
+              Your order will be verified and saved securely to the database.
             </span>
           </div>
         </div>
@@ -226,6 +237,25 @@ export default function CheckoutPage() {
             </div>
           </div>
 
+          {/* Coupon Code Section */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-black uppercase tracking-wider text-black border-b border-neutral-200 pb-3">
+              3. Discount Code
+            </h2>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">
+                Coupon Code (Optional)
+              </label>
+              <input
+                type="text"
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                placeholder="Enter coupon code..."
+                className="w-full sm:w-1/2 px-4 py-2.5 rounded-xl bg-neutral-100 border border-neutral-300 text-sm font-medium text-black focus:outline-none focus:border-black focus:bg-white uppercase"
+              />
+            </div>
+          </div>
+
           {error && (
             <div className="p-4 rounded-xl bg-neutral-200 border border-black text-black text-xs font-bold">
               {error}
@@ -235,10 +265,10 @@ export default function CheckoutPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-4 rounded-xl bg-black text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-neutral-800 transition-colors"
+            className="w-full py-4 rounded-xl bg-black text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-neutral-800 transition-colors disabled:opacity-50"
           >
             <Lock className="w-4 h-4" />
-            <span>Confirm Mock Order ({formatTHB(verifiedCalculation.totalAmount)})</span>
+            <span>{isSubmitting ? 'Processing...' : 'Confirm Order'}</span>
           </button>
         </form>
 

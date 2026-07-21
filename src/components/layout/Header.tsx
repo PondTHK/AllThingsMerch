@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Search, ShoppingBag, User, Menu, X } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useCartStore } from '@/lib/cart/useCartStore';
 import { useAuthStore } from '@/lib/auth/useAuthStore';
 import { useHydrated } from '@/lib/cart/useHydrated';
@@ -13,6 +13,7 @@ export function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
 
   const isHydrated = useHydrated();
   const items = useCartStore((s) => s.items);
@@ -40,6 +41,8 @@ export function Header() {
   const navLinks = user?.role === 'admin'
     ? [...baseLinks, { label: 'Admin', href: '/admin' }]
     : baseLinks;
+
+  if (pathname?.startsWith('/admin')) return null;
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-neutral-200">

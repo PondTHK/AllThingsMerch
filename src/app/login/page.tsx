@@ -3,7 +3,7 @@
 import React, { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { useAuthStore } from '@/lib/auth/useAuthStore';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { Lock, UserCheck, ShieldAlert, ArrowRight } from 'lucide-react';
 
 function LoginContent() {
@@ -11,43 +11,75 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const redirect = searchParams?.get('redirect') || '/account';
 
-  const login = useAuthStore((state) => state.login);
-  const loginAsDemoCollector = useAuthStore((state) => state.loginAsDemoCollector);
-  const loginAsDemoAdmin = useAuthStore((state) => state.loginAsDemoAdmin);
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  const handleDemoCollectorLogin = () => {
-    loginAsDemoCollector();
-    router.push(redirect);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleDemoCollectorLogin = async () => {
+    setError(null);
+    setIsSubmitting(true);
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      setError('Supabase not configured.');
+      setIsSubmitting(false);
+      return;
+    }
+    
+    // In production, you would probably just pre-fill the form, 
+    // but here we attempt to login with a known test user
+    const { error } = await supabase.auth.signInWithPassword({
+      email: 'collector@allthingsmerch.demo',
+      password: 'password123',
+    });
+    
+    if (error) {
+      setError(error.message);
+    } else {
+      router.push(redirect);
+      router.refresh();
+    }
+    setIsSubmitting(false);
   };
 
   const handleDemoAdminLogin = () => {
-    loginAsDemoAdmin();
-    router.push('/admin');
+    setEmail('admin@admin.com');
+    // We don't auto-submit since we don't know the user's password for this real account.
+    // Focus the password input for convenience.
+    document.querySelector<HTMLInputElement>('input[type="password"]')?.focus();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setIsSubmitting(true);
 
     if (!email || !password) {
       setError('Please provide both email address and password.');
+      setIsSubmitting(false);
       return;
     }
 
-    // Register session in auth store
-    login({
-      id: `usr-${Date.now()}`,
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      setError('Supabase not configured.');
+      setIsSubmitting(false);
+      return;
+    }
+
+    const { error } = await supabase.auth.signInWithPassword({
       email: email.trim(),
-      fullName: email.split('@')[0].toUpperCase(),
-      role: email.includes('admin') ? 'admin' : 'customer',
-      createdAt: new Date().toISOString(),
+      password,
     });
 
-    router.push(redirect);
+    if (error) {
+      setError(error.message);
+      setIsSubmitting(false);
+    } else {
+      router.push(redirect);
+      router.refresh();
+    }
   };
 
   return (
@@ -129,9 +161,10 @@ function LoginContent() {
 
           <button
             type="submit"
-            className="w-full py-4 rounded-xl bg-black text-white font-bold text-xs uppercase tracking-wider hover:bg-neutral-800 transition-colors flex items-center justify-center gap-2"
+            disabled={isSubmitting}
+            className="w-full py-4 rounded-xl bg-black text-white font-bold text-xs uppercase tracking-wider hover:bg-neutral-800 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            <span>Sign In</span>
+            <span>{isSubmitting ? 'Signing In...' : 'Sign In'}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>

@@ -11,10 +11,10 @@ export class TagMapper {
       row.order_items?.product_name ?? row.product_name ?? '',
       row.brand_name ?? '',
       row.sku ?? row.order_items?.sku ?? '',
-      row.size ?? row.order_items?.size ?? null,
+      row.size ?? row.order_items?.variant_name ?? null,
       (row.status ?? 'active') as TagStatusValue,
       row.issued_at ?? row.created_at ?? new Date().toISOString(),
-      row.orders?.order_number ?? row.order_number ?? null,
+      row.order_items?.orders?.order_number ?? row.orders?.order_number ?? row.order_number ?? null,
     );
   }
 }

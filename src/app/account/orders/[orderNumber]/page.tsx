@@ -1,25 +1,16 @@
-'use client';
-
-import React, { use } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { getOrderHistory } from '@/lib/orders/mock-checkout';
-import { useHydrated } from '@/lib/cart/useHydrated';
+import { getUserOrderByNumberAction } from '../actions';
 import { formatTHB } from '@/lib/money';
 import { ArrowLeft, ShieldCheck, ExternalLink } from 'lucide-react';
 
-export default function AccountOrderDetailPage({
+export default async function AccountOrderDetailPage({
   params,
 }: {
   params: Promise<{ orderNumber: string }>;
 }) {
-  const { orderNumber } = use(params);
-  const isHydrated = useHydrated();
-  const history = isHydrated ? getOrderHistory() : [];
-  const order = history.find((o) => o.orderNumber === orderNumber);
-
-  if (!isHydrated) {
-    return <div className="p-16 text-center text-neutral-500">Loading Order Details...</div>;
-  }
+  const { orderNumber } = await params;
+  const order = await getUserOrderByNumberAction(orderNumber);
 
   if (!order) {
     return (

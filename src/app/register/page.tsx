@@ -3,12 +3,11 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuthStore } from '@/lib/auth/useAuthStore';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { UserPlus } from 'lucide-react';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const login = useAuthStore((state) => state.login);
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -17,30 +16,50 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  const handleRegister = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setIsSubmitting(true);
 
     if (!fullName.trim() || !email.trim() || !password) {
       setError('Please complete all required fields.');
+      setIsSubmitting(false);
       return;
     }
 
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
+      setIsSubmitting(false);
       return;
     }
 
-    login({
-      id: `usr-${Date.now()}`,
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      setError('Supabase not configured.');
+      setIsSubmitting(false);
+      return;
+    }
+
+    const { error } = await supabase.auth.signUp({
       email: email.trim(),
-      fullName: fullName.trim(),
-      phone: phone.trim(),
-      role: 'customer',
-      createdAt: new Date().toISOString(),
+      password,
+      options: {
+        data: {
+          full_name: fullName.trim(),
+          phone: phone.trim(),
+        },
+      },
     });
 
-    router.push('/account');
+    if (error) {
+      setError(error.message);
+      setIsSubmitting(false);
+    } else {
+      router.push('/account');
+      router.refresh();
+    }
   };
 
   return (
@@ -133,10 +152,11 @@ export default function RegisterPage() {
 
           <button
             type="submit"
-            className="w-full py-4 rounded-xl bg-black text-white font-bold text-xs uppercase tracking-wider hover:bg-neutral-800 transition-colors flex items-center justify-center gap-2"
+            disabled={isSubmitting}
+            className="w-full py-4 rounded-xl bg-black text-white font-bold text-xs uppercase tracking-wider hover:bg-neutral-800 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
           >
             <UserPlus className="w-4 h-4" />
-            <span>Create Account</span>
+            <span>{isSubmitting ? 'Creating Account...' : 'Create Account'}</span>
           </button>
         </form>
 

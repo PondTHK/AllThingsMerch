@@ -18,8 +18,8 @@ export class SupabaseAdminTagRepo implements IAdminTagRepository {
     // Notice joins if required by schema. Schema might vary, so we fetch standard fields.
     const { data, count, error } = await this.client
       .from('authenticity_tags')
-      .select('*, order_items(product_name, sku, size), orders(order_number)', { count: 'exact' })
-      .order('created_at', { ascending: false })
+      .select('*, order_items(product_name, sku, variant_name, orders(order_number))', { count: 'exact' })
+      .order('issued_at', { ascending: false })
       .range(from, to);
 
     if (error) throw new RepositoryError('Failed to fetch tags', error);
@@ -35,7 +35,7 @@ export class SupabaseAdminTagRepo implements IAdminTagRepository {
   async findByOrderItemId(orderItemId: string): Promise<AdminTag | null> {
     const { data, error } = await this.client
       .from('authenticity_tags')
-      .select('*, order_items(product_name, sku, size), orders(order_number)')
+      .select('*, order_items(product_name, sku, variant_name, orders(order_number))')
       .eq('order_item_id', orderItemId)
       .single();
 
@@ -59,15 +59,9 @@ export class SupabaseAdminTagRepo implements IAdminTagRepository {
         order_item_id: input.orderItemId,
         public_code: uniqueCode,
         serial_number: serial,
-        status: 'active',
-        // Optional denormalized fields
-        product_name: input.productName,
-        brand_name: input.brandName,
-        sku: input.sku,
-        size: input.size,
-        order_number: input.orderNumber,
+        status: 'issued',
       })
-      .select()
+      .select('*, order_items(product_name, sku, variant_name, orders(order_number))')
       .single();
 
     if (error) throw new RepositoryError('Failed to generate TAG', error);
