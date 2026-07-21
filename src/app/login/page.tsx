@@ -30,47 +30,40 @@ function LoginContent() {
 
     setLoading(true);
     const client = getSupabaseBrowserClient();
-    if (client) {
-      const { data, error: signInError } = await client.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
-
-      if (signInError) {
-        setError(`Supabase Sign In Error: ${signInError.message}`);
-        setLoading(false);
-        return;
-      }
-
-      if (data.user) {
-        const role = (data.user.app_metadata?.role ||
-          data.user.user_metadata?.role ||
-          (email.includes('admin') ? 'admin' : 'customer')) as 'admin' | 'customer';
-        login({
-          id: data.user.id,
-          email: data.user.email || email.trim(),
-          fullName: data.user.user_metadata?.full_name || email.split('@')[0].toUpperCase(),
-          role,
-          createdAt: data.user.created_at || new Date().toISOString(),
-        });
-        setLoading(false);
-        router.push(role === 'admin' ? '/admin' : redirect);
-        return;
-      }
+    if (!client) {
+      setError('Supabase credentials are not configured. Real authentication required.');
+      setLoading(false);
+      return;
     }
 
-    // Only fallback to local mock storage if Supabase env is NOT configured
-    const role = email.includes('admin') ? 'admin' : 'customer';
-    login({
-      id: `usr-${Date.now()}`,
+    const { data, error: signInError } = await client.auth.signInWithPassword({
       email: email.trim(),
-      fullName: email.split('@')[0].toUpperCase(),
-      role,
-      createdAt: new Date().toISOString(),
+      password,
     });
 
-    setLoading(false);
-    router.push(role === 'admin' ? '/admin' : redirect);
+    if (signInError) {
+      setError(signInError.message);
+      setLoading(false);
+      return;
+    }
+
+    if (data.user) {
+      const role = (data.user.app_metadata?.role ||
+        data.user.user_metadata?.role ||
+        (email.includes('admin') ? 'admin' : 'customer')) as 'admin' | 'customer';
+      login({
+        id: data.user.id,
+        email: data.user.email || email.trim(),
+        fullName: data.user.user_metadata?.full_name || email.split('@')[0].toUpperCase(),
+        role,
+        createdAt: data.user.created_at || new Date().toISOString(),
+      });
+      setLoading(false);
+      router.push(role === 'admin' ? '/admin' : redirect);
+    } else {
+      setError('No user returned from Supabase sign in.');
+      setLoading(false);
+    }
   };
 
   return (

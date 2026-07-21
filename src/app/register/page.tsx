@@ -35,51 +35,45 @@ export default function RegisterPage() {
 
     setLoading(true);
     const client = getSupabaseBrowserClient();
-    if (client) {
-      const { data, error: signUpError } = await client.auth.signUp({
-        email: email.trim(),
-        password,
-        options: {
-          data: {
-            full_name: fullName.trim(),
-            phone: phone.trim(),
-            role: 'customer',
-          },
-        },
-      });
-
-      if (signUpError) {
-        setError(`Supabase Registration Error: ${signUpError.message}`);
-        setLoading(false);
-        return;
-      }
-
-      if (data.user) {
-        login({
-          id: data.user.id,
-          email: data.user.email || email.trim(),
-          fullName: data.user.user_metadata?.full_name || fullName.trim(),
-          phone: phone.trim(),
-          role: 'customer',
-          createdAt: data.user.created_at || new Date().toISOString(),
-        });
-        setLoading(false);
-        router.push('/account');
-        return;
-      }
+    if (!client) {
+      setError('Supabase credentials are not configured. Real authentication required.');
+      setLoading(false);
+      return;
     }
 
-    login({
-      id: `usr-${Date.now()}`,
+    const { data, error: signUpError } = await client.auth.signUp({
       email: email.trim(),
-      fullName: fullName.trim(),
-      phone: phone.trim(),
-      role: 'customer',
-      createdAt: new Date().toISOString(),
+      password,
+      options: {
+        data: {
+          full_name: fullName.trim(),
+          phone: phone.trim(),
+          role: 'customer',
+        },
+      },
     });
 
-    setLoading(false);
-    router.push('/account');
+    if (signUpError) {
+      setError(signUpError.message);
+      setLoading(false);
+      return;
+    }
+
+    if (data.user) {
+      login({
+        id: data.user.id,
+        email: data.user.email || email.trim(),
+        fullName: data.user.user_metadata?.full_name || fullName.trim(),
+        phone: phone.trim(),
+        role: 'customer',
+        createdAt: data.user.created_at || new Date().toISOString(),
+      });
+      setLoading(false);
+      router.push('/account');
+    } else {
+      setError('No user returned from Supabase registration.');
+      setLoading(false);
+    }
   };
 
   return (

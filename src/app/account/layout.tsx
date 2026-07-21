@@ -36,13 +36,12 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
           >
             Go to Sign In
           </Link>
-          <button
-            type="button"
-            onClick={loginAsDemoCollector}
+          <Link
+            href="/register"
             className="w-full sm:w-auto px-8 py-3 rounded-xl border border-black bg-white text-black font-bold text-xs uppercase tracking-wider hover:bg-neutral-100"
           >
-            Instant Collector Demo Session
-          </button>
+            Create Collector Account
+          </Link>
         </div>
       </div>
     );
