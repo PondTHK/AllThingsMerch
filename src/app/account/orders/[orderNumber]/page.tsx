@@ -1,13 +1,13 @@
 'use client';
 
-import React, { use, useState } from 'react';
+import React, { use, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { getOrderHistory } from '@/lib/orders/mock-checkout';
-import { useHydrated } from '@/lib/cart/useHydrated';
+import { getUserOrderByNumberAction } from '@/app/account/orders/actions';
+import { submitProductReviewAction } from '@/lib/reviews/actions';
+import { Order, OrderItem } from '@/types';
 import { formatTHB } from '@/lib/money';
 import { ArrowLeft, ShieldCheck, ExternalLink, Star, AlertCircle } from 'lucide-react';
 import { useReviewStore } from '@/lib/reviews/useReviewStore';
-import { OrderItem } from '@/types';
 
 export default function AccountOrderDetailPage({
   params,
@@ -15,9 +15,9 @@ export default function AccountOrderDetailPage({
   params: Promise<{ orderNumber: string }>;
 }) {
   const { orderNumber } = use(params);
-  const isHydrated = useHydrated();
-  const history = isHydrated ? getOrderHistory() : [];
-  const order = history.find((o) => o.orderNumber === orderNumber);
+  const [order, setOrder] = useState<Order | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [reviewedItemIds, setReviewedItemIds] = useState<string[]>([]);
 
   const [activeReviewItem, setActiveReviewItem] = useState<OrderItem | null>(null);
   const [rating, setRating] = useState<number>(5);
@@ -25,13 +25,34 @@ export default function AccountOrderDetailPage({
   const [error, setError] = useState<string | null>(null);
 
   const reviews = useReviewStore((s) => s.reviews);
-  const addReview = useReviewStore((s) => s.addReview);
+
+  useEffect(() => {
+    let mounted = true;
+    if (!orderNumber) {
+      setLoading(false);
+      return;
+    }
+    getUserOrderByNumberAction(orderNumber)
+      .then((data) => {
+        if (mounted) {
+          setOrder(data);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load order from database:', err);
+        if (mounted) setLoading(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [orderNumber]);
 
   const hasReviewed = (orderItemId: string) => {
-    return reviews.some((r) => r.orderItemId === orderItemId);
+    return reviewedItemIds.includes(orderItemId) || reviews.some((r) => r.orderItemId === orderItemId);
   };
 
-  const handleSubmitReview = () => {
+  const handleSubmitReview = async () => {
     if (!activeReviewItem || !order) return;
     if (!comment.trim()) {
       setError('Please write a review comment.');
@@ -43,22 +64,25 @@ export default function AccountOrderDetailPage({
       return;
     }
 
-    addReview({
-      productId: activeReviewItem.productId,
-      userId: order.shippingAddress.email || 'collector-demo-id',
-      orderItemId: activeReviewItem.id,
-      rating,
-      comment: comment.trim(),
-      status: 'published',
-      userName: order.shippingAddress.fullName || 'Verified Buyer',
-      productName: activeReviewItem.productName,
-    });
-
-    setActiveReviewItem(null);
+    try {
+      await submitProductReviewAction({
+        productId: activeReviewItem.productId,
+        orderItemId: activeReviewItem.id,
+        rating,
+        comment: comment.trim(),
+        userName: order.shippingAddress.fullName || 'Verified Buyer',
+        productName: activeReviewItem.productName,
+      });
+      setReviewedItemIds((prev) => [...prev, activeReviewItem.id]);
+      setActiveReviewItem(null);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to submit review.';
+      setError(msg);
+    }
   };
 
-  if (!isHydrated) {
-    return <div className="p-16 text-center text-neutral-500">Loading Order Details...</div>;
+  if (loading) {
+    return <div className="p-16 text-center text-neutral-500 font-bold">Loading official order details from database...</div>;
   }
 
   if (!order) {

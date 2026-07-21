@@ -1,34 +1,70 @@
 'use client';
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { getOrderHistory } from '@/lib/orders/mock-checkout';
-import { useHydrated } from '@/lib/cart/useHydrated';
+import { getUserOrderByNumberAction } from '@/app/account/orders/actions';
+import { Order } from '@/types';
 import { formatTHB } from '@/lib/money';
 import { ShieldCheck, Check, ArrowRight, ExternalLink } from 'lucide-react';
 
 function OrderSuccessContent() {
   const searchParams = useSearchParams();
   const orderNumber = searchParams?.get('orderNumber') || '';
-  const isHydrated = useHydrated();
+  const [order, setOrder] = useState<Order | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const history = isHydrated ? getOrderHistory() : [];
-  const order = history.find((o) => o.orderNumber === orderNumber) || (history.length > 0 ? history[0] : null);
+  useEffect(() => {
+    let mounted = true;
+    if (!orderNumber) {
+      setLoading(false);
+      return;
+    }
+    getUserOrderByNumberAction(orderNumber)
+      .then((data) => {
+        if (mounted) {
+          setOrder(data);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load order from database:', err);
+        if (mounted) setLoading(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [orderNumber]);
+
+  if (loading) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-24 text-center font-bold text-neutral-500">
+        Loading official order confirmation from database...
+      </div>
+    );
+  }
 
   if (!order) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-24 text-center space-y-6">
         <h1 className="text-3xl font-black text-black">Order Confirmation</h1>
         <p className="text-sm text-neutral-600">
-          Your simulated checkout was successful. Order tracking details are available in your demo session.
+          We received your checkout request, but could not immediately load order details for <span className="font-mono font-bold">{orderNumber}</span>. Please check your order history.
         </p>
-        <Link
-          href="/products"
-          className="inline-block px-8 py-3.5 bg-black text-white font-bold text-xs uppercase tracking-wider"
-        >
-          Continue Exploring Catalog
-        </Link>
+        <div className="flex items-center justify-center gap-4">
+          <Link
+            href="/account/orders"
+            className="inline-block px-8 py-3.5 bg-black text-white font-bold text-xs uppercase tracking-wider"
+          >
+            View Order History
+          </Link>
+          <Link
+            href="/products"
+            className="inline-block px-8 py-3.5 border border-black bg-white text-black font-bold text-xs uppercase tracking-wider"
+          >
+            Continue Exploring Catalog
+          </Link>
+        </div>
       </div>
     );
   }
@@ -41,7 +77,7 @@ function OrderSuccessContent() {
           <div className="space-y-1">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-black text-white text-[10px] font-bold uppercase tracking-wider">
               <Check className="w-3.5 h-3.5" />
-              <span>DEMO ORDER FULFILLED</span>
+              <span>OFFICIAL ORDER FULFILLED</span>
             </div>
             <h1 className="text-2xl sm:text-4xl font-black text-black">
               Thank You For Your Order

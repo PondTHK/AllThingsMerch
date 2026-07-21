@@ -6,7 +6,8 @@ import Link from 'next/link';
 import { useCartStore } from '@/lib/cart/useCartStore';
 import { useAdminStore } from '@/lib/admin/useAdminStore';
 import { useHydrated } from '@/lib/cart/useHydrated';
-import { fulfillMockOrder, validateAndRecalculateCart } from '@/lib/orders/mock-checkout';
+import { validateAndRecalculateCart } from '@/lib/orders/mock-checkout';
+import { placeOrderAction } from './actions';
 import { formatTHB } from '@/lib/money';
 import { getRepository } from '@/lib/repositories';
 import { CheckoutReservationBanner } from '@/components/CheckoutReservationBanner';
@@ -75,7 +76,7 @@ export default function CheckoutPage() {
     );
   }
 
-  const handleConfirmOrder = (e: React.FormEvent) => {
+  const handleConfirmOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsSubmitting(true);
@@ -85,7 +86,7 @@ export default function CheckoutPage() {
         throw new Error('Please fill out all required shipping address fields.');
       }
 
-      const order = fulfillMockOrder(
+      const res = await placeOrderAction(
         items,
         {
           fullName: fullName.trim(),
@@ -96,52 +97,13 @@ export default function CheckoutPage() {
           postalCode: postalCode.trim(),
         },
         paymentMethod,
-        appliedCoupon
+        appliedCoupon?.code
       );
 
-      // 1. Validate stock for NON-LIMITED items (because they weren't reserved!)
-      const adminProducts = useAdminStore.getState().products;
-      for (const item of items) {
-        if (!item.isLimited) {
-          const adminVariant = adminProducts
-            .flatMap((p) => p.variants)
-            .find((v) => v.id === item.variantId);
-          const available = adminVariant ? adminVariant.stockQuantity : 0;
-          if (available < item.quantity) {
-            throw new Error(`Item ${item.productName} is out of stock. Please adjust your cart.`);
-          }
-        }
-      }
-
-      // Increment coupon use count if one was applied
-      if (appliedCoupon) {
-        getRepository().updateCoupon(appliedCoupon.id, {
-          currentGlobalUses: appliedCoupon.currentGlobalUses + 1,
-        }).catch((err: unknown) => console.error('Failed to increment coupon use count:', err));
-      }
-
-      // Transition reservation to sale in Admin Store
-      items.forEach((item) => {
-        if (item.isLimited) {
-          // 1. Release the reservation (positive delta) since it was reserved
-          useAdminStore.getState().adjustVariantStock(item.variantId, item.quantity, 'release', 'cart');
-        }
-        
-        // 2. Log as permanent sale (negative delta) for ALL items
-        useAdminStore.getState().adjustVariantStock(
-          item.variantId,
-          -item.quantity,
-          'sale',
-          'order',
-          order.id,
-          `Order ${order.orderNumber} purchased`
-        );
-      });
-
       clearCartWithoutRelease();
-      router.push(`/checkout/success?orderNumber=${encodeURIComponent(order.orderNumber)}`);
+      router.push(`/checkout/success?orderNumber=${encodeURIComponent(res.orderNumber)}`);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to complete mock checkout.';
+      const msg = err instanceof Error ? err.message : 'Failed to complete checkout.';
       setError(msg);
       setIsSubmitting(false);
     }
