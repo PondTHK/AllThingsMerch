@@ -63,6 +63,7 @@ export class SupabaseAdminCouponRepo implements IAdminCouponRepository {
         discount_value: input.discountValue,
         minimum_order_amount: input.minOrderAmount ?? null,
         usage_limit: input.maxUsageCount ?? null,
+        max_uses_per_user: input.maxUsesPerUser ?? null,
         starts_at: now.toISOString(),
         expires_at: input.expiresAt ?? defaultExpires.toISOString(),
         is_active: true,

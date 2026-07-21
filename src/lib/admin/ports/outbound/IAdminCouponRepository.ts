@@ -7,6 +7,7 @@ export interface CreateCouponInput {
   discountValue: number;
   minOrderAmount?: number;
   maxUsageCount?: number;
+  maxUsesPerUser?: number;
   expiresAt?: string;
 }
 

@@ -18,6 +18,9 @@ const couponSchema = z.object({
   discountValue: z
     .number()
     .positive('Must be greater than 0'),
+  minOrderAmount: z.number().nonnegative().optional().or(z.nan()),
+  maxUsageCount: z.number().int().positive().optional().or(z.nan()),
+  maxUsesPerUser: z.number().int().positive().optional().or(z.nan()),
   expiresAt: z.string().optional(),
 }).superRefine((data, ctx) => {
   if (data.discountType === 'percentage' && data.discountValue > 100) {
@@ -42,6 +45,7 @@ export interface CouponDto {
   minOrderAmount: number | null;
   maxUsageCount: number | null;
   usageCount: number;
+  maxUsesPerUser: number | null;
   isActive: boolean;
   expiresAt: string | null;
 }
@@ -70,7 +74,7 @@ export function CouponsClient({
     formState: { errors, isSubmitting },
   } = useForm<CouponFormValues>({
     resolver: zodResolver(couponSchema),
-    defaultValues: { discountType: 'percentage', discountValue: 10 },
+    defaultValues: { discountType: 'percentage', discountValue: 10, maxUsesPerUser: 1 },
   });
 
   const discountType = watch('discountType');
@@ -80,6 +84,9 @@ export function CouponsClient({
       code: values.code.toUpperCase(),
       discountType: values.discountType,
       discountValue: values.discountValue,
+      minOrderAmount: !isNaN(Number(values.minOrderAmount)) && Number(values.minOrderAmount) > 0 ? Number(values.minOrderAmount) : undefined,
+      maxUsageCount: !isNaN(Number(values.maxUsageCount)) && Number(values.maxUsageCount) > 0 ? Number(values.maxUsageCount) : undefined,
+      maxUsesPerUser: !isNaN(Number(values.maxUsesPerUser)) && Number(values.maxUsesPerUser) > 0 ? Number(values.maxUsesPerUser) : undefined,
       expiresAt: values.expiresAt || undefined,
     });
 
@@ -160,13 +167,31 @@ export function CouponsClient({
                       {coupon.isActive ? 'Active' : 'Disabled'}
                     </span>
                   </div>
-                  <div className="text-xs text-neutral-500 mt-1">
-                    {coupon.discountType === 'percentage'
-                      ? `${coupon.discountValue}% off`
-                      : `฿${coupon.discountValue} off`}
-                    {coupon.expiresAt && <> &bull; Expires: {new Date(coupon.expiresAt).toLocaleDateString()}</>}
-                    &bull; Used: {coupon.usageCount}
-                    {coupon.maxUsageCount ? `/${coupon.maxUsageCount}` : ''} times
+                  <div className="text-xs text-neutral-600 mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <span className="font-bold text-black">
+                      {coupon.discountType === 'percentage'
+                        ? `💥 ลด ${coupon.discountValue}%`
+                        : `💥 ลด ฿${coupon.discountValue.toLocaleString()}`}
+                    </span>
+                    {coupon.minOrderAmount && coupon.minOrderAmount > 0 && (
+                      <span className="text-neutral-500">
+                        &bull; ยอดซื้อขั้นต่ำ ฿{coupon.minOrderAmount.toLocaleString()}
+                      </span>
+                    )}
+                    <span className="text-neutral-700 bg-neutral-100 px-2 py-0.5 rounded-md font-medium border border-neutral-200">
+                      🎯 ใช้แล้ว: <strong className="text-black">{coupon.usageCount}</strong>
+                      {coupon.maxUsageCount ? ` / ${coupon.maxUsageCount} สิทธิ์` : ' ครั้ง (ไม่จำกัด)'}
+                    </span>
+                    {coupon.maxUsesPerUser && coupon.maxUsesPerUser > 0 && (
+                      <span className="text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md font-medium">
+                        👤 จำกัด {coupon.maxUsesPerUser} สิทธิ์/ท่าน
+                      </span>
+                    )}
+                    {coupon.expiresAt && (
+                      <span className="text-neutral-500">
+                        &bull; หมดอายุ: {new Date(coupon.expiresAt).toLocaleDateString('th-TH')}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -259,6 +284,44 @@ export function CouponsClient({
                 className="w-full px-4 py-2.5 rounded-xl bg-neutral-50 border border-neutral-300 text-xs font-medium text-black focus:outline-none focus:border-black"
               />
               {errors.discountValue && <p className="mt-1 text-xs text-red-600">{errors.discountValue.message}</p>}
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-3 border-t border-neutral-200 pt-3">
+            <div>
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-neutral-600 mb-1">
+                Min Order (฿)
+              </label>
+              <input
+                type="number"
+                step="1"
+                {...register('minOrderAmount', { valueAsNumber: true })}
+                placeholder="e.g. 1000"
+                className="w-full px-3 py-2 rounded-xl bg-neutral-50 border border-neutral-300 text-xs font-medium text-black focus:outline-none focus:border-black"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-neutral-600 mb-1">
+                Total Quota
+              </label>
+              <input
+                type="number"
+                step="1"
+                {...register('maxUsageCount', { valueAsNumber: true })}
+                placeholder="e.g. 100"
+                className="w-full px-3 py-2 rounded-xl bg-neutral-50 border border-neutral-300 text-xs font-medium text-black focus:outline-none focus:border-black"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-neutral-600 mb-1">
+                Per-User Quota
+              </label>
+              <input
+                type="number"
+                step="1"
+                {...register('maxUsesPerUser', { valueAsNumber: true })}
+                placeholder="e.g. 1"
+                className="w-full px-3 py-2 rounded-xl bg-neutral-50 border border-neutral-300 text-xs font-medium text-black focus:outline-none focus:border-black"
+              />
             </div>
           </div>
           <div>

@@ -11,6 +11,7 @@ export class AdminCoupon {
     public readonly minOrderAmount: number | null,
     public readonly maxUsageCount: number | null,
     public readonly usageCount: number,
+    public readonly maxUsesPerUser: number | null,
     public readonly isActive: boolean,
     public readonly expiresAt: string | null,
     public readonly createdAt: string,

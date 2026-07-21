@@ -11,6 +11,7 @@ export class CouponMapper {
       row.minimum_order_amount != null ? Number(row.minimum_order_amount) : (row.min_order_amount != null ? Number(row.min_order_amount) : null),
       row.usage_limit != null ? Number(row.usage_limit) : (row.max_usage_count != null ? Number(row.max_usage_count) : null),
       Number(row.usage_count) || 0,
+      row.max_uses_per_user != null ? Number(row.max_uses_per_user) : null,
       row.is_active ?? true,
       row.expires_at ?? null,
       row.created_at ?? new Date().toISOString(),

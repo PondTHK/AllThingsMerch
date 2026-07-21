@@ -28,6 +28,7 @@ export default async function AdminCouponsPage({
     minOrderAmount: c.minOrderAmount,
     maxUsageCount: c.maxUsageCount,
     usageCount: c.usageCount,
+    maxUsesPerUser: c.maxUsesPerUser,
     isActive: c.isActive,
     expiresAt: c.expiresAt,
   }));

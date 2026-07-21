@@ -9,6 +9,8 @@ import { useHydrated } from '@/lib/cart/useHydrated';
 import { placeOrderAction } from './actions';
 import { formatTHB } from '@/lib/money';
 import { getRepository } from '@/lib/repositories';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { useAuthStore } from '@/lib/auth/useAuthStore';
 import { CheckoutReservationBanner } from '@/components/CheckoutReservationBanner';
 import { ShieldAlert, ShieldCheck, Lock, ArrowLeft, Ticket, X } from 'lucide-react';
 
@@ -266,14 +268,14 @@ export default function CheckoutPage() {
           {/* Payment Method */}
           <div className="space-y-4">
             <h2 className="text-lg font-black uppercase tracking-wider text-black border-b border-neutral-200 pb-3">
-              2. Simulated Payment Method
+              2. Payment Method
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {[
-                { id: 'credit-card', label: 'Credit / Debit Card (Mock)' },
-                { id: 'promptpay', label: 'PromptPay QR (Mock)' },
-                { id: 'cod', label: 'Cash on Delivery (Mock)' },
+                { id: 'credit-card', label: 'Credit / Debit Card' },
+                { id: 'promptpay', label: 'PromptPay QR' },
+                { id: 'cod', label: 'Cash on Delivery' },
               ].map((pm) => (
                 <button
                   key={pm.id}
@@ -441,6 +443,23 @@ export default function CheckoutPage() {
                           if (coupon.minOrderValue && subtotal < coupon.minOrderValue) {
                             throw new Error(`Minimum order of ${formatTHB(coupon.minOrderValue)} required`);
                           }
+                          if (coupon.maxUsesPerUser !== undefined && coupon.maxUsesPerUser > 0) {
+                            const user = useAuthStore.getState().user;
+                            if (user) {
+                              const client = getSupabaseBrowserClient();
+                              if (client) {
+                                const { count } = await client
+                                  .from('orders')
+                                  .select('*', { count: 'exact', head: true })
+                                  .eq('user_id', user.id)
+                                  .eq('coupon_id', coupon.id)
+                                  .neq('status', 'cancelled');
+                                if ((count || 0) >= coupon.maxUsesPerUser) {
+                                  throw new Error(`โค้ดคูปอง "${coupon.code}" คุณได้ใช้สิทธิ์ครบตามกำหนดแล้ว (จำกัด ${coupon.maxUsesPerUser} สิทธิ์/ท่าน)`);
+                                }
+                              }
+                            }
+                          }
                           applyCoupon(coupon);
                           setCouponCodeInput('');
                         } catch (err: unknown) {
@@ -467,7 +486,7 @@ export default function CheckoutPage() {
                 <span>1-to-1 Serial Registration</span>
               </div>
               <p>
-                Upon mock completion, encrypted Authenticity TAG verification codes will be assigned to every fulfilled line item.
+                Upon order fulfillment, encrypted Authenticity TAG verification codes will be assigned to every fulfilled line item.
               </p>
             </div>
           </div>

@@ -66,6 +66,19 @@ export async function placeOrderAction(
       throw new Error('This coupon usage limit has been reached.');
     }
 
+    if (coupon.max_uses_per_user && coupon.max_uses_per_user > 0) {
+      const { count: userUsageCount, error: userUsageErr } = await supabase
+        .from('orders')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('coupon_id', coupon.id)
+        .neq('status', 'cancelled');
+
+      if (!userUsageErr && (userUsageCount || 0) >= coupon.max_uses_per_user) {
+        throw new Error(`โค้ดคูปอง "${coupon.code}" คุณได้ใช้สิทธิ์ครบตามกำหนดแล้ว (จำกัด ${coupon.max_uses_per_user} สิทธิ์/ท่าน)`);
+      }
+    }
+
     // Calculate discount
     if (coupon.discount_type === 'percentage') {
       discountAmount = Math.round(subtotal * (Number(coupon.discount_value) / 100));
