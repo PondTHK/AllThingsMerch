@@ -16,6 +16,7 @@ const brandSchema = z.object({
     .min(2, 'Slug must be at least 2 characters')
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be lowercase letters, numbers, and hyphens only'),
   description: z.string().optional(),
+  logoUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
 });
 type BrandFormValues = z.infer<typeof brandSchema>;
 
@@ -211,6 +212,18 @@ export function BrandsClient({
               className="w-full px-4 py-2.5 rounded-xl bg-neutral-50 border border-neutral-300 text-xs font-mono text-black focus:outline-none focus:border-black"
             />
             {errors.slug && <p className="mt-1 text-xs text-red-600">{errors.slug.message}</p>}
+          </div>
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">
+              Banner / Logo Image URL
+            </label>
+            <input
+              type="text"
+              {...register('logoUrl')}
+              placeholder="https://example.com/image.jpg"
+              className="w-full px-4 py-2.5 rounded-xl bg-neutral-50 border border-neutral-300 text-xs text-black focus:outline-none focus:border-black"
+            />
+            {errors.logoUrl && <p className="mt-1 text-xs text-red-600">{errors.logoUrl.message}</p>}
           </div>
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">

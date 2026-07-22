@@ -46,7 +46,7 @@ export function Header() {
   const baseLinks = [
     { label: 'Home', href: '/' },
     { label: 'Shop', href: '/products' },
-    { label: 'Collection', href: '/products?category=formula-1' },
+    { label: 'Collection', href: '/collections' },
     { label: 'Verify TAG', href: '/verify' },
   ];
 
