@@ -127,7 +127,7 @@
 | Backend | Next.js API Routes & Server Actions | Dual-Mode Repository Pattern รองรับทั้ง local state และ Supabase API |
 | State Management | Zustand + LocalStorage | บริหารจัดการตะกร้าสินค้า (`useCartStore`), เซสชันผู้ใช้ (`useAuthStore`) และข้อมูลหลังบ้าน (`useAdminStore`) |
 | Database | PostgreSQL (ผ่าน Supabase) | จัดเก็บข้อมูลระบบทั้งหมด พร้อมเปิดใช้งาน Row Level Security (RLS) และ Supabase Storage |
-| Authentication | Supabase Auth + JWT Metadata | จัดการ Login/Register และแยกระดับสิทธิ์ผู้ใช้งาน (Customer, Admin, License Holder) |
+| Authentication | Supabase Auth | จัดการ Login/Register และแยกระดับสิทธิ์ผู้ใช้งาน (Customer, Admin, License Holder) |
 | Payment & Fulfillment | Mock Checkout Engine | จำลองระบบคำนวณส่วนลดคูปอง ค่าจัดส่ง ตัดสต็อก ออก TAG รับประกันสินค้าแท้ และคำนวณส่วนแบ่งลิขสิทธิ์อัตโนมัติ |
 | Design Tools | Figma, Draw.io, Mermaid | ออกแบบ UI/UX, Wireframe, ERD และแผนภาพ Diagram สถาปัตยกรรมระบบทั้งหมด |
 | Version Control | Git, GitHub | บริหารจัดการ Source Code ด้วย Branching Strategy (main, develop, feature) |

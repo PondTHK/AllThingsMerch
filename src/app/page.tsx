@@ -15,6 +15,7 @@ export default function HomePage() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabId>('ALL');
+  const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
 
   useEffect(() => {
     let mounted = true;
@@ -34,6 +35,15 @@ export default function HomePage() {
       mounted = false;
     };
   }, []);
+
+  // Rotate hero product every 5 seconds
+  useEffect(() => {
+    if (allProducts.length === 0) return;
+    const interval = setInterval(() => {
+      setCurrentHeroIndex((prev) => (prev + 1) % Math.min(allProducts.length, 5)); // Rotate through top 5 products
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [allProducts.length]);
 
   const trendingProducts = allProducts.slice(0, 3);
 
@@ -71,30 +81,30 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Center Vertical Watermark Text matching prototype */}
+            {/* Center Vertical Watermark Text */}
             <div className="hidden lg:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none z-0">
-              <span className="text-[110px] font-black text-neutral-100 dark:text-neutral-900/40 tracking-tighter rotate-[-90deg] inline-block transition-colors">
-                REDBULL RACING
+              <span className="text-[110px] font-black text-neutral-100 dark:text-neutral-900/40 tracking-tighter rotate-[-90deg] inline-block transition-all duration-500 whitespace-nowrap">
+                {(allProducts[currentHeroIndex]?.brand?.name || 'FEATURED COLLECTION').toUpperCase()}
               </span>
             </div>
 
             {/* Right Column Featured Product Showcase */}
-            <div className="lg:col-span-6 relative z-10">
-              <div className="max-w-md mx-auto bg-surface rounded-3xl p-8 sm:p-12 text-center border border-border relative transition-colors shadow-sm">
+            <div className="lg:col-span-6 relative z-10 transition-all duration-500">
+              <div className="max-w-md mx-auto bg-surface rounded-3xl p-8 sm:p-12 text-center border border-border relative transition-colors shadow-sm animate-in fade-in zoom-in duration-500" key={currentHeroIndex}>
                 <div className="relative aspect-square w-full mb-6">
                   <Image
-                    src={allProducts[0]?.featuredImage || '/favicon.ico'}
-                    alt="Red Bull Racing 2026 Team Polo"
+                    src={allProducts[currentHeroIndex]?.featuredImage || '/favicon.ico'}
+                    alt={allProducts[currentHeroIndex]?.name || 'Featured Product'}
                     fill
                     sizes="(max-width: 768px) 100vw, 400px"
-                    className="object-contain"
+                    className="object-contain transition-transform duration-700 hover:scale-105"
                   />
                 </div>
-                <h3 className="font-bold text-foreground text-lg transition-colors">
-                  {allProducts[0]?.name || 'Red Bull Racing 2026 Team Polo'}
+                <h3 className="font-bold text-foreground text-lg transition-colors line-clamp-1">
+                  {allProducts[currentHeroIndex]?.name || 'Loading Featured Product...'}
                 </h3>
                 <p className="text-muted font-semibold text-sm mt-1 transition-colors">
-                  {formatTHB(allProducts[0]?.minPrice || 3990)}
+                  {allProducts[currentHeroIndex] ? formatTHB(allProducts[currentHeroIndex].minPrice) : '...'}
                 </p>
               </div>
             </div>
