@@ -403,7 +403,7 @@ classDiagram
         +UserProfile user
         +login(UserProfile user) void
         +logout() void
-        +updateProfile(PartialUserProfile updates) void
+        +updateProfile(string fullName, string phone) void
         +loginAsDemoCollector() void
         +loginAsDemoAdmin() void
     }
