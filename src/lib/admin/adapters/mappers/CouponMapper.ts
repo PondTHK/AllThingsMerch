@@ -11,7 +11,7 @@ export class CouponMapper {
       Number(row.discount_value) || 0,
       row.min_order_value != null ? Number(row.min_order_value) : null,
       row.max_global_uses != null ? Number(row.max_global_uses) : null,
-      Number(row.current_global_uses) || 0,
+      Number(row.usage_count) || 0, // Using usage_count as requested
       row.max_uses_per_user != null ? Number(row.max_uses_per_user) : null,
       row.is_active ?? true,
       row.expires_at ?? null,

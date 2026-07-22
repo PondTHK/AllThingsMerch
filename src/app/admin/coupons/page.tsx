@@ -3,6 +3,9 @@ import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { getAdminServices } from '@/lib/admin/container';
 import { CouponsClient } from './CouponsClient';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function AdminCouponsPage({
   searchParams,
 }: {

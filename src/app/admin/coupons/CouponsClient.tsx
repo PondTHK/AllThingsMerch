@@ -9,6 +9,10 @@ import { z } from 'zod';
 import { Modal } from '@/components/admin/Modal';
 import { createCouponAction, toggleCouponActiveAction, deleteCouponAction } from './actions';
 
+// Helper: convert empty/NaN to undefined before zod validates
+const nanToUndefined = (v: unknown) =>
+  v === '' || v === null || (typeof v === 'number' && isNaN(v)) ? undefined : v;
+
 const couponSchema = z.object({
   code: z
     .string()
@@ -19,9 +23,9 @@ const couponSchema = z.object({
   discountValue: z
     .number()
     .positive('Must be greater than 0'),
-  minOrderValue: z.number().min(0).optional(),
-  maxGlobalUses: z.number().int().min(1).optional(),
-  maxUsesPerUser: z.number().int().min(1).optional(),
+  minOrderValue: z.preprocess(nanToUndefined, z.number().min(0).optional()),
+  maxGlobalUses: z.preprocess(nanToUndefined, z.number().int().min(1).optional()),
+  maxUsesPerUser: z.preprocess(nanToUndefined, z.number().int().min(1).optional()),
   isActive: z.boolean(),
   expiresAt: z.string().optional(),
 }).superRefine((data, ctx) => {
@@ -37,7 +41,18 @@ const couponSchema = z.object({
   }
 });
 
-type CouponFormValues = z.infer<typeof couponSchema>;
+// Manually typed to avoid z.preprocess unknown inference issues
+type CouponFormValues = {
+  code: string;
+  description?: string;
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+  minOrderValue?: number;
+  maxGlobalUses?: number;
+  maxUsesPerUser?: number;
+  isActive: boolean;
+  expiresAt?: string;
+};
 
 export interface CouponDto {
   id: string;
@@ -69,6 +84,10 @@ export function CouponsClient({
   const [showModal, setShowModal] = useState(false);
   const [savedMsg, setSavedMsg] = useState(false);
 
+  React.useEffect(() => {
+    setCoupons(initialCoupons);
+  }, [initialCoupons]);
+
   const {
     register,
     handleSubmit,
@@ -76,7 +95,8 @@ export function CouponsClient({
     reset,
     formState: { errors, isSubmitting },
   } = useForm<CouponFormValues>({
-    resolver: zodResolver(couponSchema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(couponSchema) as any,
     defaultValues: { discountType: 'percentage', discountValue: 10, isActive: true },
   });
 

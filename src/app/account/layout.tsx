@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/auth/useAuthStore';
 import { useHydrated } from '@/lib/cart/useHydrated';
 import { User, Package, MapPin, LogOut, ShieldCheck, Star } from 'lucide-react';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
 export default function AccountLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -53,9 +54,13 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
     { label: 'My Reviews', href: '/account/reviews', icon: Star },
   ];
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const supabase = getSupabaseBrowserClient();
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
     logout();
-    router.push('/');
+    router.push('/login');
   };
 
   return (
