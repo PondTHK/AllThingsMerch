@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useTheme } from 'next-themes';
-import { Sun, Moon, Monitor } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 
 export function ThemeToggle() {
   const { theme, setTheme, resolvedTheme } = useTheme();
@@ -14,27 +14,30 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <div className="w-9 h-9 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 flex items-center justify-center animate-pulse" />
+      <div className="w-9 h-9 rounded-xl border border-border bg-surface flex items-center justify-center animate-pulse" />
     );
   }
 
+  const isDark = resolvedTheme === 'dark' || (theme === 'dark' && resolvedTheme !== 'light');
+
   const toggleTheme = () => {
-    if (resolvedTheme === 'dark') {
-      setTheme('light');
-    } else {
-      setTheme('dark');
-    }
+    const nextTheme = isDark ? 'light' : 'dark';
+    setTheme(nextTheme);
   };
 
   return (
     <button
+      type="button"
       onClick={toggleTheme}
       aria-label="Toggle theme"
-      title={resolvedTheme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-      className="relative p-2 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800 hover:text-black dark:hover:text-white transition-all flex items-center justify-center gap-1.5"
+      title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+      className="relative p-2.5 rounded-xl border border-border bg-surface text-foreground hover:bg-background hover:border-foreground transition-all flex items-center justify-center gap-1.5 shadow-sm"
     >
-      <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-      <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+      {isDark ? (
+        <Moon className="h-4 w-4 transition-transform duration-200 rotate-0 scale-100 text-foreground" />
+      ) : (
+        <Sun className="h-4 w-4 transition-transform duration-200 rotate-0 scale-100 text-amber-500" />
+      )}
     </button>
   );
 }
