@@ -29,7 +29,9 @@ export default function ProductDetailPage() {
   useEffect(() => {
     let mounted = true;
     if (!slug) {
-      setLoading(false);
+      queueMicrotask(() => {
+        if (mounted) setLoading(false);
+      });
       return;
     }
     const repo = getRepository();

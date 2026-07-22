@@ -17,8 +17,9 @@ export async function createCouponAction(input: CreateCouponInput) {
     await services.coupons.createCoupon(input);
     revalidatePath('/admin/coupons');
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.cause?.message || error.cause?.details || error.message || 'Failed to create coupon' };
+  } catch (error: unknown) {
+    const err = error as { cause?: { message?: string; details?: string }; message?: string } | null;
+    return { success: false, error: err?.cause?.message || err?.cause?.details || err?.message || 'Failed to create coupon' };
   }
 }
 
@@ -28,8 +29,9 @@ export async function toggleCouponActiveAction(id: string) {
     await services.coupons.toggleCouponActive(id);
     revalidatePath('/admin/coupons');
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.cause?.message || error.cause?.details || error.message || 'Failed to toggle coupon status' };
+  } catch (error: unknown) {
+    const err = error as { cause?: { message?: string; details?: string }; message?: string } | null;
+    return { success: false, error: err?.cause?.message || err?.cause?.details || err?.message || 'Failed to toggle coupon status' };
   }
 }
 
@@ -39,7 +41,8 @@ export async function deleteCouponAction(id: string) {
     await services.coupons.deleteCoupon(id);
     revalidatePath('/admin/coupons');
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.cause?.message || error.cause?.details || error.message || 'Failed to delete coupon' };
+  } catch (error: unknown) {
+    const err = error as { cause?: { message?: string; details?: string }; message?: string } | null;
+    return { success: false, error: err?.cause?.message || err?.cause?.details || err?.message || 'Failed to delete coupon' };
   }
 }

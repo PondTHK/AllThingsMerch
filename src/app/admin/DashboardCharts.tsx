@@ -34,7 +34,17 @@ interface DashboardChartsProps {
 
 const PIE_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
-function CustomTooltipRevenue({ active, payload, label }: any) {
+interface TooltipPayloadItem {
+  value?: number;
+}
+
+interface CustomTooltipRevenueProps {
+  active?: boolean;
+  payload?: TooltipPayloadItem[];
+  label?: string;
+}
+
+function CustomTooltipRevenue({ active, payload, label }: CustomTooltipRevenueProps) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-white border border-neutral-200 rounded-xl px-4 py-3 shadow-lg text-xs">
@@ -105,21 +115,21 @@ export function DashboardCharts({ revenueData, stockData }: DashboardChartsProps
                 ))}
               </Pie>
               <Tooltip
-                formatter={(value: any) => [`${Number(value)} units`]}
+                formatter={(value: unknown) => [`${Number(value)} units`]}
                 contentStyle={{ fontSize: 11, borderRadius: 12, border: '1px solid #e5e5e5' }}
               />
               <Legend
-                content={(props: any) => {
-                  const { payload } = props;
+                content={(props: { payload?: ReadonlyArray<{ color?: string; value?: unknown }> }) => {
+                  const { payload = [] } = props;
                   return (
                     <ul className="grid grid-cols-2 gap-x-2 gap-y-1 mt-4 text-[10px] text-neutral-600 px-2">
-                      {payload.map((entry: any, index: number) => (
+                      {payload.map((entry, index: number) => (
                         <li key={`item-${index}`} className="flex items-center gap-1.5 overflow-hidden">
                           <span
                             className="w-2 h-2 rounded-full shrink-0"
                             style={{ backgroundColor: entry.color }}
                           />
-                          <span className="truncate">{entry.value}</span>
+                          <span className="truncate">{String(entry.value ?? '')}</span>
                         </li>
                       ))}
                     </ul>

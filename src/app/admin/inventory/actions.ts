@@ -19,9 +19,10 @@ export async function adjustStockAction(variantId: string, deltaAmount: number) 
     
     revalidatePath('/admin/inventory');
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to adjust stock:', error);
-    return { success: false, error: error.cause?.message || error.cause?.details || error.message || 'Failed to adjust stock' };
+    const err = error as { cause?: { message?: string; details?: string }; message?: string } | null;
+    return { success: false, error: err?.cause?.message || err?.cause?.details || err?.message || 'Failed to adjust stock' };
   }
 }
 
@@ -34,8 +35,9 @@ export async function setStockAbsoluteAction(variantId: string, newQty: number) 
     
     revalidatePath('/admin/inventory');
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to set absolute stock:', error);
-    return { success: false, error: error.cause?.message || error.cause?.details || error.message || 'Failed to set stock' };
+    const err = error as { cause?: { message?: string; details?: string }; message?: string } | null;
+    return { success: false, error: err?.cause?.message || err?.cause?.details || err?.message || 'Failed to set stock' };
   }
 }

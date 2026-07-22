@@ -13,7 +13,7 @@ type TabId = 'ALL' | 'F1' | 'ARTIST' | 'SPORTS' | 'COLLECTIBLES';
 
 export default function HomePage() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabId>('ALL');
 
   useEffect(() => {

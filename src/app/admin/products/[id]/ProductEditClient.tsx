@@ -5,6 +5,7 @@ import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { Check, Plus, Trash2, Package } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export function ProductEditClient({ 
   initialProduct,
   initialBrands,
@@ -56,7 +57,8 @@ export function ProductEditClient({
       for (const variant of variants) {
         if (variant.id.startsWith('new-')) {
           // Insert new
-          const { id, ...newVariantData } = variant;
+          const newVariantData = { ...variant };
+          delete newVariantData.id;
           const { error: insertError } = await supabase
             .from('product_variants')
             .insert({
@@ -108,7 +110,7 @@ export function ProductEditClient({
     ]);
   };
 
-  const handleUpdateVariant = (index: number, field: string, value: any) => {
+  const handleUpdateVariant = (index: number, field: string, value: unknown) => {
     const newVariants = [...variants];
     newVariants[index] = { ...newVariants[index], [field]: value };
     setVariants(newVariants);

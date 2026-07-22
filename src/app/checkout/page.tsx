@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useCartStore } from '@/lib/cart/useCartStore';
-import { useAdminStore } from '@/lib/admin/useAdminStore';
 import { useHydrated } from '@/lib/cart/useHydrated';
 import { placeOrderAction } from './actions';
 import { formatTHB } from '@/lib/money';
@@ -24,6 +23,7 @@ export default function CheckoutPage() {
   const appliedCoupon = useCartStore((s) => s.appliedCoupon);
   const applyCoupon = useCartStore((s) => s.applyCoupon);
   const removeCoupon = useCartStore((s) => s.removeCoupon);
+  const [now] = useState(() => Date.now());
 
   // Release expired per-item reservations on mount
   useEffect(() => {
@@ -71,7 +71,6 @@ export default function CheckoutPage() {
   const totalAmount = Math.max(0, subtotal - discountAmount) + shippingFee;
 
   // Check if any item's reservation has expired
-  const now = Date.now();
   const expiredItem = items.find((item) => item.reservedUntil && new Date(item.reservedUntil).getTime() < now);
   const isValid = items.length > 0 && !expiredItem;
   const errorMessage = expiredItem

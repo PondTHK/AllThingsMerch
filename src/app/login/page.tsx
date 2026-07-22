@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/auth/useAuthStore';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
-import { Lock, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 function LoginContent() {
   const router = useRouter();

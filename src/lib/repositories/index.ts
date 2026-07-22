@@ -10,7 +10,7 @@ import {
   updateCoupon as updateMockCoupon,
   deleteCoupon as deleteMockCoupon,
 } from './mock-data';
-import { isSupabaseConfigured, getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
 export interface DataRepository {
   mode: 'demo' | 'supabase';
@@ -25,7 +25,9 @@ export interface DataRepository {
   deleteCoupon(id: string): Promise<void>;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapSupabaseRowToProduct(row: any): Product {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const variants: ProductVariant[] = (row.product_variants ?? []).map((v: any) => ({
     id: v.id,
     productId: v.product_id ?? row.id,
@@ -39,6 +41,7 @@ function mapSupabaseRowToProduct(row: any): Product {
     isActive: v.is_active ?? true,
   }));
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const images: ProductImage[] = (row.product_images ?? []).map((img: any) => ({
     id: img.id,
     productId: img.product_id ?? row.id,
@@ -98,6 +101,7 @@ function mapSupabaseRowToProduct(row: any): Product {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapSupabaseRowToCoupon(row: any): Coupon {
   return {
     id: row.id,
@@ -115,7 +119,7 @@ function mapSupabaseRowToCoupon(row: any): Coupon {
   };
 }
 
-class DemoRepository implements DataRepository {
+export class DemoRepository implements DataRepository {
   mode = 'demo' as const;
 
   async getProducts(): Promise<Product[]> {
@@ -211,6 +215,7 @@ class SupabaseRepository implements DataRepository {
       console.error('Supabase getBrands error:', error);
       return [];
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return data.map((b: any) => ({
       id: b.id,
       name: b.name,
@@ -233,6 +238,7 @@ class SupabaseRepository implements DataRepository {
       console.error('Supabase getCategories error:', error);
       return [];
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return data.map((c: any) => ({
       id: c.id,
       name: c.name,
@@ -263,15 +269,12 @@ class SupabaseRepository implements DataRepository {
 
   async getCouponByCode(code: string): Promise<Coupon | undefined> {
     const client = getSupabaseBrowserClient();
-    if (!client) {
-      console.error('Supabase client not configured.');
-      return undefined;
-    }
+    if (!client) return undefined;
 
     const { data, error } = await client
       .from('coupons')
       .select('*')
-      .eq('code', code.toUpperCase())
+      .ilike('code', code.trim())
       .maybeSingle();
 
     if (error || !data) {
@@ -285,22 +288,21 @@ class SupabaseRepository implements DataRepository {
     const client = getSupabaseBrowserClient();
     if (!client) throw new Error('Supabase client not configured.');
 
-    const dbCoupon = {
-      code: coupon.code,
+    const insertPayload = {
+      code: coupon.code.toUpperCase().trim(),
       description: coupon.description ?? null,
       discount_type: coupon.discountType,
       discount_value: coupon.discountValue,
       minimum_order_amount: coupon.minOrderValue ?? null,
       usage_limit: coupon.maxGlobalUses ?? null,
-      usage_count: 0,
+      max_uses_per_user: coupon.maxUsesPerUser ?? null,
       is_active: coupon.isActive ?? true,
-      starts_at: new Date().toISOString(),
-      expires_at: coupon.expiresAt ?? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+      expires_at: coupon.expiresAt ?? null,
     };
 
     const { data, error } = await client
       .from('coupons')
-      .insert([dbCoupon])
+      .insert([insertPayload])
       .select()
       .single();
 
@@ -316,7 +318,7 @@ class SupabaseRepository implements DataRepository {
     const client = getSupabaseBrowserClient();
     if (!client) throw new Error('Supabase client not configured.');
 
-    const dbUpdates: any = {};
+    const dbUpdates: Record<string, unknown> = {};
     if (updates.code !== undefined) dbUpdates.code = updates.code;
     if (updates.description !== undefined) dbUpdates.description = updates.description;
     if (updates.discountType !== undefined) dbUpdates.discount_type = updates.discountType;

@@ -8,7 +8,7 @@ export async function POST(request: Request) {
     const { items, shippingAddress, paymentMethod, coupon } = body as {
       items: CartItem[];
       shippingAddress: ShippingAddress;
-      paymentMethod: any;
+      paymentMethod: string;
       coupon?: Coupon | null;
     };
 

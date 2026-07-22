@@ -18,7 +18,9 @@ export default function VerifyTagDetailPage({
   useEffect(() => {
     let mounted = true;
     if (!decodedCode) {
-      setRecord(null);
+      queueMicrotask(() => {
+        if (mounted) setRecord(null);
+      });
       return;
     }
     verifyAuthenticityTagAction(decodedCode)

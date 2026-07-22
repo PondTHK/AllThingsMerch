@@ -17,8 +17,9 @@ export async function createBrandAction(input: CreateBrandInput) {
     await services.brands.createBrand(input);
     revalidatePath('/admin/brands');
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Failed to create brand' };
+  } catch (error: unknown) {
+    const err = error as { message?: string } | null;
+    return { success: false, error: err?.message || 'Failed to create brand' };
   }
 }
 
@@ -28,7 +29,8 @@ export async function toggleBrandActiveAction(id: string) {
     await services.brands.toggleBrandActive(id);
     revalidatePath('/admin/brands');
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Failed to toggle brand status' };
+  } catch (error: unknown) {
+    const err = error as { message?: string } | null;
+    return { success: false, error: err?.message || 'Failed to toggle brand status' };
   }
 }

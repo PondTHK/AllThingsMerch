@@ -43,7 +43,8 @@ export async function createContractAction(input: {
 
     revalidatePath('/admin/contracts');
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Failed to create contract' };
+  } catch (error: unknown) {
+    const err = error as { message?: string } | null;
+    return { success: false, error: err?.message || 'Failed to create contract' };
   }
 }

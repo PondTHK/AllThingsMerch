@@ -73,6 +73,7 @@ export function CouponsClient({
     defaultValues: { discountType: 'percentage', discountValue: 10 },
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const discountType = watch('discountType');
 
   const onSubmit = async (values: CouponFormValues) => {

@@ -3,7 +3,6 @@
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { getAdminServices } from '@/lib/admin/container';
 import { CreateProductInput } from '@/lib/admin/ports/outbound/IAdminProductRepository';
-import { ProductStatusValue } from '@/lib/admin/domain/value-objects/ProductStatus';
 import { revalidatePath } from 'next/cache';
 
 async function initAdminServices() {
@@ -20,9 +19,10 @@ export async function createProductAction(input: CreateProductInput) {
     
     revalidatePath('/admin/products');
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to create product:', error);
-    return { success: false, error: error.message || 'Failed to create product' };
+    const err = error as { message?: string } | null;
+    return { success: false, error: err?.message || 'Failed to create product' };
   }
 }
 
@@ -34,8 +34,9 @@ export async function toggleProductStatusAction(id: string) {
     
     revalidatePath('/admin/products');
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to toggle product status:', error);
-    return { success: false, error: error.message || 'Failed to toggle product status' };
+    const err = error as { message?: string } | null;
+    return { success: false, error: err?.message || 'Failed to toggle product status' };
   }
 }

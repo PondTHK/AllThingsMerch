@@ -17,6 +17,7 @@ function mapDbOrder(row: any): Order {
     paymentMethod: row.payment_method,
     isDemoOrder: false,
     createdAt: row.created_at,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     items: (row.order_items || []).map((item: any) => {
       const tag = item.authenticity_tags?.[0];
       return {

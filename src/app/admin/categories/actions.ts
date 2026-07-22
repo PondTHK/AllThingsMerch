@@ -17,8 +17,9 @@ export async function createCategoryAction(input: CreateCategoryInput) {
     await services.categories.createCategory(input);
     revalidatePath('/admin/categories');
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Failed to create category' };
+  } catch (error: unknown) {
+    const err = error as { message?: string } | null;
+    return { success: false, error: err?.message || 'Failed to create category' };
   }
 }
 
@@ -28,7 +29,8 @@ export async function deleteCategoryAction(id: string) {
     await services.categories.deleteCategory(id);
     revalidatePath('/admin/categories');
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Failed to delete category' };
+  } catch (error: unknown) {
+    const err = error as { message?: string } | null;
+    return { success: false, error: err?.message || 'Failed to delete category' };
   }
 }

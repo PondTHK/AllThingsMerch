@@ -1,4 +1,4 @@
-import { AdminTag, TagStatusValue } from '../domain/entities/AdminTag';
+import { AdminTag } from '../domain/entities/AdminTag';
 import { IAdminTagRepository, GenerateTagInput } from '../ports/outbound/IAdminTagRepository';
 import { PaginationParams, PaginatedResult } from '../ports/outbound/IAdminProductRepository';
 
