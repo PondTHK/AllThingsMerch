@@ -447,11 +447,11 @@ classDiagram
         +CartItem[] items
         +string cartReservedUntil
         +Coupon appliedCoupon
-        +addItem(ProductVariant variant, Product product, number quantity) Promise
-        +updateQuantity(string variantId, number quantity) Promise
-        +removeItem(string variantId) Promise
-        +clearCart() Promise
-        +clearCartWithoutRelease() Promise
+        +addItem(ProductVariant variant, Product product, number quantity) void
+        +updateQuantity(string variantId, number quantity) void
+        +removeItem(string variantId) void
+        +clearCart() void
+        +clearCartWithoutRelease() void
         +releaseExpiredReservation() void
         +applyCoupon(Coupon coupon) void
         +removeCoupon() void
@@ -460,7 +460,7 @@ classDiagram
         +getShippingFee() number
         +getDiscountAmount() number
         +getTotalAmount() number
-        +syncWithDb() Promise
+        +syncWithDb() void
     }
 
     class CartItem {
