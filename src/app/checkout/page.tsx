@@ -37,6 +37,8 @@ export default function CheckoutPage() {
     return item.reservedUntil < min ? item.reservedUntil : min;
   }, null);
 
+  const [addresses, setAddresses] = useState<any[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string>('new');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -46,6 +48,47 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId>('credit-card');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Fetch addresses
+  useEffect(() => {
+    import('../account/addresses/actions').then(m => {
+      m.getUserAddressesAction().then(fetched => {
+        setAddresses(fetched);
+        const def = fetched.find(a => a.isDefault) || fetched[0];
+        if (def) {
+          setSelectedAddressId(def.id);
+          setFullName(def.fullName);
+          setEmail(def.email || '');
+          setPhone(def.phone);
+          setStreet(def.street);
+          setCity(def.city);
+          setPostalCode(def.postalCode);
+        }
+      });
+    });
+  }, []);
+
+  const handleAddressSelect = (id: string) => {
+    setSelectedAddressId(id);
+    if (id === 'new') {
+      setFullName('');
+      setEmail('');
+      setPhone('');
+      setStreet('');
+      setCity('');
+      setPostalCode('');
+    } else {
+      const addr = addresses.find(a => a.id === id);
+      if (addr) {
+        setFullName(addr.fullName);
+        setEmail(addr.email || '');
+        setPhone(addr.phone);
+        setStreet(addr.street);
+        setCity(addr.city);
+        setPostalCode(addr.postalCode);
+      }
+    }
+  };
 
   // Coupon state
   const [couponCodeInput, setCouponCodeInput] = useState('');
@@ -177,9 +220,25 @@ export default function CheckoutPage() {
         <form onSubmit={handleConfirmOrder} className="lg:col-span-7 space-y-8">
           {/* Shipping Address */}
           <div className="space-y-4">
-            <h2 className="text-lg font-black uppercase tracking-wider text-foreground border-b border-border pb-3 transition-colors">
-              1. Shipping Information
-            </h2>
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h2 className="text-lg font-black uppercase tracking-wider text-foreground transition-colors">
+                1. Shipping Information
+              </h2>
+              {addresses.length > 0 && (
+                <select
+                  value={selectedAddressId}
+                  onChange={(e) => handleAddressSelect(e.target.value)}
+                  className="px-3 py-1.5 rounded-lg bg-surface border border-border text-xs font-bold uppercase tracking-wider text-foreground focus:outline-none focus:border-foreground"
+                >
+                  <option value="new">Use New Address</option>
+                  {addresses.map((addr) => (
+                    <option key={addr.id} value={addr.id}>
+                      {addr.label} ({addr.city})
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>

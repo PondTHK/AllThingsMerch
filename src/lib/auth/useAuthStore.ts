@@ -2,29 +2,22 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { UserProfile, SavedAddress } from '@/types';
+import { UserProfile } from '@/types';
 
 export interface AuthState {
   user: UserProfile | null;
-  addresses: SavedAddress[];
   login: (user: UserProfile) => void;
   logout: () => void;
   updateProfile: (updates: Partial<UserProfile>) => void;
   loginAsDemoCollector: () => void;
   loginAsDemoAdmin: () => void;
-  addAddress: (address: Omit<SavedAddress, 'id'>) => SavedAddress;
-  updateAddress: (id: string, updates: Partial<SavedAddress>) => void;
-  deleteAddress: (id: string) => void;
-  setDefaultAddress: (id: string) => void;
 }
 
-const DEFAULT_DEMO_ADDRESSES: SavedAddress[] = [];
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       user: null,
-      addresses: DEFAULT_DEMO_ADDRESSES,
 
       login: (user) => {
         if (typeof document !== 'undefined') {
@@ -77,51 +70,10 @@ export const useAuthStore = create<AuthState>()(
           },
         });
       },
-
-      addAddress: (addressData) => {
-        const newAddr: SavedAddress = {
-          ...addressData,
-          id: `addr-${Date.now()}`,
-        };
-        const current = get().addresses;
-        const isFirst = current.length === 0 || newAddr.isDefault;
-
-        const updated = isFirst
-          ? current.map((a) => ({ ...a, isDefault: false })).concat({ ...newAddr, isDefault: true })
-          : current.concat(newAddr);
-
-        set({ addresses: updated });
-        return newAddr;
-      },
-
-      updateAddress: (id, updates) => {
-        const current = get().addresses;
-        const updated = current.map((a) => {
-          if (a.id !== id) {
-            return updates.isDefault ? { ...a, isDefault: false } : a;
-          }
-          return { ...a, ...updates };
-        });
-        set({ addresses: updated });
-      },
-
-      deleteAddress: (id) => {
-        set({
-          addresses: get().addresses.filter((a) => a.id !== id),
-        });
-      },
-
-      setDefaultAddress: (id) => {
-        set({
-          addresses: get().addresses.map((a) => ({
-            ...a,
-            isDefault: a.id === id,
-          })),
-        });
-      },
     }),
     {
-      name: 'allthingsmerch-auth',
+      name: 'atm-auth-storage',
+      skipHydration: true,
     }
   )
 );

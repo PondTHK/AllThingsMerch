@@ -195,19 +195,17 @@ export async function placeOrderAction(
 
   // 9. Update coupon usage count if used
   if (couponId) {
-    // Note: Concurrency might be an issue here in real-world without RPC, but fine for now
-    try {
-      await supabase.rpc('increment_coupon_usage', { p_coupon_id: couponId });
-    } catch {
-      // Fallback if RPC doesn't exist
-      const { data: c } = await supabase.from('coupons').select('usage_count').eq('id', couponId).single();
-      if (c) {
-        await supabase.from('coupons').update({ usage_count: c.usage_count + 1 }).eq('id', couponId);
-      }
+    const { data: c } = await supabase.from('coupons').select('usage_count').eq('id', couponId).single();
+    if (c) {
+      const { error: updateErr } = await supabase
+        .from('coupons')
+        .update({ usage_count: c.usage_count + 1 })
+        .eq('id', couponId);
     }
   }
 
   revalidatePath('/account/orders');
+  revalidatePath('/admin/coupons');
   
   return { success: true, orderNumber };
 }
