@@ -76,8 +76,8 @@ export default function CheckoutPage() {
   const errorMessage = expiredItem
     ? `Your reservation for "${expiredItem.productName}" has expired. Please return to catalog and add it again.`
     : items.length === 0
-    ? 'Your shopping bag is empty.'
-    : undefined;
+      ? 'Your shopping bag is empty.'
+      : undefined;
 
   if (items.length === 0 || !isValid) {
     return (
@@ -278,11 +278,10 @@ export default function CheckoutPage() {
                   key={pm.id}
                   type="button"
                   onClick={() => setPaymentMethod(pm.id as PaymentMethodId)}
-                  className={`p-4 rounded-xl border text-left text-xs font-bold uppercase tracking-wider transition-all ${
-                    paymentMethod === pm.id
+                  className={`p-4 rounded-xl border text-left text-xs font-bold uppercase tracking-wider transition-all ${paymentMethod === pm.id
                       ? 'border-primary bg-primary text-primary-foreground shadow-sm'
                       : 'border-border bg-surface text-foreground hover:border-foreground'
-                  }`}
+                    }`}
                 >
                   {pm.label}
                 </button>
