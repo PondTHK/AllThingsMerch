@@ -4,6 +4,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { CartItem, Product, ProductVariant, Coupon } from '@/types';
 import { useAdminStore } from '@/lib/admin/useAdminStore';
+import { useAuthStore } from '@/lib/auth/useAuthStore';
 
 const RESERVATION_MS = 15 * 60 * 1000; // 15 minutes
 
@@ -18,18 +19,13 @@ function computeCartReservedUntil(items: CartItem[]): string | null {
 
 interface CartState {
   items: CartItem[];
-  /**
-   * The soonest reservedUntil across all items.
-   * Kept in sync for backward-compat and for consumers that want a single
-   * "cart expires at" value (e.g. the checkout page unified timer).
-   */
   cartReservedUntil: string | null;
   appliedCoupon: Coupon | null;
-  addItem: (variant: ProductVariant, product: Product, quantity?: number) => void;
-  updateQuantity: (variantId: string, quantity: number) => void;
-  removeItem: (variantId: string) => void;
-  clearCart: () => void;
-  clearCartWithoutRelease: () => void;
+  addItem: (variant: ProductVariant, product: Product, quantity?: number) => Promise<void>;
+  updateQuantity: (variantId: string, quantity: number) => Promise<void>;
+  removeItem: (variantId: string) => Promise<void>;
+  clearCart: () => Promise<void>;
+  clearCartWithoutRelease: () => Promise<void>;
   /**
    * Releases stock for each expired item individually and removes them from the
    * cart. Non-expired items are kept intact.
@@ -43,6 +39,7 @@ interface CartState {
   getShippingFee: () => number;
   getDiscountAmount: () => number;
   getTotalAmount: () => number;
+  syncWithDb: () => Promise<void>;
 }
 
 export const useCartStore = create<CartState>()(
@@ -60,7 +57,7 @@ export const useCartStore = create<CartState>()(
         set({ appliedCoupon: null });
       },
 
-      addItem: (variant, product, quantity = 1) => {
+      addItem: async (variant, product, quantity = 1) => {
         const adminProducts = useAdminStore.getState().products;
         const adminProduct = adminProducts.find(p => p.id === product.id);
         const adminVariant = adminProduct?.variants.find(v => v.id === variant.id);
@@ -124,9 +121,24 @@ export const useCartStore = create<CartState>()(
           items: nextItems,
           cartReservedUntil: computeCartReservedUntil(nextItems),
         });
+
+        // Sync to DB if logged in
+        const user = useAuthStore.getState().user;
+        if (user) {
+          try {
+            const { addToDbCartAction } = await import('@/app/cart/actions');
+            const targetItem = nextItems.find(i => i.variantId === variant.id);
+            if (targetItem) {
+              await addToDbCartAction(variant.id, targetItem.quantity, reservedUntil);
+              await get().syncWithDb();
+            }
+          } catch (err) {
+            console.error('Failed to sync addItem to DB:', err);
+          }
+        }
       },
 
-      updateQuantity: (variantId, quantity) => {
+      updateQuantity: async (variantId, quantity) => {
         const item = get().items.find((i) => i.variantId === variantId);
         if (!item) return;
 
@@ -134,7 +146,7 @@ export const useCartStore = create<CartState>()(
         if (diff === 0) return;
 
         if (quantity <= 0) {
-          get().removeItem(variantId);
+          await get().removeItem(variantId);
           return;
         }
 
@@ -185,9 +197,21 @@ export const useCartStore = create<CartState>()(
           items: nextItems,
           cartReservedUntil: computeCartReservedUntil(nextItems),
         });
+
+        // Sync to DB if logged in
+        const user = useAuthStore.getState().user;
+        if (user) {
+          try {
+            const { updateDbCartQuantityAction } = await import('@/app/cart/actions');
+            await updateDbCartQuantityAction(variantId, quantity);
+            await get().syncWithDb();
+          } catch (err) {
+            console.error('Failed to sync updateQuantity to DB:', err);
+          }
+        }
       },
 
-      removeItem: (variantId) => {
+      removeItem: async (variantId) => {
         const item = get().items.find((i) => i.variantId === variantId);
         if (item && item.isLimited) {
           useAdminStore.getState().adjustVariantStock(
@@ -204,9 +228,21 @@ export const useCartStore = create<CartState>()(
           items: nextItems,
           cartReservedUntil: computeCartReservedUntil(nextItems),
         });
+
+        // Sync to DB if logged in
+        const user = useAuthStore.getState().user;
+        if (user) {
+          try {
+            const { removeFromDbCartAction } = await import('@/app/cart/actions');
+            await removeFromDbCartAction(variantId);
+            await get().syncWithDb();
+          } catch (err) {
+            console.error('Failed to sync removeItem to DB:', err);
+          }
+        }
       },
 
-      clearCart: () => {
+      clearCart: async () => {
         const { items } = get();
         items.forEach((item) => {
           if (item.isLimited) {
@@ -221,10 +257,48 @@ export const useCartStore = create<CartState>()(
           }
         });
         set({ items: [], appliedCoupon: null, cartReservedUntil: null });
+
+        // Sync to DB if logged in
+        const user = useAuthStore.getState().user;
+        if (user) {
+          try {
+            const { clearDbCartAction } = await import('@/app/cart/actions');
+            await clearDbCartAction();
+            await get().syncWithDb();
+          } catch (err) {
+            console.error('Failed to sync clearCart to DB:', err);
+          }
+        }
       },
 
-      clearCartWithoutRelease: () => {
+      clearCartWithoutRelease: async () => {
         set({ items: [], appliedCoupon: null, cartReservedUntil: null });
+        
+        // Sync to DB if logged in
+        const user = useAuthStore.getState().user;
+        if (user) {
+          try {
+            const { clearDbCartAction } = await import('@/app/cart/actions');
+            await clearDbCartAction();
+          } catch (err) {
+            console.error('Failed to clear DB cart without release:', err);
+          }
+        }
+      },
+
+      syncWithDb: async () => {
+        const user = useAuthStore.getState().user;
+        if (!user) return;
+        try {
+          const { getDbCartAction } = await import('@/app/cart/actions');
+          const dbItems = await getDbCartAction();
+          set({
+            items: dbItems,
+            cartReservedUntil: computeCartReservedUntil(dbItems),
+          });
+        } catch (err) {
+          console.error('Failed to syncWithDb:', err);
+        }
       },
 
       /**

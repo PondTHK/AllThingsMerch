@@ -3,6 +3,8 @@
 import { useEffect } from 'react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/lib/auth/useAuthStore';
+import { useCartStore } from '@/lib/cart/useCartStore';
+import { syncLocalCartToDbAction } from '@/app/cart/actions';
 
 export function SupabaseAuthProvider({ children }: { children: React.ReactNode }) {
   const login = useAuthStore((state) => state.login);
@@ -12,10 +14,26 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return;
 
+    const handleLoginSync = async (user: any) => {
+      login(user);
+      try {
+        const localItems = useCartStore.getState().items;
+        await syncLocalCartToDbAction(localItems);
+        await useCartStore.getState().syncWithDb();
+      } catch (err) {
+        console.error('Failed to sync local cart to DB:', err);
+      }
+    };
+
+    const handleLogoutSync = () => {
+      logout();
+      useCartStore.getState().clearCartWithoutRelease();
+    };
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        login({
+        handleLoginSync({
           id: session.user.id,
           email: session.user.email || '',
           fullName: session.user.user_metadata?.full_name || session.user.user_metadata?.fullName || 'User',
@@ -24,7 +42,7 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
           createdAt: session.user.created_at,
         });
       } else {
-        logout();
+        handleLogoutSync();
       }
     });
 
@@ -33,7 +51,7 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        login({
+        handleLoginSync({
           id: session.user.id,
           email: session.user.email || '',
           fullName: session.user.user_metadata?.full_name || session.user.user_metadata?.fullName || 'User',
@@ -42,7 +60,7 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
           createdAt: session.user.created_at,
         });
       } else {
-        logout();
+        handleLogoutSync();
       }
     });
 

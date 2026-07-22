@@ -7,6 +7,7 @@ import { useAuthStore } from '@/lib/auth/useAuthStore';
 import { useHydrated } from '@/lib/cart/useHydrated';
 import { User, Package, MapPin, LogOut, ShieldCheck, Star } from 'lucide-react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { useCartStore } from '@/lib/cart/useCartStore';
 
 export default function AccountLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -60,6 +61,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
       await supabase.auth.signOut();
     }
     logout();
+    useCartStore.getState().clearCartWithoutRelease();
     router.push('/login');
   };
 

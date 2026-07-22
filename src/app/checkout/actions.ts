@@ -204,8 +204,20 @@ export async function placeOrderAction(
     }
   }
 
+  // 10. Clear database cart
+  const { error: dbCartError } = await supabase
+    .from('cart_items')
+    .delete()
+    .eq('user_id', user.id);
+    
+  if (dbCartError) {
+    console.error('Failed to clear database cart:', dbCartError);
+  }
+
   revalidatePath('/account/orders');
   revalidatePath('/admin/coupons');
+  revalidatePath('/cart');
+  revalidatePath('/checkout');
   
   return { success: true, orderNumber };
 }
