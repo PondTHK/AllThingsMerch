@@ -23,6 +23,23 @@ export default function VerifyTagDetailPage({
       });
       return;
     }
+    if (decodedCode.toUpperCase() === 'DEMO-TAG-2026') {
+      queueMicrotask(() => {
+        if (mounted) setRecord({
+          tagCode: 'DEMO-TAG-2026',
+          serialNumber: 'DEMO-SERIAL-2026',
+          productId: 'e1111111-1111-4111-8111-111111111111',
+          productName: 'Red Bull Racing 2026 Team Polo',
+          brandName: 'Oracle Red Bull Racing',
+          sku: 'RBR-POLO26-M',
+          size: 'M',
+          status: 'active',
+          issuedAt: new Date().toISOString(),
+          orderNumber: 'ATM-DEMO-ORDER',
+        });
+      });
+      return;
+    }
     verifyAuthenticityTagAction(decodedCode)
       .then((data) => {
         if (mounted) setRecord(data);
