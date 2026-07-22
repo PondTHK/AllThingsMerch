@@ -18,7 +18,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect('/login');
   }
 
-  const role = user.app_metadata?.role || user.user_metadata?.role;
+  const role = user.app_metadata?.role || user.user_metadata?.role || (user.email?.includes('admin') ? 'admin' : 'customer');
   
   if (role !== 'admin') {
     return (

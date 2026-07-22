@@ -59,6 +59,7 @@ function LoginContent() {
         createdAt: data.user.created_at || new Date().toISOString(),
       });
       setLoading(false);
+      router.refresh();
       router.push(role === 'admin' ? '/admin' : redirect);
     } else {
       setError('No user returned from Supabase sign in.');
