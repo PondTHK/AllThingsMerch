@@ -21,7 +21,6 @@ export default async function AdminDashboardPage() {
     lowStockVariants,
     variantsResult,
     ordersResult,
-    activeContracts,
     activeProductsData,
     topVariants,
   ] = await Promise.all([
@@ -29,7 +28,6 @@ export default async function AdminDashboardPage() {
     services.inventory.getLowStockVariants(),
     services.inventory.listVariants({ page: 1, limit: 1 }),
     services.orders.listOrders({ page: 1, limit: 500 }),
-    services.contracts.getActiveContracts(),
     supabase.from('products').select('*', { count: 'exact', head: true }).eq('status', 'active'),
     services.inventory.listVariants({ page: 1, limit: 5 }),
   ]);
@@ -37,7 +35,6 @@ export default async function AdminDashboardPage() {
   const activeProductsCount = activeProductsData?.count ?? 0;
   const totalProductsCount = totalProductsResult.totalCount;
   const totalVariantSkus = variantsResult.totalCount;
-  const activeContractsCount = activeContracts.length;
 
   const fulfilledOrders = ordersResult.items.filter((o) =>
     ['processing', 'shipped', 'delivered'].includes(o.status.value)
@@ -78,7 +75,7 @@ export default async function AdminDashboardPage() {
       <div>
         <h2 className="text-xl font-bold text-slate-900">Operations Overview</h2>
         <p className="text-sm text-slate-500 mt-1">
-          Real-time snapshot of merchandise inventory, order fulfillment, and IP licensing contracts.
+          Real-time snapshot of merchandise inventory and order fulfillment.
         </p>
       </div>
 
@@ -113,14 +110,6 @@ export default async function AdminDashboardPage() {
           <div className="text-xs font-medium text-slate-400">{orderCount} Recorded Orders</div>
         </div>
 
-        <div className="p-5 rounded-2xl bg-white/70 backdrop-blur-xl border border-white/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 space-y-3">
-          <div className="flex items-center justify-between text-slate-500">
-            <span className="text-sm font-medium">IP Contracts</span>
-            <FileText className="w-4 h-4 text-slate-400" />
-          </div>
-          <div className="text-2xl font-bold text-slate-900">{activeContractsCount} <span className="text-sm font-medium text-slate-400">Active</span></div>
-          <div className="text-xs font-medium text-slate-400">License Agreements</div>
-        </div>
       </div>
 
       {/* Charts */}

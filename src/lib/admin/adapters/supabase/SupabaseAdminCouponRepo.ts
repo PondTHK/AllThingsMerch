@@ -51,21 +51,24 @@ export class SupabaseAdminCouponRepo implements IAdminCouponRepository {
   }
 
   async create(input: CreateCouponInput): Promise<AdminCoupon> {
-    const now = new Date();
-    const defaultExpires = new Date();
-    defaultExpires.setFullYear(now.getFullYear() + 1);
+    // If no expiresAt: use far-future date to handle NOT NULL constraint on older DB schemas
+    // This means "never expires" semantically
+    const neverExpires = new Date();
+    neverExpires.setFullYear(neverExpires.getFullYear() + 100);
 
     const { data, error } = await this.client
       .from('coupons')
       .insert({
         code: input.code,
+        description: input.description ?? null,
         discount_type: input.discountType,
         discount_value: input.discountValue,
-        minimum_order_amount: input.minOrderAmount ?? null,
-        usage_limit: input.maxUsageCount ?? null,
-        starts_at: now.toISOString(),
-        expires_at: input.expiresAt ?? defaultExpires.toISOString(),
-        is_active: true,
+        min_order_value: input.minOrderValue ?? null,
+        max_global_uses: input.maxGlobalUses ?? null,
+        max_uses_per_user: input.maxUsesPerUser ?? null,
+        is_active: input.isActive ?? true,
+        starts_at: new Date().toISOString(),
+        expires_at: input.expiresAt ?? neverExpires.toISOString(),
       })
       .select()
       .single();

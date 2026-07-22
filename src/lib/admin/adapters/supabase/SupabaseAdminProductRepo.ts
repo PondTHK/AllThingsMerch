@@ -90,7 +90,29 @@ export class SupabaseAdminProductRepo implements IAdminProductRepository {
       throw new RepositoryError('Failed to create product variant', variantError);
     }
 
-    return ProductMapper.toDomain({ ...newProduct, product_variants: [newVariant] });
+    // 3. Insert featured image
+    const { data: newImage, error: imageError } = await this.client
+      .from('product_images')
+      .insert({
+        product_id: newProduct.id,
+        storage_path: input.featuredImage,
+        alt_text: input.name,
+        sort_order: 0,
+      })
+      .select()
+      .single();
+
+    if (imageError) {
+      // Best-effort rollback
+      await this.client.from('products').delete().eq('id', newProduct.id);
+      throw new RepositoryError('Failed to create product image', imageError);
+    }
+
+    return ProductMapper.toDomain({ 
+      ...newProduct, 
+      product_variants: [newVariant],
+      product_images: [newImage]
+    });
   }
 
   async updateStatus(id: string, status: ProductStatusValue): Promise<void> {

@@ -15,6 +15,7 @@ export interface ProductDto {
   totalStock: number;
   primaryVariantSku: string;
   primaryVariantPrice: number;
+  featuredImage: string | null;
 }
 
 export interface BrandDto {
@@ -56,6 +57,7 @@ export function ProductsClient({
   const [sku, setSku] = useState('');
   const [price, setPrice] = useState('2990');
   const [stockQuantity, setStockQuantity] = useState('20');
+  const [featuredImage, setFeaturedImage] = useState('');
   const [createdMsg, setCreatedMsg] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -108,6 +110,7 @@ export function ProductsClient({
         price: parsedPrice,
         stockQuantity: parsedStock,
         lowStockThreshold: 3,
+        featuredImage: featuredImage.trim(),
       });
 
       if (!result.success) {
@@ -118,6 +121,7 @@ export function ProductsClient({
       setSlug('');
       setDescription('');
       setSku('');
+      setFeaturedImage('');
       setShowForm(false);
       setCreatedMsg(true);
       setTimeout(() => setCreatedMsg(false), 3000);
@@ -175,6 +179,20 @@ export function ProductsClient({
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Featured Image URL *
+              </label>
+              <input
+                type="url"
+                required
+                value={featuredImage}
+                onChange={(e) => setFeaturedImage(e.target.value)}
+                placeholder="https://img.sasom.co.th/..."
+                className="w-full px-4 py-2.5 rounded-xl bg-white/50 backdrop-blur-sm border border-slate-200/60 text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 focus:bg-white transition-all duration-300"
+              />
+            </div>
+
             <div className="sm:col-span-2">
               <label className="block text-sm font-medium text-slate-700 mb-1">
                 Product Name *

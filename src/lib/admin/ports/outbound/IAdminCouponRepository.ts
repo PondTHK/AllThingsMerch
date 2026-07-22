@@ -3,10 +3,13 @@ import { PaginationParams, PaginatedResult } from './IAdminProductRepository';
 
 export interface CreateCouponInput {
   code: string;
+  description?: string;
   discountType: 'percentage' | 'fixed';
   discountValue: number;
-  minOrderAmount?: number;
-  maxUsageCount?: number;
+  minOrderValue?: number;
+  maxGlobalUses?: number;
+  maxUsesPerUser?: number;
+  isActive?: boolean;
   expiresAt?: string;
 }
 

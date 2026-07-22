@@ -16,6 +16,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'fastestlap.store',
       },
+      {
+        protocol: 'https',
+        hostname: 'img.sasom.co.th',
+      },
     ],
   },
 };

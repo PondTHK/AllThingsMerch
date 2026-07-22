@@ -38,41 +38,44 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 overflow-y-auto"
       aria-modal="true"
       role="dialog"
       aria-labelledby="modal-title"
     >
-      {/* Backdrop */}
+      {/* Backdrop — fixed so it covers the entire viewport including sticky headers */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
+      {/* Centering wrapper */}
+      <div className="relative flex min-h-full items-center justify-center p-4">
 
-      {/* Panel */}
-      <div
-        className={`relative w-full ${sizeClass} bg-white rounded-2xl shadow-2xl border border-neutral-200 flex flex-col max-h-[90vh]`}
-        style={{ animation: 'modalIn 0.18s cubic-bezier(0.16, 1, 0.3, 1)' }}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-200 shrink-0">
-          <h2 id="modal-title" className="text-sm font-black uppercase tracking-wider text-black">
-            {title}
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-neutral-100 text-neutral-500 hover:text-black transition-colors"
-            aria-label="Close modal"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
+        {/* Panel */}
+        <div
+          className={`relative w-full ${sizeClass} bg-white rounded-2xl shadow-2xl border border-neutral-200 flex flex-col`}
+          style={{ animation: 'modalIn 0.18s cubic-bezier(0.16, 1, 0.3, 1)' }}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-200 shrink-0">
+            <h2 id="modal-title" className="text-sm font-black uppercase tracking-wider text-black">
+              {title}
+            </h2>
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded-lg hover:bg-neutral-100 text-neutral-500 hover:text-black transition-colors"
+              aria-label="Close modal"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
 
-        {/* Body */}
-        <div className="px-6 py-5 overflow-y-auto">
-          {children}
+          {/* Body */}
+          <div className="px-6 py-5">
+            {children}
+          </div>
         </div>
       </div>
 

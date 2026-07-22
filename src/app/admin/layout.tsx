@@ -55,9 +55,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       </div>
 
       {/* Admin Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto relative z-10">
+      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         {/* Admin Top Header (Glassmorphism) */}
-        <header className="bg-white/60 backdrop-blur-xl border-b border-white/80 px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sticky top-0 z-20 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+        <header className="bg-white/60 backdrop-blur-xl border-b border-white/80 px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sticky top-0 z-10 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
           <div>
             <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 tracking-tight">Merchandise &amp; IP Operations</h1>
             <p className="text-sm text-slate-500 mt-0.5">

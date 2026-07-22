@@ -9,6 +9,7 @@ export interface CreateProductInput {
   slug: string;
   description: string;
   isPreorder: boolean;
+  featuredImage: string;
   // Initial variant
   sku: string;
   price: number; // THB

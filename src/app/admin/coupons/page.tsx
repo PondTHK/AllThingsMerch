@@ -23,11 +23,13 @@ export default async function AdminCouponsPage({
   const couponsDto = result.items.map((c) => ({
     id: c.id,
     code: c.code,
+    description: c.description,
     discountType: c.discountType,
     discountValue: c.discountValue,
-    minOrderAmount: c.minOrderAmount,
-    maxUsageCount: c.maxUsageCount,
-    usageCount: c.usageCount,
+    minOrderValue: c.minOrderValue,
+    maxGlobalUses: c.maxGlobalUses,
+    currentGlobalUses: c.currentGlobalUses,
+    maxUsesPerUser: c.maxUsesPerUser,
     isActive: c.isActive,
     expiresAt: c.expiresAt,
   }));

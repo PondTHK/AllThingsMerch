@@ -43,6 +43,7 @@ export default async function AdminProductsPage({
     totalStock: p.totalStock,
     primaryVariantSku: p.primaryVariant?.sku || 'N/A',
     primaryVariantPrice: p.primaryVariant?.price.thb || 0,
+    featuredImage: p.images[0]?.storagePath ?? null,
   }));
   const brandsDto = brandsResult.map((b) => ({ id: b.id, name: b.name }));
   const categoriesDto = categoriesResult.map((c) => ({ id: c.id, name: c.name }));

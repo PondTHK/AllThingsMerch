@@ -67,11 +67,10 @@ export function OrdersClient({
     if (!result.success) {
       alert(result.error || 'Failed to update order status.');
       setOrders(previousOrders);
+    } else {
+      // Sync fresh server data (revalidatePath + router.refresh = consistent state)
+      router.refresh();
     }
-    
-    // Automatic TAGs might have been generated on the server for shipped/delivered,
-    // so we rely on Server Action's revalidatePath and router.refresh to sync state.
-    // The optimistic update will be replaced by the fresh server data.
     
     setIsUpdating(false);
   };

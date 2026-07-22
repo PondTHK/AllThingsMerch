@@ -14,10 +14,15 @@ const couponSchema = z.object({
     .string()
     .min(3, 'Code must be at least 3 characters')
     .regex(/^[A-Z0-9]+$/, 'Code must be uppercase letters and numbers only'),
+  description: z.string().optional(),
   discountType: z.enum(['percentage', 'fixed']),
   discountValue: z
     .number()
     .positive('Must be greater than 0'),
+  minOrderValue: z.number().min(0).optional(),
+  maxGlobalUses: z.number().int().min(1).optional(),
+  maxUsesPerUser: z.number().int().min(1).optional(),
+  isActive: z.boolean(),
   expiresAt: z.string().optional(),
 }).superRefine((data, ctx) => {
   if (data.discountType === 'percentage' && data.discountValue > 100) {
@@ -37,11 +42,13 @@ type CouponFormValues = z.infer<typeof couponSchema>;
 export interface CouponDto {
   id: string;
   code: string;
+  description: string | null;
   discountType: string;
   discountValue: number;
-  minOrderAmount: number | null;
-  maxUsageCount: number | null;
-  usageCount: number;
+  minOrderValue: number | null;
+  maxGlobalUses: number | null;
+  currentGlobalUses: number;
+  maxUsesPerUser: number | null;
   isActive: boolean;
   expiresAt: string | null;
 }
@@ -70,7 +77,7 @@ export function CouponsClient({
     formState: { errors, isSubmitting },
   } = useForm<CouponFormValues>({
     resolver: zodResolver(couponSchema),
-    defaultValues: { discountType: 'percentage', discountValue: 10 },
+    defaultValues: { discountType: 'percentage', discountValue: 10, isActive: true },
   });
 
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -79,8 +86,13 @@ export function CouponsClient({
   const onSubmit = async (values: CouponFormValues) => {
     const result = await createCouponAction({
       code: values.code.toUpperCase(),
+      description: values.description || undefined,
       discountType: values.discountType,
       discountValue: values.discountValue,
+      minOrderValue: values.minOrderValue || undefined,
+      maxGlobalUses: values.maxGlobalUses || undefined,
+      maxUsesPerUser: values.maxUsesPerUser || undefined,
+      isActive: values.isActive,
       expiresAt: values.expiresAt || undefined,
     });
 
@@ -162,12 +174,14 @@ export function CouponsClient({
                     </span>
                   </div>
                   <div className="text-xs text-neutral-500 mt-1">
+                    {coupon.description && <span className="block text-neutral-400 italic mb-0.5">{coupon.description}</span>}
                     {coupon.discountType === 'percentage'
                       ? `${coupon.discountValue}% off`
                       : `฿${coupon.discountValue} off`}
+                    {coupon.minOrderValue && <> &bull; Min order: ฿{coupon.minOrderValue}</>}
                     {coupon.expiresAt && <> &bull; Expires: {new Date(coupon.expiresAt).toLocaleDateString()}</>}
-                    &bull; Used: {coupon.usageCount}
-                    {coupon.maxUsageCount ? `/${coupon.maxUsageCount}` : ''} times
+                    &bull; Used: {coupon.currentGlobalUses}
+                    {coupon.maxGlobalUses ? `/${coupon.maxGlobalUses}` : ''} times
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -219,6 +233,7 @@ export function CouponsClient({
       {/* Modal */}
       <Modal isOpen={showModal} onClose={() => { setShowModal(false); reset(); }} title="New Coupon">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* Code */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">
               Coupon Code * <span className="text-neutral-400 font-normal normal-case">(uppercase, no spaces)</span>
@@ -236,6 +251,21 @@ export function CouponsClient({
             />
             {errors.code && <p className="mt-1 text-xs text-red-600">{errors.code.message}</p>}
           </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">
+              Description <span className="text-neutral-400 font-normal normal-case">(optional)</span>
+            </label>
+            <input
+              type="text"
+              {...register('description')}
+              placeholder="e.g. Summer sale coupon"
+              className="w-full px-4 py-2.5 rounded-xl bg-neutral-50 border border-neutral-300 text-xs text-black focus:outline-none focus:border-black"
+            />
+          </div>
+
+          {/* Discount Type + Value */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">
@@ -262,6 +292,51 @@ export function CouponsClient({
               {errors.discountValue && <p className="mt-1 text-xs text-red-600">{errors.discountValue.message}</p>}
             </div>
           </div>
+
+          {/* Min Order Value */}
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">
+              Min Order Value (THB) <span className="text-neutral-400 font-normal normal-case">(optional)</span>
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              {...register('minOrderValue', { valueAsNumber: true })}
+              placeholder="Leave blank for no minimum"
+              className="w-full px-4 py-2.5 rounded-xl bg-neutral-50 border border-neutral-300 text-xs text-black focus:outline-none focus:border-black"
+            />
+          </div>
+
+          {/* Max Uses */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">
+                Max Uses (Global) <span className="text-neutral-400 font-normal normal-case">(optional)</span>
+              </label>
+              <input
+                type="number"
+                min="1"
+                {...register('maxGlobalUses', { valueAsNumber: true })}
+                placeholder="Unlimited"
+                className="w-full px-4 py-2.5 rounded-xl bg-neutral-50 border border-neutral-300 text-xs text-black focus:outline-none focus:border-black"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">
+                Max Uses (Per User) <span className="text-neutral-400 font-normal normal-case">(optional)</span>
+              </label>
+              <input
+                type="number"
+                min="1"
+                {...register('maxUsesPerUser', { valueAsNumber: true })}
+                placeholder="Unlimited"
+                className="w-full px-4 py-2.5 rounded-xl bg-neutral-50 border border-neutral-300 text-xs text-black focus:outline-none focus:border-black"
+              />
+            </div>
+          </div>
+
+          {/* Expires At */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">
               Expires At <span className="text-neutral-400 font-normal normal-case">(optional)</span>
@@ -272,6 +347,21 @@ export function CouponsClient({
               className="w-full px-4 py-2.5 rounded-xl bg-neutral-50 border border-neutral-300 text-xs text-black focus:outline-none focus:border-black"
             />
           </div>
+
+          {/* Is Active */}
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="modal-isActive"
+              {...register('isActive')}
+              defaultChecked
+              className="w-4 h-4 rounded border-neutral-300 text-black focus:ring-black"
+            />
+            <label htmlFor="modal-isActive" className="text-xs font-bold text-black">
+              Coupon is active and ready to use
+            </label>
+          </div>
+
           <div className="flex items-center gap-3 pt-2 border-t border-neutral-200">
             <button
               type="submit"
