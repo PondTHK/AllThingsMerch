@@ -1,141 +1,264 @@
-# AllThingsMerch - Licensed Merchandise E-Commerce Platform
+# AllThingsMerch – Licensed Merchandise E-Commerce Platform
 
-**System Analysis and Design Specification (SADS)**  
-**เอกสารวิเคราะห์และออกแบบระบบ**
-
-เอกสารฉบับนี้จัดทำขึ้นเพื่อใช้ประกอบโปรเจกต์ในรายวิชา DIGITAL PLATFORM FOR SOFTWARE DEVELOPMENT
+ระบบร้านค้าออนไลน์จำหน่ายสินค้าลิขสิทธิ์แท้ พร้อมระบบออกรหัสรับประกันสินค้าแท้ (Authenticity TAG) และบริหารส่วนแบ่งลิขสิทธิ์ (Royalty Share)
 
 ---
 
-## สารบัญ
+# สารบัญ
 
-1. ภาพรวมโครงการและวัตถุประสงค์
-2. ขอบเขตและเป้าหมายทางธุรกิจ
-3. ผู้ใช้งานระบบและบทบาท
-4. ขอบเขตระบบ
-5. ความต้องการเชิงฟังก์ชัน
-6. ความต้องการเชิงคุณลักษณะ
-7. สถาปัตยกรรมของระบบ
-8. การออกแบบโครงสร้างข้อมูล
-9. แนวทางการทำงานร่วมกัน
-10. กระบวนการส่งมอบซอฟต์แวร์
-11. แผนการดำเนินงาน
-12. การจัดการความเสี่ยง
-13. รายชื่อสมาชิกกลุ่ม
+## Planning
+- [1. ข้อมูลกลุ่ม (Group Information)](#1-ข้อมูลกลุ่ม-group-information)
+- [2. หลักการและเหตุผล (Rationale)](#2-หลักการและเหตุผล-rationale)
+- [3. วัตถุประสงค์ของโครงการ (Objectives)](#3-วัตถุประสงค์ของโครงการ-objectives)
+- [4. ผลลัพธ์ที่คาดว่าจะได้รับ (Expected Outcomes)](#4-ผลลัพธ์ที่คาดว่าจะได้รับ-expected-outcomes)
+- [5. แนวทางการพัฒนาระบบ (SDLC)](#5-แนวทางการพัฒนาระบบ-sdlc)
+- [6. เครื่องมือและเทคโนโลยีที่ใช้ (Tools & Technologies)](#6-เครื่องมือและเทคโนโลยีที่ใช้-tools--technologies)
+- [7. แผนการดำเนินงาน (Work Plan)](#7-แผนการดำเนินงาน-work-plan)
 
----
+## Analysis
+- [8. ขอบเขตของระบบ (System Scope)](#8-ขอบเขตของระบบ-system-scope)
+- [9. Persona Design – AllThingsMerch](#9-persona-design--allthingsmerch)
+- [10. Use Case Diagram](#10-use-case-diagram)
 
-## 1. ภาพรวมโครงการและวัตถุประสงค์
+## Design
+- [11. System Architecture](#11-system-architecture)
+- [12. Wireframe / Prototype](#12-wireframe--prototype)
+- [13. Class Diagram](#13-class-diagram)
+- [14. Sequence Diagram](#14-sequence-diagram)
+- [15. Data Schema (JSON)](#15-data-schema-json)
 
-### 1.1 ภาพรวมโครงการ
-
-**AllThingsMerch** เป็นแพลตฟอร์มพาณิชย์อิเล็กทรอนิกส์สำหรับจำหน่ายสินค้าลิขสิทธิ์แท้ โดยเน้นสินค้าจากกลุ่มแฟนคลับและสินค้าสะสม เช่น ทีมแข่งรถ Formula 1 ศิลปินระดับโลก และสโมสรฟุตบอลชั้นนำ
-
-ระบบถูกออกแบบให้ลูกค้าสามารถค้นหาสินค้า สั่งซื้อสินค้า สั่งซื้อล่วงหน้า ดูข้อมูลการรับประกันสินค้าแท้จาก TAG ที่ร้านออกให้ และติดตามคำสั่งซื้อได้ภายในแพลตฟอร์มเดียวกัน อีกทั้งยังมีระบบหลังบ้านสำหรับผู้ดูแลระบบในการจัดการสินค้า สต๊อกสินค้า คำสั่งซื้อ คูปองส่วนลด สัญญาลิขสิทธิ์ และรายงานส่วนแบ่งลิขสิทธิ์
-
-### 1.2 ปัญหาที่ต้องการแก้ไข
-
-1. ลูกค้าไม่มั่นใจว่าสินค้าที่ซื้อเป็นสินค้าลิขสิทธิ์แท้
-2. การจัดการสินค้าลิขสิทธิ์จากหลายแบรนด์มีความซับซ้อน
-3. การคำนวณส่วนแบ่งลิขสิทธิ์ให้ผู้ถือสิทธิ์ต้องมีความถูกต้องและตรวจสอบได้
-4. สินค้ารุ่นพิเศษหรือสินค้าจำนวนจำกัดต้องรองรับการสั่งซื้อล่วงหน้าอย่างเป็นระบบ
-
-### 1.3 วัตถุประสงค์ของระบบ
-
-1. พัฒนาระบบร้านค้าออนไลน์สำหรับสินค้าลิขสิทธิ์แท้
-2. รองรับการสั่งซื้อสินค้าและการสั่งซื้อล่วงหน้า
-3. สร้างระบบออก TAG รับประกันสินค้าแท้ให้สินค้าทุกชิ้นที่ซื้อจากทางร้าน
-4. สร้างระบบจัดการสัญญาลิขสิทธิ์และคำนวณส่วนแบ่งรายได้
----
-
-## 2. ขอบเขตและเป้าหมายทางธุรกิจ
-
-### 2.1 เป้าหมายทางธุรกิจ
-
-1. เพิ่มความน่าเชื่อถือของแพลตฟอร์มด้วย TAG รับประกันสินค้าแท้สำหรับสินค้าทุกชิ้น
-2. เพิ่มโอกาสในการขายสินค้าจากกลุ่มแฟนคลับและนักสะสม
-3. อำนวยความสะดวกในการค้นหาและกรองสินค้าตามประเภทลิขสิทธิ์
-4. จัดการข้อมูลสัญญาลิขสิทธิ์และอัตราส่วนแบ่งรายได้อย่างเป็นระบบ
-5. รองรับการเปิดขายสินค้ารุ่นพิเศษและสินค้าจำนวนจำกัดด้วยระบบสั่งซื้อล่วงหน้า
-
-### 2.2 กลุ่มสินค้าที่ระบบรองรับ
-
-ระบบ AllThingsMerch รองรับการจัดจำหน่ายสินค้าลิขสิทธิ์แท้หลากหลายประเภท โดยเน้นสินค้าที่เกี่ยวข้องกับแบรนด์ บุคคล องค์กร ทีม ศิลปิน สื่อบันเทิง กีฬา และกลุ่มแฟนคลับต่าง ๆ ซึ่งสามารถเพิ่มเติมหรือปรับเปลี่ยนหมวดหมู่สินค้าได้ตามความเหมาะสมในอนาคต
-
-ตัวอย่างกลุ่มสินค้าที่ระบบสามารถรองรับได้ มีดังนี้
-
-1. สินค้าแฟชั่นและเครื่องแต่งกาย
-2. สินค้าของสะสม
-3. สินค้า Limited Edition
-4. สินค้า Pre-order
-5. สินค้าที่เกี่ยวข้องกับศิลปิน ทีมกีฬา แบรนด์ หรือคอนเทนต์ลิขสิทธิ์
-6. สินค้าอื่น ๆ ที่ได้รับอนุญาตให้จัดจำหน่ายอย่างถูกต้องตามลิขสิทธิ์
-
-การกำหนดกลุ่มสินค้าในลักษณะกว้างนี้ช่วยให้ระบบสามารถขยายประเภทสินค้าได้ในอนาคต โดยไม่จำเป็นต้องแก้ไขโครงสร้างหลักของระบบใหม่ทั้งหมด
+## Testing
+- [16. แนวทางการทดสอบระบบ (Testing Approach)](#16-แนวทางการทดสอบระบบ-testing-approach)
+- [17. Test Case – AllThingsMerch](#17-test-case--allthingsmerch)
 
 ---
 
-## 3. ผู้ใช้งานระบบและบทบาท
+# Planning
 
-### 3.1 ลูกค้า
+## 1. ข้อมูลกลุ่ม (Group Information)
 
-ลูกค้าเป็นผู้ใช้งานหลักของระบบ มีหน้าที่ค้นหา เลือกซื้อ สั่งซื้อ ดูข้อมูล TAG รับประกันสินค้าแท้ และติดตามคำสั่งซื้อ
+- ชื่อกลุ่ม: AllThingsMerch
+- จำนวนสมาชิก: 5 คน
+- รายชื่อสมาชิก:
 
-### 3.2 ผู้ดูแลระบบ
-
-ผู้ดูแลระบบเป็นผู้จัดการข้อมูลหลักของแพลตฟอร์ม มีหน้าที่ดูแลสินค้า คำสั่งซื้อ คูปอง สัญญาลิขสิทธิ์ และรายงานส่วนแบ่งรายได้
+| รหัสนักศึกษา | ชื่อและนามสกุล | หน้าที่ |
+| :--- | :--- | :--- |
+| 67160165 | นายธนกร หีบเงิน | ผู้พัฒนา Frontend/Backend |
+| 67160449 | นายณฐมน โชติกุล | ผู้พัฒนา Frontend/Backend |
+| 67132694 | นายนิรินทร์ เทพวิสุทธิพันธุ์ | ผู้พัฒนา Frontend/Backend |
+| 67167855 | นายกฤตณัฐ อิ้วสมจิตร | ผู้พัฒนา Frontend และ Tester |
+| 67185699 | นางสาว กนกกร ทะกอง | ผู้พัฒนา Frontend และ Tester |
 
 ---
 
-## 4. ขอบเขตระบบ
+## 2. หลักการและเหตุผล (Rationale)
 
-### 4.1 ขอบเขตระบบสำหรับลูกค้า
+ในปัจจุบันตลาดสินค้าลิขสิทธิ์แท้ (Licensed Merchandise) โดยเฉพาะกลุ่มสินค้าจากแฟนคลับและสินค้าของสะสม เช่น ทีมแข่งรถ Formula 1 ศิลปินระดับโลก และสโมสรฟุตบอลชั้นนำ มีการเติบโตและความต้องการสูงมาก แต่ผู้บริโภคยังคงประสบปัญหาความไม่มั่นใจว่าสินค้าที่สั่งซื้อเป็นสินค้าลิขสิทธิ์แท้หรือไม่ หรือมีความเสี่ยงต่อการพบสินค้าลอกเลียนแบบในท้องตลาด นอกจากนี้ ในมุมมองของการบริหารจัดการธุรกิจ การจัดจำหน่ายสินค้าลิขสิทธิ์จากหลายแบรนด์และหลายเจ้าของสิทธิ์ (License Holders) มีความซับซ้อนอย่างยิ่ง โดยเฉพาะการบันทึกสัญญาและการคำนวณอัตราส่วนแบ่งรายได้ (Royalty Share) ที่ต้องมีความถูกต้อง โปร่งใส และสามารถตรวจสอบย้อนหลังได้อย่างแม่นยำ
 
-1. สมัครสมาชิก
-2. เข้าสู่ระบบ
-3. ออกจากระบบ
-4. แก้ไขข้อมูลส่วนตัว
-5. ค้นหาสินค้า
-6. กรองสินค้าตามประเภทลิขสิทธิ์
-7. ดูรายละเอียดสินค้า
-8. เพิ่มสินค้าลงตะกร้า
-9. ปรับจำนวนสินค้าในตะกร้า
-10. ลบสินค้าออกจากตะกร้า
-11. สั่งซื้อสินค้า
-12. ทำรายการสั่งซื้อล่วงหน้า
-13. ใช้โค้ดส่วนลด
-14. ดูข้อมูล TAG รับประกันสินค้าแท้ของสินค้าที่ซื้อจากทางร้าน
-15. ติดตามสถานะคำสั่งซื้อ
-16. ดูประวัติการสั่งซื้อ
-17. รีวิวสินค้า
-18. ให้คะแนนสินค้า
+การพัฒนาระบบร้านค้าออนไลน์ **AllThingsMerch** จึงถูกสร้างขึ้นเพื่อแก้ไขปัญหาดังกล่าวอย่างครบวงจร โดยเน้นคุณค่าหลัก 3 ประการ ได้แก่:
+1. **ความน่าเชื่อถือสูงสุด (Guaranteed Authenticity)** ด้วยการออกรหัสรับประกันสินค้าแท้ (Authenticity TAG) ที่มีรหัสสาธารณะ (Public Code) และหมายเลขเครื่อง (Serial Number) ไม่ซ้ำกันให้แก่สินค้าทุกชิ้นที่ซื้อสำเร็จจากทางร้าน เพื่อให้ลูกค้าสามารถตรวจสอบความแท้ผ่านระบบ Verify TAG ได้ทุกเวลา
+2. **ระบบการสั่งซื้อและจองสินค้าที่มีประสิทธิภาพ (Smart Ordering & Reservation)** รองรับทั้งสินค้าพร้อมส่ง สินค้า Limited Edition และสินค้าสั่งซื้อล่วงหน้า (Pre-Order) พร้อมกลไกล็อกสต็อกชั่วคราว (Temporary Stock Reservation) 15 นาที เพื่อป้องกันปัญหาสั่งซื้อชนกันหรือสต็อกขาดในช่วงเปิดจองสินค้ายอดนิยม
+3. **การบริหารสิทธิ์และส่วนแบ่งอัตโนมัติ (Automated Royalty Management)** ระบบหลังบ้านที่บันทึกสัญญาลิขสิทธิ์และคำนวณส่วนแบ่งรายได้ให้ผู้ถือครองสิทธิ์ทันทีเมื่อเกิดคำสั่งซื้อ โดยใช้กลไก Snapshot อัตราส่วนแบ่ง ณ เวลาที่ซื้อ เพื่อไม่ให้กระทบต่อประวัติธุรกรรมหากมีการเปลี่ยนแปลงสัญญาในอนาคต
 
-### 4.2 ขอบเขตระบบสำหรับผู้ดูแลระบบ
+---
 
-1. เพิ่มข้อมูลสินค้า
-2. แก้ไขข้อมูลสินค้า
-3. ลบข้อมูลสินค้า
-4. จัดการจำนวนสต๊อกสินค้า
-5. จัดการข้อมูลผู้ถือครองลิขสิทธิ์
-6. จัดการข้อมูลสัญญาลิขสิทธิ์
-7. กำหนดอัตราส่วนแบ่งลิขสิทธิ์
-8. ตรวจสอบรายการคำสั่งซื้อ
-9. ออก TAG รับประกันสินค้าแท้ให้กับสินค้าแต่ละรายการ
-10. อัปเดตสถานะการจัดส่งสินค้า
-11. สร้างคูปองส่วนลด
-12. กำหนดวันหมดอายุของคูปองส่วนลด
-13. ตรวจสอบรายงานยอดขาย
-14. ตรวจสอบรายงานยอดเงินส่วนแบ่งลิขสิทธิ์
+## 3. วัตถุประสงค์ของโครงการ (Objectives)
 
-### 4.3 ขอบเขตที่ไม่รวมในระบบ
+1. พัฒนาระบบร้านค้าออนไลน์ที่ทันสมัยสำหรับจัดจำหน่ายสินค้าลิขสิทธิ์แท้ (Licensed Merchandise) ให้ลูกค้าสามารถค้นหาสินค้า กรองตามแบรนด์หรือประเภทลิขสิทธิ์ และเลือกซื้อสินค้าได้อย่างสะดวก รวดเร็ว และมั่นใจ
+2. รองรับรูปแบบการขายที่หลากหลาย ทั้งสินค้าปกติและสินค้าสั่งซื้อล่วงหน้า (Pre-Order) สำหรับสินค้ารุ่นพิเศษ (Limited Edition) หรือสินค้าจำนวนจำกัด พร้อมระบบล็อกสต็อกชั่วคราว (Temporary Stock Lock) 15 นาทีระหว่างรอชำระเงิน
+3. สร้างระบบออกรหัสรับประกันสินค้าแท้ (Authenticity TAG) ให้กับรายการสินค้าแต่ละชิ้นแบบอัตโนมัติทันทีที่คำสั่งซื้อสำเร็จ พร้อมหน้าตรวจสอบรหัสยืนยันสินค้าแท้ (Verify TAG System) ที่สาธารณะและลูกค้าสามารถตรวจสอบได้จริง
+4. จัดทำระบบหลังบ้านสำหรับผู้ดูแลระบบ (Admin) ในการบริหารจัดการสินค้า รูปแบบสินค้าย่อย (Variants/SKU) สต็อกสินค้าและประวัติการเคลื่อนย้ายสต็อก (Stock Movements) คูปองส่วนลด สัญญาลิขสิทธิ์ และระบบคำนวณส่วนแบ่งลิขสิทธิ์ (Royalty Transactions) พร้อมรายงานสถิติที่ครบถ้วน
 
-1. ระบบผลิตสินค้าในโรงงาน
-2. ระบบขนส่งจริงของบริษัทขนส่งภายนอก
-3. ระบบชำระเงินจริงผ่านธนาคาร
-4. ระบบบัญชีเต็มรูปแบบขององค์กร
-5. ระบบจัดการคลังสินค้าขนาดใหญ่หลายสาขา
+---
 
-### 4.4 แผนภาพยูสเคส (Use Case Diagram)
+## 4. ผลลัพธ์ที่คาดว่าจะได้รับ (Expected Outcomes)
+
+1. ลูกค้าได้รับประสบการณ์การช้อปปิ้งออนไลน์ที่น่าเชื่อถือและมั่นใจสูงสุด โดยสามารถตรวจสอบรหัสยืนยันสินค้าลิขสิทธิ์แท้ (Authenticity TAG) ของสินค้าทุกชิ้นที่สั่งซื้อได้ตลอดเวลา
+2. ระบบสามารถรองรับการสั่งซื้อสินค้าและการสั่งซื้อล่วงหน้า (Pre-Order) ได้อย่างมีประสิทธิภาพ ช่วยลดปัญหาการจองสินค้าซ้อนและรักษาสมดุลของสต็อกสินค้าด้วยระบบจองชั่วคราว 15 นาที
+3. ผู้ดูแลระบบสามารถบริหารจัดการ catalog สินค้าที่มีความซับซ้อน (เช่น สี ไซซ์ SKU) และติดตามประวัติการเพิ่ม-ลดสต็อก (Stock Movements) ทุกรายการได้อย่างโปร่งใส เป็นระบบ และตรวจสอบย้อนหลังได้
+4. ระบบสามารถคำนวณส่วนแบ่งรายได้ค่าลิขสิทธิ์ให้แก่คู่ค้าและเจ้าของลิขสิทธิ์ (License Holders) ได้อย่างถูกต้องอัตโนมัติตาม Snapshot ณ วันที่สั่งซื้อ พร้อมออกรายงานสรุปยอดขายและยอดส่วนแบ่งได้อย่างแม่นยำ
+5. โครงสร้างระบบมีความมั่นคง ปลอดภัย รองรับการขยายตัวในอนาคตด้วยสถาปัตยกรรมแบบ Dual-Mode Repository และฐานข้อมูล Supabase PostgreSQL ที่ใช้ Row Level Security (RLS) ในการปกป้องข้อมูลระดับแถว
+
+---
+
+## 5. แนวทางการพัฒนาระบบ (SDLC)
+
+### Planning
+- กำหนดขอบเขตโครงการ วัตถุประสงค์ กลุ่มเป้าหมาย และการแบ่งบทบาทหน้าที่ของสมาชิกในทีม
+- ศึกษากระบวนการทางธุรกิจของร้านค้าสินค้าลิขสิทธิ์ ความต้องการด้านความโปร่งใสของอัตราส่วนแบ่ง และความต้องการของลูกค้าในการตรวจสอบสินค้าแท้
+- เลือกเทคโนโลยีหลักคือ Next.js App Router, Zustand, Supabase (PostgreSQL + RLS) และเครื่องมือในการทำงานร่วมกัน (Git, GitHub, Figma)
+
+### Analysis
+- วิเคราะห์ปัญหาและความต้องการของผู้ใช้งาน 3 กลุ่มหลัก ได้แก่ ลูกค้า (Customer), ผู้ดูแลระบบ (Admin) และผู้ถือครองลิขสิทธิ์ (License Holder)
+- ออกแบบ Use Case Diagram, Persona และความต้องการเชิงฟังก์ชัน/คุณลักษณะ (Functional & Non-Functional Requirements) เพื่อวางกรอบการทำงานให้ชัดเจน
+
+### Design
+- ออกแบบสถาปัตยกรรมระบบ (System Architecture) โดยใช้ Repository Pattern ที่รองรับทั้ง Dual-Mode (DemoRepository และ SupabaseRepository) เพื่อให้ทดสอบระบบได้รวดเร็วและเชื่อมต่อ Cloud Database ได้อย่างมีประสิทธิภาพ
+- ออกแบบฐานข้อมูล (ERD / Data Schema) ครอบคลุมระบบผู้ใช้งาน สินค้า รูปแบบย่อย สต็อก คำสั่งซื้อ TAG รับประกันสินค้าแท้ และธุรกรรมส่วนแบ่งลิขสิทธิ์
+- ออกแบบ Wireframe และ UI/UX ผ่าน Figma โดยเน้นดีไซน์ที่ทันสมัย พรีเมียม และใช้งานง่าย (Modern Premium E-Commerce) พร้อม Class Diagram และ Sequence Diagram
+
+### Development
+- พัฒนา Frontend และ Backend ควบคู่กันบนโครงสร้าง Next.js App Router โดยใช้ TypeScript ทั้งระบบ
+- พัฒนา State Management ด้วย Zustand (`useAuthStore`, `useCartStore`, `useAdminStore`) เชื่อมต่อเข้ากับ Server Actions / API Handlers และ Repository Adapter
+- จัดทำระบบจำลองการชำระเงิน (Mock Checkout Engine) ระบบจองสต็อกชั่วคราว ระบบออกรหัส Authenticity TAG และระบบคำนวณส่วนแบ่ง Royalty Transaction อัตโนมัติ
+
+### Testing
+- ดำเนินการทดสอบระบบแบบครบวงจร ทั้ง User Acceptance Testing (UAT) โดยใช้ Manual Testing ตาม Test Cases ที่ออกแบบไว้ และ Automated Testing ด้วย Vitest/Playwright
+- ตรวจสอบความถูกต้องของการคำนวณราคาสินค้า คูปองส่วนลด ค่าจัดส่ง การคำนวณส่วนแบ่งลิขสิทธิ์ และการทำงานของระบบรักษาความปลอดภัย Row Level Security (RLS)
+
+### Deployment
+- นำระบบขึ้นสู่สภาพแวดล้อมจริง (Production Deployment) ผ่านผู้ให้บริการ Cloud Platforms:
+  - **Frontend / Server Actions API**: Deploy ผ่าน Vercel โหลดเร็วและรองรับ Serverless Functions
+  - **Database & Authentication**: ใช้บริการ Supabase (Cloud PostgreSQL + Supabase Auth) พร้อมเปิดใช้งาน Connection Pooler และ RLS Policies
+  - **Version Control & CI/CD**: ใช้ GitHub ร่วมกับ GitHub Actions ในการตรวจสอบรูปแบบโค้ด (Linting/Formatting) และรัน Automated Tests ก่อนทำการ Merge/Deploy
+
+### Maintenance
+- ติดตามตรวจสอบการทำงานของระบบผ่าน Logs และผลตอบรับของผู้ใช้งาน
+- วางแผนปรับปรุงและอัปเดตฟีเจอร์ใหม่ การดูแลความปลอดภัย ตลอดจนการบำรุงรักษาฐานข้อมูลและการสำรองข้อมูลอย่างสม่ำเสมอ
+
+---
+
+## 6. เครื่องมือและเทคโนโลยีที่ใช้ (Tools & Technologies)
+
+| หมวดหมู่ | เทคโนโลยี | หมายเหตุ |
+| :--- | :--- | :--- |
+| Frontend | Next.js App Router (React + TypeScript) | UI ทั้งฝั่งหน้าร้านออนไลน์ (Storefront Customer) และระบบหลังบ้าน (Admin Console) |
+| Styling | Tailwind CSS + Lucide Icons | การจัดการดีไซน์ระบบแบบ Responsive และมีความพรีเมียมทันสมัย |
+| Backend | Next.js API Routes & Server Actions | Dual-Mode Repository Pattern รองรับทั้ง local state และ Supabase API |
+| State Management | Zustand + LocalStorage | บริหารจัดการตะกร้าสินค้า (`useCartStore`), เซสชันผู้ใช้ (`useAuthStore`) และข้อมูลหลังบ้าน (`useAdminStore`) |
+| Database | PostgreSQL (ผ่าน Supabase) | จัดเก็บข้อมูลระบบทั้งหมด พร้อมเปิดใช้งาน Row Level Security (RLS) และ Supabase Storage |
+| Authentication | Supabase Auth + JWT Metadata | จัดการ Login/Register และแยกระดับสิทธิ์ผู้ใช้งาน (Customer, Admin, License Holder) |
+| Payment & Fulfillment | Mock Checkout Engine | จำลองระบบคำนวณส่วนลดคูปอง ค่าจัดส่ง ตัดสต็อก ออก TAG รับประกันสินค้าแท้ และคำนวณส่วนแบ่งลิขสิทธิ์อัตโนมัติ |
+| Design Tools | Figma, Draw.io, Mermaid | ออกแบบ UI/UX, Wireframe, ERD และแผนภาพ Diagram สถาปัตยกรรมระบบทั้งหมด |
+| Version Control | Git, GitHub | บริหารจัดการ Source Code ด้วย Branching Strategy (main, develop, feature) |
+| CI/CD & Testing | GitHub Actions, Vitest, Playwright | ตรวจสอบคุณภาพโค้ด Syntax Style และ Automated Tests ก่อนทำการ Deploy |
+| Deployment | Vercel (Web App), Supabase (Cloud DB) | Continuous Deployment อัตโนมัติจาก GitHub |
+| Collaboration | Discord | ช่องทางสื่อสาร ติดตามความคืบหน้า และประสานงานภายในทีมพัฒนา |
+
+---
+
+## 7. แผนการดำเนินงาน (Work Plan)
+
+โครงการ AllThingsMerch มีการแบ่งช่วงระยะเวลาการดำเนินงานและการส่งมอบงานออกเป็น 6 ระยะหลัก ดังนี้:
+
+- **Phase 1: System Analysis & Design**
+  - วิเคราะห์ความต้องการระบบ รวบรวมข้อมูลสินค้าลิขสิทธิ์ และกำหนดขอบเขตฟังก์ชัน
+  - ออกแบบหน้าจอหลัก (Wireframe/Prototype) โครงสร้างฐานข้อมูล (ERD) และ Flow การทำงานของระบบทั้งหมด
+- **Phase 2: Core Foundation & Auth Development**
+  - ตั้งค่าโครงสร้างโปรเจกต์ Next.js, Tailwind CSS และ Repository Pattern
+  - พัฒนาระบบบัญชีผู้ใช้ สมัครสมาชิก เข้าสู่ระบบ (Supabase Auth) และระบบจัดการสินค้าหลัก/รูปแบบย่อย (Variants/SKU)
+- **Phase 3: Shopping & Checkout Engine**
+  - พัฒนาระบบค้นหา กรองสินค้า และหน้ารายละเอียดสินค้า
+  - พัฒนาระบบตะกร้าสินค้า ระบบจองสต็อกชั่วคราว 15 นาที (Stock Reservation) ระบบคูปองส่วนลด และระบบสั่งซื้อล่วงหน้า (Pre-Order)
+- **Phase 4: Authenticity TAG System**
+  - พัฒนากลไกการสร้างและออกรหัสรับประกันสินค้าแท้ (Authenticity TAG) เมื่อคำสั่งซื้อสำเร็จ (Unique Public Code & Serial Number)
+  - พัฒนาหน้าตรวจสอบรหัสรับประกันสินค้าแท้ (Verify TAG Page) สำหรับลูกค้าและบุคคลทั่วไป
+- **Phase 5: Licensing & Royalty Management**
+  - พัฒนาระบบจัดการผู้ถือครองลิขสิทธิ์ (License Holders) และสัญญาลิขสิทธิ์ (License Contracts) ใน Admin Console
+  - พัฒนากลไกคำนวณส่วนแบ่งลิขสิทธิ์ (Royalty Transactions) อัตโนมัติ และรายงานสรุปยอดขาย/ยอดส่วนแบ่งหลังบ้าน
+- **Phase 6: Testing, CI/CD & Presentation**
+  - ทำการทดสอบระบบรวม (UAT + Manual Testing + Automated Testing) แก้ไขข้อผิดพลาด (Bug Fixes)
+  - ตั้งค่า CI/CD บน GitHub Actions, Deploy ระบบจริงบน Vercel + Supabase และเตรียมเอกสารพร้อมนำเสนอโครงการ
+
+---
+
+# Analysis
+
+## 8. ขอบเขตของระบบ (System Scope)
+
+### 8.1 ลูกค้า (Customer)
+- สมัครสมาชิก
+- เข้าสู่ระบบ
+- ออกจากระบบ
+- แก้ไขข้อมูลส่วนตัว
+- จัดการที่อยู่ในการจัดส่งสินค้า
+- ค้นหาสินค้าด้วยคำสำคัญ
+- กรองสินค้าตามประเภทลิขสิทธิ์และแบรนด์
+- ดูรายละเอียดสินค้าและสต็อกคงเหลือ
+- เพิ่มสินค้าลงตะกร้า
+- ปรับจำนวนสินค้าในตะกร้า
+- ลบสินค้าออกจากตะกร้า
+- สั่งซื้อสินค้าปกติ (Ready-to-ship)
+- สั่งซื้อล่วงหน้า (Pre-Order)
+- ใช้คูปองส่วนลด
+- ตรวจสอบรหัสรับประกันสินค้าแท้ (Verify TAG)
+- ติดตามสถานะคำสั่งซื้อ
+- ดูประวัติคำสั่งซื้อ
+- เขียนรีวิวสินค้า
+- ให้คะแนนสินค้า
+
+### 8.2 ผู้ดูแลระบบ (Admin)
+- เพิ่มข้อมูลสินค้าใหม่
+- แก้ไขข้อมูลสินค้า
+- ลบข้อมูลสินค้า
+- เปลี่ยนสถานะการมองเห็นสินค้า
+- กำหนดสถานะสินค้ารุ่นพิเศษ (Limited Edition) และสินค้าสั่งซื้อล่วงหน้า (Pre-Order)
+- จัดการรูปแบบสินค้าย่อย (Variants / SKU) และราคา
+- ปรับเพิ่มและลดจำนวนสต็อกสินค้า
+- ตรวจสอบประวัติการเคลื่อนย้ายสต็อก (Stock Movements)
+- จัดการข้อมูลผู้ถือครองลิขสิทธิ์ (License Holders)
+- จัดการข้อมูลสัญญาลิขสิทธิ์ (License Contracts)
+- กำหนดอัตราส่วนแบ่งรายได้ลิขสิทธิ์ (Royalty Rate)
+- ตรวจสอบรายการคำสั่งซื้อทั้งหมด
+- อัปเดตสถานะคำสั่งซื้อและการจัดส่ง
+- สร้างและแก้ไขคูปองส่วนลด
+- กำหนดโควต้าและวันหมดอายุคูปองส่วนลด
+- ตรวจสอบรายงานสรุปยอดขาย (Sales Reports)
+- ตรวจสอบรายงานส่วนแบ่งลิขสิทธิ์ (Royalty Reports)
+- ซ่อนและแสดงความคิดเห็นรีวิวในระบบ
+
+### 8.3 ผู้ถือครองลิขสิทธิ์ (License Holder)
+- เข้าสู่ระบบในบทบาทคู่ค้าผู้ถือครองลิขสิทธิ์ (Partner Dashboard)
+- ดูรายงานยอดขายสินค้าภายใต้ลิขสิทธิ์ของตนเอง (Read-Only)
+- ตรวจสอบยอดเงินส่วนแบ่งรายได้ตามสัญญา (Royalty Transactions)
+
+---
+
+## 9. Persona Design – AllThingsMerch
+
+### 9.1 Customer (ลูกค้าผู้ชื่นชอบสินค้าแฟนคลับและของสะสม)
+- **Profile**: แฟนคลับ นักสะสมสินค้า Limited Edition และผู้บริโภคทั่วไปที่มีความชื่นชอบในทีม F1 ศิลปิน หรือสโมสรกีฬา
+- **Goals**:
+  - ได้รับสินค้าลิขสิทธิ์แท้ 100% พร้อมหลักฐานยืนยันที่สามารถตรวจสอบได้จริง
+  - สามารถสั่งซื้อสินค้า Limited Edition หรือสินค้า Pre-Order ได้ทันเวลาโดยไม่โดนแย่งหรือระบบล่ม
+  - ได้รับความสะดวกสบายในการค้นหาสินค้า การใช้คูปอง และการติดตามสถานะคำสั่งซื้อ
+- **Pain Points**:
+  - เคยเจอหรือกังวลว่าจะได้รับสินค้าปลอมลอกเลียนแบบที่มีการแอบอ้างในตลาด
+  - เสียความรู้สึกเมื่อกดเพิ่มสินค้าลงตะกร้าแล้ว แต่พอถึงขั้นตอนชำระเงินสต็อกกลับหมด (จึงต้องการระบบล็อกสต็อกชั่วคราว)
+  - ไม่ทราบข้อมูลที่แน่ชัดว่าสินค้ารุ่น Pre-Order จะจัดส่งเมื่อใด
+- **Behaviors**:
+  - เข้าเว็บไซต์เพื่อติดตามสินค้าเข้าใหม่หรือสินค้า Limited ของแบรนด์ที่ชื่นชอบ
+  - ใช้ฟังก์ชันค้นหาและตัวกรองตามแบรนด์/ประเภทลิขสิทธิ์อย่างสม่ำเสมอ
+  - นำรหัส Authenticity TAG ของสินค้าที่ได้รับไปตรวจสอบในหน้า Verify TAG เพื่อความมั่นใจและใช้เป็นหลักฐานสะสม
+  - ชอบอ่านรีวิวและเขียนรีวิวแบ่งปันประสบการณ์หลังจากได้รับสินค้า
+
+### 9.2 Admin (ผู้ดูแลระบบและผู้จัดการร้านค้า)
+- **Profile**: เจ้าหน้าที่บริหารจัดการแพลตฟอร์ม ผู้ดูแลคลังสินค้า และผู้จัดการฝ่ายลิขสิทธิ์ของ AllThingsMerch
+- **Goals**:
+  - จัดการ catalog สินค้าที่มีรูปแบบย่อย (SKU, ไซซ์, สี) และสต็อกสินค้าได้อย่างถูกต้อง ไม่เกิดข้อผิดพลาด
+  - ตรวจสอบและอัปเดตสถานะคำสั่งซื้อได้อย่างรวดเร็ว เพื่อให้การจัดส่งเป็นไปอย่างราบรื่น
+  - บริหารจัดการข้อมูลสัญญาลิขสิทธิ์และคำนวณส่วนแบ่งรายได้ให้คู่ค้าอย่างถูกต้อง แม่นยำ และโปร่งใส
+- **Pain Points**:
+  - การบริหารสต็อกสินค้าที่มีหลาย SKU และมีการจอง-ปล่อยสต็อกตลอดเวลามีความซับซ้อนสูง
+  - การคำนวณส่วนแบ่งรายได้ลิขสิทธิ์ด้วยตนเองใช้เวลานานและเสี่ยงต่อความผิดพลาดหากราคาสินค้าหรือคูปองมีการเปลี่ยนแปลง
+- **Behaviors**:
+  - เข้าสู่ Admin Console เป็นประจำทุกวันเพื่อตรวจสอบคำสั่งซื้อใหม่และสถานะสต็อก
+  - ปรับสต็อกสินค้าและตรวจสอบ Stock Movement Log เมื่อมีสินค้าล็อตใหม่เข้ามาหรือเมื่อมีการปรับแก้ยอด
+  - ตรวจสอบรายงานยอดขายและรายงาน Royalty Transactions ทุกสิ้นเดือนเพื่อสรุปยอดนำจ่ายผู้ถือสิทธิ์
+
+### 9.3 License Holder (คู่ค้าผู้ถือครองลิขสิทธิ์และเจ้าของแบรนด์)
+- **Profile**: ตัวแทนจากบริษัทแบรนด์สินค้า ต้นสังกัดศิลปิน ทีมแข่งรถ หรือองค์กรกีฬาที่เป็นคู่ค้าอนุญาตให้ AllThingsMerch ผลิตและจัดจำหน่ายสินค้า
+- **Goals**:
+  - ตรวจสอบยอดขายของสินค้าภายใต้ลิขสิทธิ์ของตนเองได้อย่างถูกต้องและเป็นปัจจุบัน
+  - มั่นใจในความโปร่งใสของการคำนวณส่วนแบ่งรายได้ (Royalty Rate %) ตามสัญญาที่ตกลงไว้
+- **Pain Points**:
+  - ในระบบทั่วไปมักไม่สามารถตรวจสอบยอดขายจริงได้ ต้องรอรายงานสรุปจากร้านค้าซึ่งอาจมีความล่าช้าหรือไม่โปร่งใส
+- **Behaviors**:
+  - เข้าสู่ระบบ Partner Dashboard ของ AllThingsMerch เพื่อเรียกดูสถิติยอดขายและยอดส่วนแบ่งลิขสิทธิ์ประจำสัปดาห์หรือประจำเดือน
+
+---
+
+## 10. Use Case Diagram
 
 ```mermaid
 graph TD
@@ -178,8 +301,8 @@ graph TD
     Customer --> WriteReview
 
     %% Automated / System Actions triggers
-    ManageCart -.-> StockLock
-    Checkout -.-> StockLock
+    ManageCart -.->|include| StockLock
+    Checkout -.->|include| StockLock
 
     %% Admin relationships
     Admin --> ManageProducts
@@ -194,97 +317,23 @@ graph TD
     LicenseHolder --> ViewRoyaltyReports
 ```
 
----
+### สรุปคำอธิบายความสัมพันธ์ใน Use Case Diagram
 
-## 5. ความต้องการเชิงฟังก์ชัน
-
-### 5.1 ความต้องการเชิงฟังก์ชันสำหรับลูกค้า
-
-| รหัส | ฟังก์ชัน | รายละเอียด | ความสำคัญ |
-| :--- | :--- | :--- | :--- |
-| C-01 | สมัครสมาชิก | ลูกค้าสามารถสร้างบัญชีผู้ใช้ด้วยชื่อ อีเมล และรหัสผ่าน | High |
-| C-02 | เข้าสู่ระบบ | ลูกค้าสามารถเข้าสู่ระบบด้วยอีเมลและรหัสผ่าน | High |
-| C-03 | ออกจากระบบ | ลูกค้าสามารถออกจากระบบเพื่อยุติการใช้งานบัญชี | Medium |
-| C-04 | แก้ไขข้อมูลส่วนตัว | ลูกค้าสามารถแก้ไขชื่อ ที่อยู่ และข้อมูลติดต่อ | Medium |
-| C-05 | ค้นหาสินค้า | ลูกค้าสามารถค้นหาสินค้าจากชื่อสินค้าและคำสำคัญ | High |
-| C-06 | กรองสินค้า | ลูกค้าสามารถกรองสินค้าตามประเภทลิขสิทธิ์ แบรนด์ ราคา และสถานะสินค้า | High |
-| C-07 | ดูรายละเอียดสินค้า | ลูกค้าสามารถดูรูปภาพสินค้า ราคา รายละเอียดสินค้า จำนวนคงเหลือ และข้อมูลลิขสิทธิ์ | High |
-| C-08 | เพิ่มสินค้าลงตะกร้า | ลูกค้าสามารถเพิ่มสินค้าที่ต้องการลงในตะกร้า | High |
-| C-09 | ปรับจำนวนสินค้าในตะกร้า | ลูกค้าสามารถเพิ่มหรือลดจำนวนสินค้าก่อนสั่งซื้อ | High |
-| C-10 | ลบสินค้าออกจากตะกร้า | ลูกค้าสามารถลบสินค้าที่ไม่ต้องการออกจากตะกร้า | High |
-| C-11 | สั่งซื้อสินค้า | ลูกค้าสามารถยืนยันคำสั่งซื้อสินค้าที่มีอยู่ในสต๊อก | High |
-| C-12 | ทำรายการสั่งซื้อล่วงหน้า | ลูกค้าสามารถสั่งซื้อล่วงหน้าสำหรับสินค้ารุ่นพิเศษหรือสินค้าที่เปิดให้จอง | High |
-| C-13 | ใช้โค้ดส่วนลด | ลูกค้าสามารถกรอกโค้ดส่วนลดเพื่อปรับราคาสุทธิของคำสั่งซื้อ | Medium |
-| C-14 | ดูข้อมูล TAG รับประกันสินค้าแท้ | ลูกค้าสามารถดูรายละเอียด TAG รับประกันสินค้าแท้ที่ร้านออกให้กับสินค้าทุกชิ้นที่ซื้อจากทางร้าน | High |
-| C-15 | ติดตามสถานะคำสั่งซื้อ | ลูกค้าสามารถดูสถานะคำสั่งซื้อ เช่น รอดำเนินการ กำลังจัดส่ง และจัดส่งสำเร็จ | High |
-| C-16 | ดูประวัติการสั่งซื้อ | ลูกค้าสามารถดูรายการสินค้าที่เคยสั่งซื้อในอดีต | Medium |
-| C-17 | รีวิวสินค้า | ลูกค้าสามารถเขียนความคิดเห็นเกี่ยวกับสินค้าที่เคยซื้อ | Medium |
-| C-18 | ให้คะแนนสินค้า | ลูกค้าสามารถให้คะแนนสินค้าในระดับ 1 ถึง 5 คะแนน | Medium |
-
-### 5.2 ความต้องการเชิงฟังก์ชันสำหรับผู้ดูแลระบบ
-
-| รหัส | ฟังก์ชัน | รายละเอียด | ความสำคัญ |
-| :--- | :--- | :--- | :--- |
-| A-01 | เพิ่มสินค้า | ผู้ดูแลระบบสามารถเพิ่มข้อมูลสินค้าใหม่เข้าสู่ระบบ | High |
-| A-02 | แก้ไขสินค้า | ผู้ดูแลระบบสามารถแก้ไขชื่อสินค้า ราคา รายละเอียดสินค้า และข้อมูลลิขสิทธิ์ | High |
-| A-03 | ลบสินค้า | ผู้ดูแลระบบสามารถลบสินค้าที่ไม่ต้องการแสดงในระบบ | Medium |
-| A-04 | จัดการสต๊อกสินค้า | ผู้ดูแลระบบสามารถเพิ่ม ลด และตรวจสอบจำนวนสินค้าคงเหลือ | High |
-| A-05 | จัดการผู้ถือครองลิขสิทธิ์ | ผู้ดูแลระบบสามารถเพิ่มและแก้ไขข้อมูลเจ้าของลิขสิทธิ์ | High |
-| A-06 | จัดการสัญญาลิขสิทธิ์ | ผู้ดูแลระบบสามารถบันทึกวันเริ่มต้น วันหมดอายุ และเงื่อนไขของสัญญา | High |
-| A-07 | กำหนดอัตราส่วนแบ่งลิขสิทธิ์ | ผู้ดูแลระบบสามารถกำหนดเปอร์เซ็นต์ส่วนแบ่งรายได้ให้แต่ละเจ้าของลิขสิทธิ์ | High |
-| A-08 | ตรวจสอบคำสั่งซื้อ | ผู้ดูแลระบบสามารถดูรายละเอียดคำสั่งซื้อทั้งหมด | High |
-| A-09 | ออก TAG รับประกันสินค้าแท้ | ระบบสามารถออก TAG รับประกันสินค้าแท้เฉพาะรายการสินค้าเมื่อคำสั่งซื้อสำเร็จ | High |
-| A-10 | อัปเดตสถานะจัดส่ง | ผู้ดูแลระบบสามารถเปลี่ยนสถานะคำสั่งซื้อให้ตรงกับขั้นตอนการจัดส่ง | High |
-| A-11 | สร้างคูปองส่วนลด | ผู้ดูแลระบบสามารถสร้างโค้ดส่วนลดสำหรับกิจกรรมส่งเสริมการขาย | Medium |
-| A-12 | กำหนดวันหมดอายุคูปอง | ผู้ดูแลระบบสามารถกำหนดระยะเวลาการใช้งานของคูปองส่วนลด | Medium |
-| A-13 | ตรวจสอบรายงานยอดขาย | ผู้ดูแลระบบสามารถดูยอดขายตามช่วงเวลาและตามประเภทสินค้า | High |
-| A-14 | ตรวจสอบรายงานส่วนแบ่งลิขสิทธิ์ | ผู้ดูแลระบบสามารถดูยอดเงินที่ต้องนำจ่ายให้ผู้ถือครองลิขสิทธิ์ | High |
+| รูปแบบความสัมพันธ์ | รายการยูสเคส | ความหมายและเงื่อนไขการทำงาน |
+| :--- | :--- | :--- |
+| `<<include>>` | ManageCart → StockLock | เมื่อลูกค้าเพิ่มสินค้าลงตะกร้า ระบบจะทำการล็อกและจองสต็อกชั่วคราว (Reserve Stock) ให้เป็นระยะเวลา 15 นาทีโดยอัตโนมัติเสมอ |
+| `<<include>>` | Checkout → StockLock | ในขั้นตอนชำระเงิน ระบบจะตรวจสอบเวลาของ StockLock หากหมดอายุจะต้องทำการตรวจสอบสต็อกและจองใหม่ หรือหากสำเร็จจะปล่อยการจองชั่วคราวเพื่อบันทึกตัดสต็อกจริง |
+| `<<include>>` | Checkout → BrowseCatalog / ManageCart | การทำรายการสั่งซื้อจะต้องผ่านขั้นตอนการเลือกสินค้าลงตะกร้าสินค้าก่อนเสมอ |
+| `<<include>>` | TrackOrder / WriteReview → Login | ลูกค้าต้องเข้าสู่ระบบก่อนจึงจะสามารถติดตามสถานะคำสั่งซื้อของตนเองหรือเขียนรีวิวสินค้าได้ |
+| `<<extend>>` | Pre-Order Flow (ใน Checkout) | หากสินค้านั้นมีสถานะเป็น `isPreorder: true` ระบบจะดำเนินการบันทึกข้อมูลวันที่คาดว่าจะจัดส่ง (`preorderReleaseAt`) เพิ่มเติมในออเดอร์ |
 
 ---
 
-## 6. ความต้องการเชิงคุณลักษณะ
+# Design
 
-| หมวดหมู่ | รายละเอียด |
-| :--- | :--- |
-| Performance | หน้าเว็บต้องโหลดได้รวดเร็ว และการค้นหาสินค้าควรตอบสนองภายในเวลาที่เหมาะสม |
-| Security | รหัสผ่านต้องจัดเก็บในรูปแบบแฮช และการเข้าถึงระบบหลังบ้านต้องตรวจสอบสิทธิ์ผู้ใช้ |
-| Authorization | ระบบต้องแยกสิทธิ์ระหว่างลูกค้าและผู้ดูแลระบบอย่างชัดเจน |
-| Usability | หน้าจอใช้งานง่าย เหมาะกับสินค้าพรีเมียม สินค้าสะสม และกลุ่มแฟนคลับ |
-| Responsive Design | ระบบต้องรองรับการแสดงผลบนคอมพิวเตอร์ แท็บเล็ต และโทรศัพท์มือถือ |
-| Availability | ระบบควรรองรับผู้ใช้งานจำนวนมากในช่วงเปิดขายสินค้ารุ่นพิเศษ |
-| Data Accuracy | การคำนวณราคาสินค้า ส่วนลด และส่วนแบ่งลิขสิทธิ์ต้องถูกต้อง |
-| Maintainability | โค้ดต้องแบ่งส่วนชัดเจนเพื่อให้ง่ายต่อการพัฒนาและบำรุงรักษา |
-| Auditability | ระบบต้องเก็บข้อมูลคำสั่งซื้อและธุรกรรมส่วนแบ่งลิขสิทธิ์เพื่อการตรวจสอบย้อนหลัง |
+## 11. System Architecture
 
----
-
-## 7. สถาปัตยกรรมของระบบ
-
-ระบบใช้สถาปัตยกรรมแบบ Full-stack Web Application ที่มีโครงสร้างหลัก 3 ส่วน ได้แก่
-
-1. Frontend Layer
-2. Backend Layer
-3. Database Layer
-
-### 7.1 Frontend Layer
-
-Frontend Layer ใช้สำหรับแสดงผลหน้าร้านออนไลน์และเว็บคอนโซลแอดมิน โดยใช้เทคโนโลยีดังนี้
-
-1. Next.js App Router (React Components)
-2. Tailwind CSS (Styling System)
-3. State Management ด้วย Zustand และ LocalStorage
-
-### 7.2 Backend Layer
-
-Backend Layer ฝังอยู่ใน Next.js Framework ทำหน้าที่ประมวลผลคำขอฝั่ง Server ผ่าน Server Actions และ API Route Handlers โดยมีสถาปัตยกรรมเด่นดังนี้
-
-1. Next.js Route Handlers & Server Actions
-2. Dual-Mode Repository Pattern (Demo Repository และ Supabase Repository)
-3. Supabase Auth Integration
-
-### 7.3 Database Layer
-
-Database Layer ใช้สำหรับจัดเก็บและคุ้มครองข้อมูลของระบบอย่างน่าเชื่อถือ โดยใช้ Supabase PostgreSQL ที่มาพร้อมกับระบบรักษาความปลอดภัย Row Level Security (RLS)
+ระบบ AllThingsMerch ถูกออกแบบด้วยสถาปัตยกรรมแบบ Full-stack Web Application บนแพลตฟอร์ม Next.js App Router โดยมีการแยกระดับชั้นการทำงานอย่างชัดเจน และรองรับกลไก Dual-Mode Repository Pattern ที่อนุญาตให้ระบบทำงานได้ทั้งแบบ In-Memory / LocalStorage สำหรับการสาธิต (Demo Mode) และการเชื่อมต่อฐานข้อมูลจริงผ่าน Supabase Cloud API
 
 ```mermaid
 graph TD
@@ -314,52 +363,40 @@ graph TD
     SupabaseRepo --> S_Storage
 ```
 
-### 7.4 แผนภาพลำดับการทำงาน (Sequence Diagram)
+### คำอธิบายองค์ประกอบสถาปัตยกรรมหลัก:
+1. **Frontend Layer**: พัฒนาด้วย React Server Components และ Client Components บน Next.js โดยใช้ Tailwind CSS ในการจัดสไตล์ และใช้ **Zustand** เป็น Global State Manager แยกตามหน้าที่ (`useAuthStore`, `useCartStore`, `useAdminStore`)
+2. **Backend & Application Layer**: ประมวลผลตรรกะทางธุรกิจผ่าน Next.js Server Actions และ API Routes โดยมี **Repository Pattern Adapter** เป็นตัวกลาง ทำให้ Business Logic ไม่ยึดติดกับฐานข้อมูลเฉพาะเจาะจง
+3. **Database Layer**: ใช้บริการ **Supabase PostgreSQL** ที่มีฟีเจอร์ความปลอดภัยสูงสุดอย่าง **Row Level Security (RLS)** ในการปกป้องข้อมูลระดับแถวตามบทบาท (Role) ของผู้ใช้งานใน JWT Metadata พร้อม Supabase Auth และ Storage
 
-แผนภาพแสดงขั้นตอนการสั่งซื้อสินค้า, ตรวจสอบคูปอง, ล็อกสต็อกชั่วคราว 15 นาที และออก Tag ยืนยันสินค้าแท้ (Checkout & Stock Lock Flow):
+---
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Customer as Customer Client
-    participant Cart as useCartStore
-    participant Checkout as Checkout UI
-    participant Server as Mock Checkout Engine
-    participant Admin as useAdminStore (Catalog)
+## 12. Wireframe / Prototype
 
-    %% 1. Cart Add and Stock Reservation
-    Customer->>Cart: Add Product Variant to Bag
-    Note over Cart: Check local stock availability
-    Cart->>Admin: adjustVariantStock(varId, -qty, 'reserve')
-    Note over Admin: Write StockMovement (type: reserve)<br/>Deduct catalog stock
-    Admin-->>Cart: Reservation Confirmed
-    Note over Cart: Set cartReservedUntil (15 mins)
+การออกแบบหน้าจอผู้ใช้งาน (UI/UX Design) ของ AllThingsMerch มุ่งเน้นไปที่ความพรีเมียม สวยงาม ทันสมัย และตอบสนองการใช้งานในทุกอุปกรณ์ (Responsive Design) โดยแบ่งโครงสร้างหน้าจอออกเป็น 3 ส่วนสำคัญ:
 
-    %% 2. Checkout & Validation
-    Customer->>Checkout: Proceed to Checkout & Apply Coupon
-    Checkout->>Server: validateAndRecalculateCart(items, coupon)
-    Note over Server: Check coupon expiration & limits<br/>Verify pricing on server side
-    Server-->>Checkout: Calculation Results (Subtotal, Discount, Shipping, Total)
+1. **Storefront (สำหรับลูกค้าทั่วไป)**
+   - **Homepage & Hero Banner**: แสดงโปรโมชั่น สินค้าเด่น และสินค้ารุ่น Limited Edition
+   - **Catalog & Filter Sidebar**: ตัวกรองสินค้าตามแบรนด์ (F1, ศิลปิน, สโมสร) หมวดหมู่ ช่วงราคา และสถานะพร้อมส่ง/Pre-order
+   - **Product Detail Page (PDP)**: แสดงรูปภาพสินค้า ตัวเลือกสี/ไซซ์ ราคา สต็อกคงเหลือ และข้อมูลป้ายรับประกันสินค้าลิขสิทธิ์แท้
+   - **Shopping Cart & Checkout Modal**: หน้าต่างตะกร้าสินค้าพร้อมแถบนับถอยหลังการจองสต็อก 15 นาที ช่องใส่คูปอง และหน้าสรุปออเดอร์
+   - **Verify TAG Page**: หน้าตรวจสอบรหัส Authenticity TAG โดยลูกค้าสามารถกรอกรหัสสาธารณะเพื่อยืนยันข้อมูลสินค้าและวันที่ออกรหัส
 
-    %% 3. Confirm Order & Fulfillment
-    Customer->>Checkout: Click Place Order
-    Checkout->>Server: handleConfirmOrder()
-    Note over Server: Create Order & Order Items Snapshot<br/>(Stores SKU, Price, Royalty Snapshot)
-    Server->>Admin: adjustVariantStock(varId, qty, 'release')
-    Note over Admin: Release temporary reservation
-    Server->>Admin: adjustVariantStock(varId, -qty, 'sale')
-    Note over Admin: Write permanent StockMovement (type: sale)
-    Note over Server: Generate Authenticity Tag<br/>(Random serial & public code)
-    Note over Server: Create Royalty Transaction<br/>(Computes revenue share)
-    Server-->>Checkout: Order Fulfilled (Order Number)
-    Checkout->>Cart: clearCartWithoutRelease()
-    Note over Cart: Cart cleared without releasing stock back
-    Checkout->>Customer: Redirect to Success & Display Authenticity TAG
-```
+2. **Admin Console (สำหรับผู้ดูแลระบบ)**
+   - **Dashboard Summary**: แสดงกราฟและตัวเลขสถิติจำนวนออเดอร์ ยอดขายรวม ยอดส่วนแบ่งลิขสิทธิ์ และรายการสั่งซื้อล่าสุด
+   - **Catalog Management**: ตารางจัดการสินค้า พร้อม Modal เพิ่ม/แก้ไข Variant SKU ราคา และสต็อก
+   - **Inventory & Stock Movements Log**: ตารางตรวจสอบประวัติการย้ายสต็อกทุกรายการ (Reserve, Release, Sale, Return)
+   - **Contract & Royalty Manager**: หน้าจัดการผู้ถือลิขสิทธิ์และสัญญา พร้อมตารางแสดงรายงานยอด Royalty Transactions ที่คำนวณอัตโนมัติ
 
-### 7.5 แผนภาพคลาส (Class Diagram)
+3. **Partner Dashboard (สำหรับผู้ถือครองลิขสิทธิ์)**
+   - **Royalty Read-Only View**: หน้าจอแสดงยอดขายสินค้าและยอดเงินส่วนแบ่งเฉพาะแบรนด์หรือลิขสิทธิ์ของคู่ค้านั้นๆ
 
-แผนภาพแสดงความสัมพันธ์ของ Component หลัก, Zustand Store และ Repository Data Model ต่างๆ ภายในระบบ:
+> **ลิงก์ต้นแบบและดีไซน์อ้างอิง**: สามารถดูรายละเอียดการออกแบบและโครงสร้างหน้าจอทั้งหมดของโปรเจกต์ได้ในเอกสาร SADS (`ALLTHINGSMERCH_CODEX_SPEC.md`) และต้นแบบ UI บน Figma ของกลุ่ม AllThingsMerch
+
+---
+
+## 13. Class Diagram
+
+แผนภาพแสดงความสัมพันธ์ของ Component หลัก, Zustand Store และ Domain Data Models ต่างๆ ภายในระบบ AllThingsMerch:
 
 ```mermaid
 classDiagram
@@ -391,6 +428,7 @@ classDiagram
         <<enumeration>>
         customer
         admin
+        license_holder
     }
 
     class SavedAddress {
@@ -409,7 +447,7 @@ classDiagram
     useAuthStore "1" o-- "*" SavedAddress : manages
     UserProfile "1" --> "1" UserRole : has
 
-    note for useAuthStore "Role guard อยู่ที่ admin/layout.tsx\\nif user.role !== admin → redirect"
+    note for useAuthStore "Role guard อยู่ที่ admin/layout.tsx\nif user.role !== admin → redirect"
 
     %% ─── Customer-Accessible Layer ───
     class useCartStore {
@@ -619,399 +657,655 @@ classDiagram
 
 ---
 
-## 8. การออกแบบโครงสร้างข้อมูล
+## 14. Sequence Diagram
 
-### 8.1 รายการ Entity หลัก
-
-1. Users (ผู้ใช้งานระบบ)
-2. Brands (แบรนด์)
-3. Categories (หมวดหมู่สินค้า)
-4. License Holders (ผู้ถือครองลิขสิทธิ์)
-5. License Contracts (สัญญาลิขสิทธิ์)
-5. Products (สินค้าหลัก)
-6. Product Variants (สินค้าเฉพาะรูปแบบ/SKU)
-7. Product Images (รูปภาพสินค้า)
-8. Coupons (คูปองส่วนลด)
-9. Orders (คำสั่งซื้อ)
-10. Order Items (รายการคำสั่งซื้อ)
-11. Authenticity Tags (รหัสยืนยันสินค้าลิขสิทธิ์แท้)
-12. Royalty Transactions (ส่วนแบ่งค่าลิขสิทธิ์)
-13. Stock Movements (บันทึกการเคลื่นย้ายสต็อก)
-14. Reviews (รีวิวและคะแนน)
-
-### 8.2 Entity Relationship Diagram
+### 14.1 ขั้นตอนการสั่งซื้อสินค้า, ล็อกสต็อกชั่วคราว 15 นาที, ออก Authenticity TAG และคำนวณ Royalty (Customer Checkout Flow)
 
 ```mermaid
-erDiagram
-    USERS ||--o{ ORDERS : places
-    USERS ||--o{ REVIEWS : writes
-    USERS ||--|| USER_ROLES : has
-    BRANDS ||--o{ PRODUCTS : categorizes
-    CATEGORIES ||--o{ PRODUCTS : classifies
-    LICENSE_HOLDERS ||--o{ LICENSE_CONTRACTS : contracts
-    LICENSE_CONTRACTS ||--o{ PRODUCTS : governs
-    PRODUCTS ||--o{ PRODUCT_VARIANTS : has
-    PRODUCT_VARIANTS ||--o{ ORDER_ITEMS : ordered
-    PRODUCT_VARIANTS ||--o{ AUTHENTICITY_TAGS : tracks
-    PRODUCT_VARIANTS ||--o{ STOCK_MOVEMENTS : logs
-    ORDERS ||--|{ ORDER_ITEMS : contains
-    COUPONS ||--o{ ORDERS : discounts
-    ORDER_ITEMS ||--o{ ROYALTY_TRANSACTIONS : computes
-    ORDER_ITEMS ||--|| REVIEWS : has_review
-    PRODUCTS ||--o{ REVIEWS : receives
+sequenceDiagram
+    autonumber
+    actor Customer as ลูกค้า (Customer Client)
+    participant Cart as useCartStore
+    participant Checkout as Checkout UI
+    participant Server as Mock Checkout Engine
+    participant Admin as useAdminStore (Catalog & Stock)
 
-    BRANDS {
-        uuid id PK
-        string name
-        string slug
-        string description
-        string logo_url
-        boolean is_active
-        datetime created_at
-    }
+    %% 1. Cart Add and Stock Reservation
+    Customer->>Cart: 1. เลือกสินค้าและกดเพิ่มลงตะกร้า (Add Variant to Bag)
+    activate Cart
+    Note over Cart: ตรวจสอบจำนวนสต็อกเบื้องต้น
+    Cart->>Admin: 1.1 adjustVariantStock(varId, -qty, 'reserve')
+    activate Admin
+    Note over Admin: บันทึก StockMovement (type: reserve)<br/>หักยอดสต็อกที่พร้อมขายออกชั่วคราว
+    Admin-->>Cart: 1.2 ยืนยันการจองสต็อกสำเร็จ (Reservation Confirmed)
+    deactivate Admin
+    Note over Cart: ตั้งค่าเวลาจอง cartReservedUntil = 15 นาที
+    Cart-->>Customer: 1.3 อัปเดตตะกร้าสินค้าพร้อมแถบนับถอยหลัง
+    deactivate Cart
 
-    CATEGORIES {
-        uuid id PK
-        string name
-        string slug
-        uuid parent_id FK
-        datetime created_at
-    }
+    %% 2. Checkout & Validation
+    Customer->>Checkout: 2. ดำเนินการชำระเงินและกรอกโค้ดคูปองส่วนลด
+    activate Checkout
+    Checkout->>Server: 2.1 validateAndRecalculateCart(items, coupon)
+    activate Server
+    Note over Server: ตรวจสอบวันหมดอายุคูปองและเงื่อนไขขั้นต่ำ<br/>คำนวณราคาสุทธิฝั่งเซิร์ฟเวอร์เพื่อความถูกต้อง
+    Server-->>Checkout: 2.2 ส่งผลการคำนวณ (Subtotal, Discount, Shipping, Total)
+    deactivate Server
 
-    LICENSE_HOLDERS {
-        uuid id PK
-        string name
-        string contact_email
-        string status
-        datetime created_at
-    }
-
-    LICENSE_CONTRACTS {
-        uuid id PK
-        uuid license_holder_id FK
-        string contract_reference
-        decimal royalty_rate
-        date starts_at
-        date expires_at
-        string status
-        datetime created_at
-    }
-
-    PRODUCTS {
-        uuid id PK
-        uuid brand_id FK
-        uuid category_id FK
-        uuid license_contract_id FK
-        string name
-        string slug
-        text description
-        string status
-        boolean is_preorder
-        datetime preorder_release_at
-        datetime created_at
-        datetime updated_at
-    }
-
-    PRODUCT_VARIANTS {
-        uuid id PK
-        uuid product_id FK
-        string sku
-        string size
-        string color
-        decimal price
-        decimal compare_at_price
-        int stock_quantity
-        int low_stock_threshold
-        boolean is_active
-        datetime created_at
-    }
-
-    ORDERS {
-        uuid id PK
-        string order_number
-        uuid user_id FK
-        string status
-        string payment_status
-        decimal subtotal
-        decimal discount_amount
-        decimal shipping_amount
-        decimal total_amount
-        uuid coupon_id FK
-        jsonb shipping_address
-        datetime created_at
-        datetime updated_at
-    }
-
-    ORDER_ITEMS {
-        uuid id PK
-        uuid order_id FK
-        uuid product_id FK
-        uuid product_variant_id FK
-        string product_name
-        string variant_name
-        string sku
-        decimal unit_price
-        int quantity
-        decimal line_total
-        decimal royalty_rate_snapshot
-    }
-
-    AUTHENTICITY_TAGS {
-        uuid id PK
-        string public_code
-        string serial_number
-        uuid order_item_id FK
-        uuid product_variant_id FK
-        string status
-        datetime issued_at
-        datetime activated_at
-        datetime revoked_at
-    }
-
-    ROYALTY_TRANSACTIONS {
-        uuid id PK
-        uuid order_item_id FK
-        uuid license_contract_id FK
-        decimal gross_amount
-        decimal royalty_rate
-        decimal royalty_amount
-        string status
-        datetime transaction_date
-    }
-
-    STOCK_MOVEMENTS {
-        uuid id PK
-        uuid product_variant_id FK
-        string movement_type
-        int quantity
-        string reference_type
-        uuid reference_id
-        text note
-        datetime created_at
-    }
-
-    REVIEWS {
-        uuid id PK
-        uuid product_id FK
-        uuid user_id FK
-        uuid order_item_id FK
-        int rating
-        text comment
-        string status
-        datetime created_at
-    }
-
-    COUPONS {
-        uuid id PK
-        string code
-        string description
-        string discount_type
-        decimal discount_value
-        decimal min_order_value
-        int max_global_uses
-        int current_global_uses
-        int max_uses_per_user
-        boolean is_active
-        datetime expires_at
-        datetime created_at
-    }
+    %% 3. Confirm Order & Fulfillment
+    Customer->>Checkout: 3. ยืนยันคำสั่งซื้อ (Click Place Order)
+    Checkout->>Server: 3.1 handleConfirmOrder()
+    activate Server
+    Note over Server: สร้าง Order และ Order Items Snapshot<br/>(บันทึกราคาและ Royalty Rate Snapshot ณ เวลาซื้อ)
+    Server->>Admin: 3.2 adjustVariantStock(varId, qty, 'release')
+    activate Admin
+    Note over Admin: คืนสต็อกที่จองชั่วคราวก่อนเพื่อเตรียมตัดยอดจริง
+    Server->>Admin: 3.3 adjustVariantStock(varId, -qty, 'sale')
+    Note over Admin: บันทึก StockMovement ถาวร (type: sale)
+    deactivate Admin
+    Note over Server: สร้างรหัสรับประกันสินค้าแท้ Authenticity TAG<br/>(สุ่ม Serial Number & Public Code ไม่ซ้ำกัน)
+    Note over Server: สร้าง Royalty Transaction<br/>(คำนวณส่วนแบ่งรายได้ตามสัญญาลิขสิทธิ์)
+    Server-->>Checkout: 3.4 สั่งซื้อสำเร็จ (ส่งคืน Order Number & TAG Data)
+    deactivate Server
+    Checkout->>Cart: 3.5 clearCartWithoutRelease()
+    activate Cart
+    Note over Cart: ล้างข้อมูลตะกร้าโดยไม่ต้องคืนสต็อกที่ขายไปแล้ว
+    Cart-->>Checkout: 3.6 ล้างตะกร้าเรียบร้อย
+    deactivate Cart
+    Checkout-->>Customer: 3.7 แสดงหน้าออเดอร์สำเร็จ พร้อมรหัส Authenticity TAG
+    deactivate Checkout
 ```
 
-### 8.3 รายละเอียดข้อมูลสำคัญ
-
-#### 8.3.1 Users
-
-1. แยกสิทธิ์การใช้งานของบัญชีผู้ใช้เป็นระบบลูกค้า (Customer), แอดมินผู้ดูแลระบบ (Admin) และผู้ถือลิขสิทธิ์ (License Holder)
-2. อ้างอิงระบบความปลอดภัยด้วยสิทธิ์ของ JWT metadata / RLS Policies บน Supabase Auth
-
-#### 8.3.2 Licenses
-
-1. เก็บข้อมูลรายนามผู้ถือครองลิขสิทธิ์คู่ค้า (License Holders)
-2. สัญญาควบคุมอัตราส่วนแบ่งและวันสิ้นสุดสัญญา (License Contracts) ที่ใช้สำหรับคำนวณและ snapshot ใน Order Item
-
-#### 8.3.3 Products
-
-1. สินค้าหลัก (Products) ที่เชื่อมโยงกับแบรนด์ หมวดหมู่ และสัญญาลิขสิทธิ์
-2. ความต่างตามแบบไซซ์ (Product Variants) สำหรับบริหารสต็อกแยกตาม SKU แต่ละรายการ
-3. รูปภาพสินค้าควบคุมผ่าน Product Images
-
-#### 8.3.4 Orders
-
-1. ใบสั่งซื้อ (Orders) บันทึกมูลค่าสินค้า ส่วนลด ยอดสุทธิ และ Coupon ID ที่ใช้งาน
-2. Snapshot ใน Order Items บันทึกรักษามูลค่าราคาขายและอัตราลิขสิทธิ์ขณะซื้อ เพื่อไม่ให้เปลี่ยนเมื่อแก้ไขต้นทาง
-3. รหัส TAG รับประกันสินค้าแท้ (Authenticity Tags) 1 ชิ้นต่อ 1 รหัส ไม่ซ้ำกันผูกกับแต่ละชิ้นใน Order Item
-
-#### 8.3.5 Royalty Transactions
-
-1. ธุรกรรมส่วนแบ่งลิขสิทธิ์ (Royalty Transactions) คำนวณบันทึกโดยอัตโนมัติขณะสร้างออเดอร์
-2. คลังข้อมูล Stock Movements เพื่อบันทึกประวัติการย้ายสต็อกอย่างละเอียด (reserve, release, sale, return, adjustment) สำหรับระบบตรวจสอบบัญชี (Audit Trail)
-
----
-
-## 9. ระบบ Authentication & Authorization (สิทธิ์ผู้ใช้งาน)
-
-เพื่อให้แยกลอจิกและสิทธิ์การเข้าถึงได้ชัดเจน ระบบจะแบ่งผู้ใช้งาน (`UserRole`) ออกเป็น 2 ระดับ:
-
-### 9.1 Customer (ลูกค้าทั่วไป)
-
-| สิทธิ์ | รายละเอียด |
-|--------|-----------|
-| ดูสินค้า | เรียกดูรายการสินค้า, รายละเอียด, รูปภาพ |
-| ตะกร้าสินค้า | เพิ่ม/ลบสินค้าในตะกร้า (สินค้า Limited จะจอง 15 นาที) |
-| Checkout | สั่งซื้อสินค้า, ใช้คูปอง |
-| ประวัติคำสั่งซื้อ | ดูประวัติออเดอร์ของตัวเอง |
-| เขียนรีวิว | รีวิวสินค้าที่เคยซื้อ |
-| ❌ เข้าถึง Admin Panel | ไม่ได้ |
-
-### 9.2 Admin (ผู้ดูแลระบบ)
-
-| สิทธิ์ | รายละเอียด |
-|--------|-----------|
-| จัดการ Product | สร้าง/แก้ไข/ปิดการมองเห็นสินค้า, กำหนด isLimited |
-| จัดการ Stock | ปรับ Stock, ดู Stock Movement History |
-| จัดการ Coupon | สร้าง/แก้ไข/ลบคูปองส่วนลด |
-| จัดการ License Contract | สร้าง/ดูสัญญาลิขสิทธิ์ |
-| จัดการ Order | ดู/อัปเดตสถานะออเดอร์ของลูกค้าทุกคน |
-| ดู Review | ดูรีวิวทั้งหมดในระบบ |
-
-### 9.4 ความสัมพันธ์ระหว่าง Auth กับระบบ
+### 14.2 ขั้นตอนผู้ดูแลระบบจัดการสินค้า, ปรับสต็อกสินค้า และตรวจสอบรายงานส่วนแบ่งลิขสิทธิ์ (Admin Management Flow)
 
 ```mermaid
-flowchart LR
-    A[User Login] --> B{UserRole?}
-    B -->|customer| C[Storefront + Cart + Checkout]
-    B -->|admin| D[Admin Panel + Full CRUD]
-    B -->|license_holder| E[Partner Dashboard - Read Only]
-    
-    C --> F[useCartStore]
-    D --> G[useAdminStore]
-    E --> H[License Dashboard]
+sequenceDiagram
+    autonumber
+    actor Admin as ผู้ดูแลระบบ (Admin)
+    participant UI as Admin Console UI
+    participant Store as useAdminStore
+    participant Repo as Repository Adapter
+    participant DB as Supabase PostgreSQL
+
+    %% 1. Manage Product & Variants
+    Admin->>UI: 1. เพิ่มหรือแก้ไขข้อมูลสินค้าและรูปแบบย่อย (Variants/SKU)
+    activate UI
+    UI->>Store: 1.1 addProduct() / updateProduct()
+    activate Store
+    Store->>Repo: 1.1.1 saveProduct(productData)
+    activate Repo
+    Repo->>DB: 1.1.2 INSERT / UPDATE products & product_variants
+    activate DB
+    DB-->>Repo: 1.1.3 บันทึกสำเร็จ
+    deactivate DB
+    Repo-->>Store: 1.1.4 อัปเดตข้อมูลสำเร็จ
+    deactivate Repo
+    Store-->>UI: 1.2 แสดงผลสินค้าใหม่ใน Catalog
+    deactivate Store
+
+    %% 2. Adjust Stock & Audit Trail
+    Admin->>UI: 2. ปรับจำนวนสต็อกสินค้า (เพิ่ม/ลด/นับคลัง)
+    UI->>Store: 2.1 adjustVariantStock(variantId, delta, movementType, note)
+    activate Store
+    Store->>Repo: 2.1.1 recordStockMovement(variantId, delta, type, note)
+    activate Repo
+    Repo->>DB: 2.1.2 UPDATE product_variants.stock_quantity<br/>INSERT stock_movements
+    activate DB
+    DB-->>Repo: 2.1.3 บันทึกสำเร็จ
+    deactivate DB
+    Repo-->>Store: 2.1.4 อัปเดตสต็อกและ Log สำเร็จ
+    deactivate Repo
+    Store-->>UI: 2.2 ตารางประวัติ Stock Movements อัปเดตทันที
+    deactivate Store
+
+    %% 3. View Royalty Reports
+    Admin->>UI: 3. เรียกดูรายงานสรุปยอดขายและยอดส่วนแบ่งลิขสิทธิ์
+    UI->>Store: 3.1 getRoyaltySummary()
+    activate Store
+    Store->>Repo: 3.1.1 queryRoyaltyTransactions()
+    activate Repo
+    Repo->>DB: 3.1.2 SELECT royalty_transactions JOIN license_contracts
+    activate DB
+    DB-->>Repo: 3.1.3 ข้อมูลธุรกรรมส่วนแบ่งทั้งหมด
+    deactivate DB
+    Repo-->>Store: 3.1.4 ส่งผลสรุปแยกตาม License Holder
+    deactivate Repo
+    Store-->>UI: 3.2 แสดงกราฟและตารางสรุปส่วนแบ่งลิขสิทธิ์
+    deactivate Store
+    UI-->>Admin: 3.3 รายงานพร้อมตรวจสอบและดาวน์โหลด
+    deactivate UI
 ```
 
 ---
 
-## 10. แนวทางการทำงานร่วมกัน
+## 15. Data Schema (JSON)
 
-ทีมใช้ Git และ GitHub ในการจัดการ Source Code โดยกำหนดแนวทางการทำงานดังนี้
+> อ้างอิงโครงสร้างจาก Class Diagram และ Entity Relationship Diagram แปลงเป็นสคีมาสำหรับฐานข้อมูล PostgreSQL (Supabase + Row Level Security) ของโปรเจกต์ AllThingsMerch
+> แต่ละตารางระบุข้อมูล `fields` (ชื่อ, ชนิดข้อมูล, constraint, คำอธิบาย) และ `relations` (ความสัมพันธ์กับตารางอื่น) พร้อม Note สำคัญสำหรับการทำงานของระบบ
 
-### 9.1 Branching Strategy
+### 15.0 Enum Types
 
-1. `main`
-   1. ใช้เก็บโค้ดที่เสถียรที่สุด
-   2. ใช้สำหรับรัน Demo หรือส่งงาน
-2. `develop`
-   1. ใช้รวมฟีเจอร์ที่กำลังพัฒนา
-   2. ใช้ทดสอบก่อนนำเข้า `main`
-3. `feature-ชื่อฟีเจอร์`
-   1. ใช้สำหรับพัฒนาฟีเจอร์แยกตามงาน
-   2. ตัวอย่างเช่น `feature-licensing`
-   3. ตัวอย่างเช่น `feature-authenticity-tag`
-
-### 9.2 Commit Convention
-
-1. `feat: add authenticity tag guarantee`
-2. `fix: resolve royalty payout calculation`
-3. `docs: update SADS document`
-4. `refactor: improve order service`
-
-### 9.3 Pull Request
-
-1. สมาชิกทีมต้องสร้าง Pull Request เมื่อต้องการรวมโค้ดเข้าสู่ `develop`
-2. สมาชิกในทีมต้องตรวจสอบโค้ดก่อน Merge
-3. Pull Request ต้องผ่านการตรวจสอบรูปแบบโค้ดก่อนรวมเข้าสู่ Branch หลัก
-
----
-
-## 11. กระบวนการส่งมอบซอฟต์แวร์
-
-ใช้ GitHub Actions เพื่อช่วยตรวจสอบคุณภาพของโค้ดก่อนรวมงาน โดยแบ่งกระบวนการออกเป็นขั้นตอนดังนี้
-
-1. Push Code หรือสร้าง Pull Request
-2. GitHub Actions เริ่มทำงาน
-3. ตรวจสอบรูปแบบโค้ด
-4. ทดสอบระบบเบื้องต้น
-5. แจ้งผลการตรวจสอบ
-6. อนุมัติการรวมโค้ดเมื่อผ่านทุกขั้นตอน
-
-```mermaid
-graph LR
-    A[Push Code หรือ Pull Request] --> B[GitHub Actions]
-    B --> C[ตรวจสอบรูปแบบโค้ด]
-    C --> D[ทดสอบระบบเบื้องต้น]
-    D --> E{ผลการตรวจสอบ}
-    E -->|ผ่าน| F[พร้อมรวมโค้ด]
-    E -->|ไม่ผ่าน| G[แจ้งผู้พัฒนาให้แก้ไข]
+```json
+{
+  "enums": {
+    "user_role": ["customer", "admin", "license_holder"],
+    "license_holder_status": ["active", "inactive"],
+    "license_contract_status": ["draft", "active", "expired", "terminated"],
+    "product_status": ["draft", "active", "archived"],
+    "discount_type": ["fixed", "percentage"],
+    "order_status": ["pending_payment", "paid", "processing", "shipped", "delivered", "cancelled"],
+    "payment_status": ["pending", "paid", "failed", "refunded"],
+    "authenticity_tag_status": ["issued", "activated", "revoked"],
+    "royalty_transaction_status": ["pending", "confirmed", "reversed", "paid"],
+    "stock_movement_type": ["receive", "reserve", "release", "sale", "return", "adjustment"],
+    "review_status": ["pending", "published", "hidden"]
+  }
+}
 ```
 
-### 10.1 Continuous Integration
+---
 
-1. ตรวจสอบ Syntax ของโค้ด
-2. ตรวจสอบ Coding Style
-3. รัน Unit Test เบื้องต้น
-4. แจ้งผลลัพธ์ให้ทีมพัฒนา
+### 15.1 users
 
-### 10.2 Continuous Delivery
-
-1. เตรียมโค้ดที่ผ่านการตรวจสอบสำหรับการ Demo
-2. ลดความผิดพลาดก่อนส่งมอบงาน
-3. ทำให้ทีมสามารถรวมงานได้อย่างเป็นระบบ
+```json
+{
+  "table": "users",
+  "description": "ผู้ใช้งานระบบทั้งหมด แยกบทบาทและสิทธิ์การเข้าถึงด้วย role",
+  "fields": {
+    "id": { "type": "uuid", "constraints": ["PRIMARY KEY", "DEFAULT gen_random_uuid()"] },
+    "email": { "type": "varchar(255)", "constraints": ["UNIQUE", "NOT NULL"] },
+    "password_hash": { "type": "text", "constraints": ["NOT NULL"] },
+    "full_name": { "type": "varchar(255)", "constraints": ["NOT NULL"] },
+    "phone": { "type": "varchar(20)", "constraints": ["NULLABLE"] },
+    "role": { "type": "user_role", "constraints": ["NOT NULL", "DEFAULT 'customer'"] },
+    "created_at": { "type": "timestamptz", "constraints": ["NOT NULL", "DEFAULT now()"] },
+    "updated_at": { "type": "timestamptz", "constraints": ["NOT NULL", "DEFAULT now()"] }
+  },
+  "relations": {
+    "has_many": ["orders (as user)", "reviews (as user)"],
+    "has_one": ["license_holders (if role = license_holder)"]
+  }
+}
+```
 
 ---
 
-## 12. แผนการดำเนินงาน
+### 15.2 brands
 
-| Phase | รายละเอียด | ผลลัพธ์ที่คาดหวัง |
-| :--- | :--- | :--- |
-| Phase 1 Design | ออกแบบหน้าจอหลัก ออกแบบโครงสร้างฐานข้อมูล และออกแบบ Flow การใช้งาน | ได้แบบร่างระบบและ ERD |
-| Phase 2 Core Development | พัฒนาระบบบัญชีผู้ใช้ ระบบเข้าสู่ระบบ และระบบจัดการสินค้า | ได้ระบบพื้นฐานที่ใช้งานได้ |
-| Phase 3 Shopping | พัฒนาตะกร้าสินค้า ระบบสั่งซื้อ และระบบสั่งซื้อล่วงหน้า | ลูกค้าสามารถทำรายการซื้อได้ |
-| Phase 4 Authenticity Tag | พัฒนาระบบออกและแสดงข้อมูล TAG รับประกันสินค้าแท้ | ลูกค้าสามารถเห็นข้อมูล TAG รับประกันสินค้าแท้ของสินค้าที่ซื้อได้ |
-| Phase 5 Royalties | พัฒนาระบบคำนวณส่วนแบ่งลิขสิทธิ์และรายงานหลังบ้าน | ผู้ดูแลระบบตรวจสอบยอดส่วนแบ่งได้ |
-| Phase 6 Testing and Demo | ทดสอบระบบรวม แก้ไขข้อผิดพลาด และเตรียมนำเสนอ | ได้ระบบพร้อมนำเสนอในชั้นเรียน |
-
----
-
-## 13. การจัดการความเสี่ยง
-
-| ความเสี่ยง | ผลกระทบ | แผนการจัดการรองรับ |
-| :--- | :---: | :--- |
-| TAG รับประกันสินค้าแท้ถูกปลอมแปลง | สูง | กำหนดรหัส TAG ที่ไม่ซ้ำกัน บันทึกประวัติการออก TAG และจำกัดการออก TAG เฉพาะคำสั่งซื้อที่สำเร็จ |
-| การคำนวณส่วนแบ่งลิขสิทธิ์คลาดเคลื่อน | สูง | จัดทำ Unit Test สำหรับสูตรคำนวณส่วนแบ่งและการปัดเศษ |
-| ผู้ใช้งานจำนวนมากในช่วงเปิดขายสินค้ารุ่นพิเศษ | ปานกลางถึงสูง | ใช้แนวคิด Order Queueing และปรับปรุงประสิทธิภาพการเขียนข้อมูล |
-| ข้อมูลสินค้าไม่ตรงกับข้อมูลลิขสิทธิ์ | ปานกลาง | บังคับให้สินค้าทุกชิ้นต้องเชื่อมโยงกับ License ID |
-| ผู้ดูแลระบบเข้าถึงข้อมูลผิดพลาด | ปานกลาง | ใช้ Role Based Access Control และตรวจสอบสิทธิ์ก่อนเข้าถึงระบบหลังบ้าน |
-| ทีมพัฒนา Merge โค้ดทับกัน | ปานกลาง | ใช้ Branching Strategy และ Pull Request Review |
+```json
+{
+  "table": "brands",
+  "description": "แบรนด์สินค้าลิขสิทธิ์ในระบบ (เช่น Formula 1, Artists, Football Clubs)",
+  "fields": {
+    "id": { "type": "uuid", "constraints": ["PRIMARY KEY", "DEFAULT gen_random_uuid()"] },
+    "name": { "type": "varchar(255)", "constraints": ["NOT NULL"] },
+    "slug": { "type": "varchar(255)", "constraints": ["UNIQUE", "NOT NULL"] },
+    "description": { "type": "text", "constraints": ["NULLABLE"] },
+    "logo_url": { "type": "text", "constraints": ["NULLABLE"] },
+    "is_active": { "type": "boolean", "constraints": ["NOT NULL", "DEFAULT true"] },
+    "created_at": { "type": "timestamptz", "constraints": ["NOT NULL", "DEFAULT now()"] }
+  },
+  "relations": {
+    "has_many": ["products"]
+  }
+}
+```
 
 ---
 
-## 13. รายชื่อสมาชิกกลุ่ม
+### 15.3 categories
 
-| รหัสนักศึกษา | ชื่อและนามสกุล | หน้าที่ |
-| :--- | :--- | :--- |
-| 67160165 | นายธนกร หีบเงิน | ผู้พัฒนา Frontend/Backend |
-| 67160449 | นายณฐมน โชติกุล | ผู้พัฒนา Frontend/Backend | 
-| 67132694 | นายนิรินทร์ เทพวิสุทธิพันธุ์ | ผู้พัฒนา Frontend/Backend | 
-| 67167855 | นายกฤตณัฐ อิ้วสมจิตร | ผู้ออกแบบฐานข้อมูลและระบบลิขสิทธิ์ |
-| 67185699 | นางสาว กนกกร ทะกอง | ผู้จัดทำเอกสารและทดสอบระบบ |
+```json
+{
+  "table": "categories",
+  "description": "หมวดหมู่สินค้าในระบบแบบลำดับชั้น (Hierarchical tree)",
+  "fields": {
+    "id": { "type": "uuid", "constraints": ["PRIMARY KEY", "DEFAULT gen_random_uuid()"] },
+    "name": { "type": "varchar(255)", "constraints": ["NOT NULL"] },
+    "slug": { "type": "varchar(255)", "constraints": ["UNIQUE", "NOT NULL"] },
+    "parent_id": { "type": "uuid", "constraints": ["FOREIGN KEY -> categories.id", "NULLABLE"] },
+    "created_at": { "type": "timestamptz", "constraints": ["NOT NULL", "DEFAULT now()"] }
+  },
+  "relations": {
+    "has_many": ["products", "categories (subcategories)"],
+    "belongs_to": "categories (parent)"
+  }
+}
+```
 
 ---
 
-## ภาคผนวก ก คำสำคัญของระบบ
+### 15.4 license_holders
 
-เพื่อให้เอกสารชัดเจนและไม่รวมหลายคำสั่งไว้ในบรรทัดเดียว จึงแยกคำสำคัญของระบบออกเป็นรายการดังนี้
+```json
+{
+  "table": "license_holders",
+  "description": "ข้อมูลผู้ถือครองลิขสิทธิ์คู่ค้า ที่ได้รับสิทธิ์ตรวจสอบส่วนแบ่งรายได้",
+  "fields": {
+    "id": { "type": "uuid", "constraints": ["PRIMARY KEY", "DEFAULT gen_random_uuid()"] },
+    "name": { "type": "varchar(255)", "constraints": ["NOT NULL"] },
+    "contact_email": { "type": "varchar(255)", "constraints": ["NULLABLE"] },
+    "status": { "type": "license_holder_status", "constraints": ["NOT NULL", "DEFAULT 'active'"] },
+    "created_at": { "type": "timestamptz", "constraints": ["NOT NULL", "DEFAULT now()"] }
+  },
+  "relations": {
+    "has_many": ["license_contracts"]
+  }
+}
+```
 
-1. สั่งซื้อสินค้า
-2. ทำรายการสั่งซื้อล่วงหน้า
-3. ใช้โค้ดส่วนลด
-4. ดูข้อมูล TAG รับประกันสินค้าแท้
-5. จัดการสินค้า
-6. จัดการสต๊อกสินค้า
-7. จัดการสัญญาลิขสิทธิ์
-8. คำนวณส่วนแบ่งลิขสิทธิ์
-9. ตรวจสอบรายงานยอดขาย
-10. อัปเดตสถานะการจัดส่ง
+---
+
+### 15.5 license_contracts
+
+```json
+{
+  "table": "license_contracts",
+  "description": "สัญญาลิขสิทธิ์ที่กำหนดอัตราส่วนแบ่งรายได้ (Royalty Rate) และระยะเวลาสัญญา",
+  "fields": {
+    "id": { "type": "uuid", "constraints": ["PRIMARY KEY", "DEFAULT gen_random_uuid()"] },
+    "license_holder_id": { "type": "uuid", "constraints": ["FOREIGN KEY -> license_holders.id", "NOT NULL"] },
+    "contract_reference": { "type": "varchar(100)", "constraints": ["UNIQUE", "NOT NULL"] },
+    "royalty_rate": { "type": "numeric(6,4)", "constraints": ["NOT NULL", "CHECK (royalty_rate >= 0 AND royalty_rate <= 100)"], "note": "เปอร์เซ็นต์ส่วนแบ่ง เช่น 12.50% เก็บความละเอียดทศนิยม 4 ตำแหน่ง" },
+    "starts_at": { "type": "date", "constraints": ["NOT NULL"] },
+    "expires_at": { "type": "date", "constraints": ["NOT NULL"] },
+    "status": { "type": "license_contract_status", "constraints": ["NOT NULL", "DEFAULT 'active'"] },
+    "created_at": { "type": "timestamptz", "constraints": ["NOT NULL", "DEFAULT now()"] }
+  },
+  "relations": {
+    "belongs_to": "license_holders",
+    "has_many": ["products", "royalty_transactions"]
+  }
+}
+```
+
+---
+
+### 15.6 products
+
+```json
+{
+  "table": "products",
+  "description": "ข้อมูลสินค้าหลัก เชื่อมโยงกับแบรนด์ หมวดหมู่ และสัญญาลิขสิทธิ์",
+  "fields": {
+    "id": { "type": "uuid", "constraints": ["PRIMARY KEY", "DEFAULT gen_random_uuid()"] },
+    "brand_id": { "type": "uuid", "constraints": ["FOREIGN KEY -> brands.id", "NOT NULL"] },
+    "category_id": { "type": "uuid", "constraints": ["FOREIGN KEY -> categories.id", "NOT NULL"] },
+    "license_contract_id": { "type": "uuid", "constraints": ["FOREIGN KEY -> license_contracts.id", "NULLABLE"] },
+    "name": { "type": "varchar(255)", "constraints": ["NOT NULL"] },
+    "slug": { "type": "varchar(255)", "constraints": ["UNIQUE", "NOT NULL"] },
+    "description": { "type": "text", "constraints": ["NOT NULL"] },
+    "status": { "type": "product_status", "constraints": ["NOT NULL", "DEFAULT 'active'"] },
+    "is_limited": { "type": "boolean", "constraints": ["NOT NULL", "DEFAULT false"], "note": "สินค้ารุ่นพิเศษ Limited Edition" },
+    "is_preorder": { "type": "boolean", "constraints": ["NOT NULL", "DEFAULT false"] },
+    "preorder_release_at": { "type": "timestamptz", "constraints": ["NULLABLE"], "note": "วันที่คาดว่าจะปล่อยสินค้า Pre-Order" },
+    "featured_image": { "type": "text", "constraints": ["NULLABLE"] },
+    "created_at": { "type": "timestamptz", "constraints": ["NOT NULL", "DEFAULT now()"] },
+    "updated_at": { "type": "timestamptz", "constraints": ["NOT NULL", "DEFAULT now()"] }
+  },
+  "relations": {
+    "belongs_to": ["brands", "categories", "license_contracts"],
+    "has_many": ["product_variants", "product_images", "reviews"]
+  }
+}
+```
+
+---
+
+### 15.7 product_variants
+
+```json
+{
+  "table": "product_variants",
+  "description": "รูปแบบย่อยของสินค้า (Variants) สำหรับจัดการสต็อกและราคาแยกตาม SKU (สี/ไซซ์)",
+  "fields": {
+    "id": { "type": "uuid", "constraints": ["PRIMARY KEY", "DEFAULT gen_random_uuid()"] },
+    "product_id": { "type": "uuid", "constraints": ["FOREIGN KEY -> products.id", "NOT NULL"] },
+    "sku": { "type": "varchar(100)", "constraints": ["UNIQUE", "NOT NULL"] },
+    "size": { "type": "varchar(50)", "constraints": ["NULLABLE"] },
+    "color": { "type": "varchar(50)", "constraints": ["NULLABLE"] },
+    "price": { "type": "numeric(12,2)", "constraints": ["NOT NULL", "CHECK (price >= 0)"] },
+    "compare_at_price": { "type": "numeric(12,2)", "constraints": ["NULLABLE"] },
+    "stock_quantity": { "type": "integer", "constraints": ["NOT NULL", "DEFAULT 0", "CHECK (stock_quantity >= 0)"] },
+    "low_stock_threshold": { "type": "integer", "constraints": ["NOT NULL", "DEFAULT 3", "CHECK (low_stock_threshold >= 0)"] },
+    "is_active": { "type": "boolean", "constraints": ["NOT NULL", "DEFAULT true"] },
+    "created_at": { "type": "timestamptz", "constraints": ["NOT NULL", "DEFAULT now()"] }
+  },
+  "relations": {
+    "belongs_to": "products",
+    "has_many": ["order_items", "stock_movements", "authenticity_tags"]
+  }
+}
+```
+
+---
+
+### 15.8 product_images
+
+```json
+{
+  "table": "product_images",
+  "description": "จัดเก็บรูปภาพของสินค้า (หนึ่งสินค้ามีได้หลายรูป จัดเรียงลำดับด้วย sort_order)",
+  "fields": {
+    "id": { "type": "uuid", "constraints": ["PRIMARY KEY", "DEFAULT gen_random_uuid()"] },
+    "product_id": { "type": "uuid", "constraints": ["FOREIGN KEY -> products.id", "NOT NULL"] },
+    "storage_path": { "type": "text", "constraints": ["NOT NULL"] },
+    "alt_text": { "type": "text", "constraints": ["NOT NULL"] },
+    "sort_order": { "type": "integer", "constraints": ["NOT NULL", "DEFAULT 0"] }
+  },
+  "relations": {
+    "belongs_to": "products"
+  }
+}
+```
+
+---
+
+### 15.9 coupons
+
+```json
+{
+  "table": "coupons",
+  "description": "คูปองส่วนลดสำหรับกิจกรรมส่งเสริมการขาย",
+  "fields": {
+    "id": { "type": "uuid", "constraints": ["PRIMARY KEY", "DEFAULT gen_random_uuid()"] },
+    "code": { "type": "varchar(50)", "constraints": ["UNIQUE", "NOT NULL"] },
+    "discount_type": { "type": "discount_type", "constraints": ["NOT NULL", "DEFAULT 'fixed'"] },
+    "discount_value": { "type": "numeric(12,2)", "constraints": ["NOT NULL", "CHECK (discount_value >= 0)"] },
+    "minimum_order_amount": { "type": "numeric(12,2)", "constraints": ["NULLABLE"] },
+    "usage_limit": { "type": "integer", "constraints": ["NULLABLE"] },
+    "starts_at": { "type": "timestamptz", "constraints": ["NOT NULL"] },
+    "expires_at": { "type": "timestamptz", "constraints": ["NOT NULL"] },
+    "is_active": { "type": "boolean", "constraints": ["NOT NULL", "DEFAULT true"] }
+  },
+  "relations": {
+    "has_many": ["orders"]
+  }
+}
+```
+
+---
+
+### 15.10 orders
+
+```json
+{
+  "table": "orders",
+  "description": "คำสั่งซื้อของลูกค้า บันทึกยอดเงิน ส่วนลด และที่อยู่จัดส่ง",
+  "fields": {
+    "id": { "type": "uuid", "constraints": ["PRIMARY KEY", "DEFAULT gen_random_uuid()"] },
+    "order_number": { "type": "varchar(50)", "constraints": ["UNIQUE", "NOT NULL"] },
+    "user_id": { "type": "uuid", "constraints": ["NOT NULL"] },
+    "status": { "type": "order_status", "constraints": ["NOT NULL", "DEFAULT 'pending_payment'"] },
+    "payment_status": { "type": "payment_status", "constraints": ["NOT NULL", "DEFAULT 'pending'"] },
+    "subtotal": { "type": "numeric(12,2)", "constraints": ["NOT NULL", "DEFAULT 0", "CHECK (subtotal >= 0)"] },
+    "discount_amount": { "type": "numeric(12,2)", "constraints": ["NOT NULL", "DEFAULT 0", "CHECK (discount_amount >= 0)"] },
+    "shipping_amount": { "type": "numeric(12,2)", "constraints": ["NOT NULL", "DEFAULT 0", "CHECK (shipping_amount >= 0)"] },
+    "total_amount": { "type": "numeric(12,2)", "constraints": ["NOT NULL", "DEFAULT 0", "CHECK (total_amount >= 0)"] },
+    "coupon_id": { "type": "uuid", "constraints": ["FOREIGN KEY -> coupons.id", "NULLABLE"] },
+    "shipping_address": { "type": "jsonb", "constraints": ["NOT NULL"] },
+    "created_at": { "type": "timestamptz", "constraints": ["NOT NULL", "DEFAULT now()"] },
+    "updated_at": { "type": "timestamptz", "constraints": ["NOT NULL", "DEFAULT now()"] }
+  },
+  "relations": {
+    "belongs_to": ["users", "coupons"],
+    "has_many": ["order_items"]
+  }
+}
+```
+
+---
+
+### 15.11 order_items
+
+```json
+{
+  "table": "order_items",
+  "description": "รายการสินค้าในคำสั่งซื้อ พร้อม Snapshot ราคาและอัตราส่วนแบ่งลิขสิทธิ์ ณ วันที่ซื้อ",
+  "fields": {
+    "id": { "type": "uuid", "constraints": ["PRIMARY KEY", "DEFAULT gen_random_uuid()"] },
+    "order_id": { "type": "uuid", "constraints": ["FOREIGN KEY -> orders.id", "NOT NULL"] },
+    "product_id": { "type": "uuid", "constraints": ["FOREIGN KEY -> products.id", "NOT NULL"] },
+    "product_variant_id": { "type": "uuid", "constraints": ["FOREIGN KEY -> product_variants.id", "NOT NULL"] },
+    "product_name": { "type": "varchar(255)", "constraints": ["NOT NULL"] },
+    "variant_name": { "type": "varchar(255)", "constraints": ["NULLABLE"] },
+    "sku": { "type": "varchar(100)", "constraints": ["NOT NULL"] },
+    "unit_price": { "type": "numeric(12,2)", "constraints": ["NOT NULL", "CHECK (unit_price >= 0)"], "note": "Snapshot ราคาขาย ณ ขณะสั่งซื้อ" },
+    "quantity": { "type": "integer", "constraints": ["NOT NULL", "CHECK (quantity > 0)"] },
+    "line_total": { "type": "numeric(12,2)", "constraints": ["NOT NULL", "CHECK (line_total >= 0)"] },
+    "royalty_rate_snapshot": { "type": "numeric(6,4)", "constraints": ["NOT NULL", "DEFAULT 0"], "note": "Snapshot อัตราส่วนแบ่งจาก License Contract ณ ขณะซื้อ" }
+  },
+  "relations": {
+    "belongs_to": ["orders", "products", "product_variants"],
+    "has_many": ["authenticity_tags", "royalty_transactions"]
+  }
+}
+```
+
+---
+
+### 15.12 authenticity_tags
+
+```json
+{
+  "table": "authenticity_tags",
+  "description": "รหัสรับประกันสินค้าแท้ (Authenticity TAG) 1 ชิ้นต่อ 1 รหัส ไม่ซ้ำกัน ผูกเข้ากับ Order Item",
+  "fields": {
+    "id": { "type": "uuid", "constraints": ["PRIMARY KEY", "DEFAULT gen_random_uuid()"] },
+    "public_code": { "type": "varchar(50)", "constraints": ["UNIQUE", "NOT NULL"], "note": "รหัสสาธารณะที่ลูกค้าใช้นำไป Verify TAG" },
+    "serial_number": { "type": "varchar(100)", "constraints": ["UNIQUE", "NOT NULL"] },
+    "order_item_id": { "type": "uuid", "constraints": ["FOREIGN KEY -> order_items.id", "NOT NULL"] },
+    "product_variant_id": { "type": "uuid", "constraints": ["FOREIGN KEY -> product_variants.id", "NOT NULL"] },
+    "status": { "type": "authenticity_tag_status", "constraints": ["NOT NULL", "DEFAULT 'issued'"] },
+    "issued_at": { "type": "timestamptz", "constraints": ["NOT NULL", "DEFAULT now()"] },
+    "activated_at": { "type": "timestamptz", "constraints": ["NULLABLE"] },
+    "revoked_at": { "type": "timestamptz", "constraints": ["NULLABLE"] }
+  },
+  "relations": {
+    "belongs_to": ["order_items", "product_variants"]
+  }
+}
+```
+
+---
+
+### 15.13 royalty_transactions
+
+```json
+{
+  "table": "royalty_transactions",
+  "description": "บันทึกการคำนวณส่วนแบ่งรายได้ลิขสิทธิ์อัตโนมัติ สำหรับสรุปยอดให้คู่ค้า",
+  "fields": {
+    "id": { "type": "uuid", "constraints": ["PRIMARY KEY", "DEFAULT gen_random_uuid()"] },
+    "order_item_id": { "type": "uuid", "constraints": ["FOREIGN KEY -> order_items.id", "NOT NULL"] },
+    "license_contract_id": { "type": "uuid", "constraints": ["FOREIGN KEY -> license_contracts.id", "NOT NULL"] },
+    "gross_amount": { "type": "numeric(12,2)", "constraints": ["NOT NULL", "CHECK (gross_amount >= 0)"], "note": "ยอดขายสินค้า (unit_price * quantity)" },
+    "royalty_rate": { "type": "numeric(6,4)", "constraints": ["NOT NULL", "CHECK (royalty_rate >= 0)"] },
+    "royalty_amount": { "type": "numeric(12,2)", "constraints": ["NOT NULL", "CHECK (royalty_amount >= 0)"], "note": "gross_amount * (royalty_rate / 100)" },
+    "status": { "type": "royalty_transaction_status", "constraints": ["NOT NULL", "DEFAULT 'pending'"] },
+    "transaction_date": { "type": "timestamptz", "constraints": ["NOT NULL", "DEFAULT now()"] }
+  },
+  "relations": {
+    "belongs_to": ["order_items", "license_contracts"]
+  }
+}
+```
+
+---
+
+### 15.14 stock_movements
+
+```json
+{
+  "table": "stock_movements",
+  "description": "ตารางบันทึกประวัติการเคลื่อนย้ายสต็อกอย่างละเอียด สำหรับระบบตรวจสอบย้อนหลัง (Audit Trail)",
+  "fields": {
+    "id": { "type": "uuid", "constraints": ["PRIMARY KEY", "DEFAULT gen_random_uuid()"] },
+    "product_variant_id": { "type": "uuid", "constraints": ["FOREIGN KEY -> product_variants.id", "NOT NULL"] },
+    "movement_type": { "type": "stock_movement_type", "constraints": ["NOT NULL"] },
+    "quantity": { "type": "integer", "constraints": ["NOT NULL"], "note": "บวกเมื่อรับเข้า/คืน ลบเมื่อจอง/ขาย" },
+    "reference_type": { "type": "varchar(50)", "constraints": ["NULLABLE"], "note": "เช่น order, manual_adjustment" },
+    "reference_id": { "type": "uuid", "constraints": ["NULLABLE"] },
+    "note": { "type": "text", "constraints": ["NULLABLE"] },
+    "created_at": { "type": "timestamptz", "constraints": ["NOT NULL", "DEFAULT now()"] }
+  },
+  "relations": {
+    "belongs_to": "product_variants"
+  }
+}
+```
+
+---
+
+### 15.15 reviews
+
+```json
+{
+  "table": "reviews",
+  "description": "ความคิดเห็นและคะแนนรีวิวสินค้าโดยลูกค้า",
+  "fields": {
+    "id": { "type": "uuid", "constraints": ["PRIMARY KEY", "DEFAULT gen_random_uuid()"] },
+    "product_id": { "type": "uuid", "constraints": ["FOREIGN KEY -> products.id", "NOT NULL"] },
+    "user_id": { "type": "uuid", "constraints": ["NOT NULL"] },
+    "order_item_id": { "type": "uuid", "constraints": ["UNIQUE", "NOT NULL", "FOREIGN KEY -> order_items.id"] },
+    "rating": { "type": "integer", "constraints": ["NOT NULL", "CHECK (rating BETWEEN 1 AND 5)"] },
+    "comment": { "type": "text", "constraints": ["NOT NULL"] },
+    "status": { "type": "review_status", "constraints": ["NOT NULL", "DEFAULT 'pending'"] },
+    "created_at": { "type": "timestamptz", "constraints": ["NOT NULL", "DEFAULT now()"] }
+  },
+  "relations": {
+    "belongs_to": ["products", "users", "order_items"]
+  }
+}
+```
+
+---
+
+### 15.16 สรุปความสัมพันธ์ระหว่างตาราง (Entity Relationship Summary)
+
+| ตารางหลัก | ความสัมพันธ์ | ตารางที่เชื่อมโยง | Cardinality | รายละเอียด |
+| :--- | :--- | :--- | :--- | :--- |
+| `users` | มี | `orders` | 1 : * | ลูกค้า 1 คน สามารถมีคำสั่งซื้อได้หลายออเดอร์ |
+| `users` | มี | `reviews` | 1 : * | ลูกค้าสามารถเขียนรีวิวให้สินค้าที่ซื้อได้หลายรายการ |
+| `brands` | มี | `products` | 1 : * | แบรนด์ 1 แบรนด์ มีสินค้าภายใต้สังกัดได้หลายรุ่น |
+| `categories` | มี | `products` | 1 : * | หมวดหมู่ 1 หมวดหมู่ ใช้จัดกลุ่มสินค้าได้หลายรายการ |
+| `license_holders` | มี | `license_contracts` | 1 : * | ผู้ถือสิทธิ์ 1 ราย สามารถมีสัญญาลิขสิทธิ์ได้หลายฉบับ |
+| `license_contracts`| ควบคุม | `products` | 1 : * | สัญญา 1 ฉบับ สามารถควบคุมสินค้าได้หลายรายการ |
+| `products` | มี | `product_variants`| 1 : * | สินค้าหลัก 1 แบบ แยกรูปแบบย่อย (สี/ไซซ์/SKU) ได้หลายรายการ |
+| `products` | มี | `product_images` | 1 : * | สินค้าหลัก 1 แบบ สามารถมีรูปภาพประกอบได้หลายรูป |
+| `orders` | มี | `order_items` | 1 : * | คำสั่งซื้อ 1 ใบ ประกอบด้วยรายการสินค้าหลายชิ้น |
+| `coupons` | เป็นส่วนลด | `orders` | 1 : * | คูปอง 1 รหัส ถูกใช้งานในคำสั่งซื้อได้หลายใบตามโควต้า |
+| `product_variants` | ถูกสั่งซื้อ | `order_items` | 1 : * | SKU 1 รายการ สามารถปรากฏอยู่ในออเดอร์ไอเทมได้หลายรายการ |
+| `product_variants` | บันทึกประวัติ | `stock_movements` | 1 : * | SKU 1 รายการ มีบันทึกประวัติการย้ายสต็อกได้หลายครั้ง |
+| `order_items` | ออกรหัส | `authenticity_tags`| 1 : * | รายการสินค้าที่ซื้อ 1 ชิ้น จะสร้าง TAG รับประกันสินค้า 1 รหัส (หรือหลายรหัสตามจำนวนชิ้น) |
+| `order_items` | คำนวณ | `royalty_transactions`| 1 : 1 | รายการสินค้าที่ซื้อ 1 บรรทัด จะสร้างรายการคำนวณส่วนแบ่ง 1 ธุรกรรม |
+
+---
+
+### 15.17 หมายเหตุการออกแบบ (Design Notes)
+
+1. **Snapshot Mechanism เพื่อความถูกต้องทางบัญชี**: ในตาราง `order_items` มีการจัดเก็บ `unit_price` และ `royalty_rate_snapshot` โดยทำการ Snapshot ค่าณ วันที่ลูกค้าสั่งซื้อเสมอ ทำให้ถึงแม้ในอนาคต Admin จะปรับราคาสินค้าหรือเปลี่ยนอัตราส่วนแบ่งในสัญญา `license_contracts` ประวัติคำสั่งซื้อและรายงานส่วนแบ่งลิขสิทธิ์ในอดีตก็ยังคงถูกต้อง 100%
+2. **Dual-Mode Repository & LocalStorage Validation**: ระบบถูกออกแบบให้รองรับ Adapter Pattern โดยหากทำงานในโหมด `DemoRepository` ข้อมูลตระกร้าสินค้า เซสชันผู้ใช้ และออเดอร์จะถูกจัดเก็บใน `Zustand LocalStorage` และสถานะของสต็อกสินค้าจะทำงานประสานกับ Catalog ใน Local State ได้อย่างสมบูรณ์
+3. **ระบบล็อกสต็อกชั่วคราว 15 นาที**: เมื่อมีการเพิ่มสินค้าลงตะกร้า ระบบจะสร้าง `StockMovement` ประเภท `reserve` และกำหนด `reservedUntil` หากครบกำหนด 15 นาทีแล้วลูกค้ายังไม่ชำระเงิน ระบบจะทำการคืนสต็อกกลับ (`release`) อัตโนมัติ เพื่อไม่ให้เสียโอกาสในการขายสินค้า Limited Edition
+4. **Authenticity TAG Isolation**: รหัสรับประกันสินค้าแท้ (`authenticity_tags`) จะถูกสุ่ม `public_code` และ `serial_number` ไม่ให้ซ้ำกันในระบบ และจะถูกสร้างขึ้นเมื่อคำสั่งซื้อชำระเงินสำเร็จ (`status = paid` หรือยืนยันออเดอร์) โดยมีสถานะเริ่มต้นคือ `'issued'` ลูกค้าจึงสามารถนำรหัสนี้ไปตรวจสอบในหน้า Verify TAG ได้ทันที
+
+---
+
+# Testing
+
+## 16. แนวทางการทดสอบระบบ (Testing Approach)
+
+- **Test Types**: 
+  1. **User Acceptance Testing (UAT) / Manual Testing**: ทดสอบการทำงานจริงของหน้าเว็บตาม Persona และบทบาทผู้ใช้งาน (Role-Based Access Control) โดยบันทึกผลตาม Test Cases 
+  2. **Automated Unit & Integration Testing**: ใช้เครื่องมือ **Vitest** ในการทดสอบตรรกะการคำนวณราคาสินค้า คูปองส่วนลด สต็อก และสูตรคำนวณส่วนแบ่ง Royalty Rate ตลอดจนใช้ **Playwright** สำหรับ End-to-End UI Testing
+  3. **CI/CD Quality Gate**: ใช้ **GitHub Actions** ในการตรวจสอบ Syntax, TypeScript Type Check และรัน Automated Tests ก่อนการ Merge Pull Request
+- **รายละเอียดการทดสอบ**: ครอบคลุมทั้ง Positive Cases (การทำงานปกติสำเร็จ), Negative Cases (การแจ้งเตือนข้อผิดพลาดและการป้องกันข้อมูล), Security & Role Guard (การป้องกันการเข้าถึงข้ามระดับสิทธิ์) และ Integration End-to-End Flows
+
+---
+
+## 17. Test Case – AllThingsMerch
+
+### 17.1 Customer (ลูกค้าทั่วไป)
+
+| รหัส | รายการทดสอบ | Precondition | ขั้นตอนการทดสอบ | Test Data | ผลที่คาดหวัง (Expected Result) | ผ่าน/ไม่ผ่าน |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| CUS-001 | สมัครสมาชิกสำเร็จ | ยังไม่มีบัญชีในระบบ | 1. ไปที่หน้า สมัครสมาชิก<br/>2. กรอก Full Name, Email, Password<br/>3. กด Register | email: newuser@allthingsmerch.com<br/>password: Pass1234! | สมัครสำเร็จ บันทึกข้อมูลลง `users` ด้วย role = customer และนำทางไปยังหน้า Login | ☐ / ☐ |
+| CUS-002 | สมัครสมาชิกด้วยอีเมลซ้ำ *(Negative)* | มีอีเมลนี้ในระบบแล้ว | กรอกอีเมลที่มีอยู่แล้วในระบบและรหัสผ่าน จากนั้นกด Register | email ที่ซ้ำกับในระบบ | ระบบแสดงข้อความแจ้งเตือน "อีเมลนี้ถูกใช้งานในระบบแล้ว" และไม่สร้าง record ซ้ำ | ☐ / ☐ |
+| CUS-003 | เข้าสู่ระบบสำเร็จ | มีบัญชีในระบบแล้ว | 1. กรอก Email และ Password ที่ถูกต้อง<br/>2. กด Login | บัญชีที่มีอยู่ในระบบ | เข้าสู่ระบบสำเร็จ ได้รับ Token/Session อัปเดต state ใน `useAuthStore` และแสดงชื่อผู้ใช้ | ☐ / ☐ |
+| CUS-004 | เข้าสู่ระบบด้วยรหัสผ่านผิด *(Negative)* | มีบัญชีในระบบแล้ว | กรอก Email ถูกต้อง แต่ใส่ Password ผิด | รหัสผ่านที่ไม่ถูกต้อง | ระบบแจ้งเตือน "อีเมลหรือรหัสผ่านไม่ถูกต้อง" และไม่อนุญาตให้เข้าสู่ระบบ | ☐ / ☐ |
+| CUS-005 | ค้นหาสินค้าและกรองตามแบรนด์/ลิขสิทธิ์ | มีสินค้าหลากหลายแบรนด์ | 1. พิมพ์คำค้นหาในช่อง Search<br/>2. เลือกตัวกรองแบรนด์ (เช่น Formula 1) | keyword: "Cap", brand: "Formula 1" | ระบบแสดงรายการสินค้าที่ตรงกับคำค้นหาและเป็นของแบรนด์ Formula 1 เท่านั้น | ☐ / ☐ |
+| CUS-006 | ดูรายละเอียดสินค้าและตรวจสอบสต็อก | มีสินค้าในระบบ | คลิกที่การ์ดสินค้าเพื่อเข้าสู่หน้ารายละเอียดสินค้า (PDP) | product_slug ของสินค้าที่มีสต็อก | แสดงรูปภาพ ราคา ตัวเลือกสี/ไซซ์ สต็อกคงเหลือ และข้อมูลการรับประกันสินค้าลิขสิทธิ์แท้ | ☐ / ☐ |
+| CUS-007 | เพิ่มสินค้าลงตะกร้าพร้อมล็อกสต็อก 15 นาที | สินค้ามีสต็อกเพียงพอ | 1. เลือกไซซ์/สี และจำนวน<br/>2. กด "เพิ่มลงตะกร้า" | qty: 2 (สต็อกคงเหลือ 10) | สินค้าเพิ่มใน `useCartStore` ลดสต็อกใน Catalog ลงชั่วคราว พร้อมแสดงแถบนับถอยหลัง 15 นาที | ☐ / ☐ |
+| CUS-008 | เพิ่มสินค้าลงตะกร้าเกินสต็อกที่มี *(Negative)* | สินค้ามีสต็อกคงเหลือน้อย | ใส่จำนวนที่ต้องการมากกว่าสต็อกคงเหลือ แล้วกด "เพิ่มลงตะกร้า" | qty: 10 (สต็อกคงเหลือ 3) | ระบบแจ้งเตือนข้อผิดพลาด "สต็อกสินค้าไม่เพียงพอ" และไม่เพิ่มสินค้าลงตะกร้า | ☐ / ☐ |
+| CUS-009 | ใช้คูปองส่วนลดที่ถูกต้องในตะกร้า | มีคูปองที่ยังไม่หมดอายุ | กรอกรหัสคูปองในหน้าตะกร้าสินค้า แล้วกด Apply | code: "WELCOME10" (ลด 10%) | ระบบคำนวณส่วนลด แสดงมูลค่าที่ลดได้ (`discountAmount`) และอัปเดตราคาสุทธิ (`totalAmount`) | ☐ / ☐ |
+| CUS-010 | ใช้คูปองส่วนลดที่หมดอายุ *(Negative)* | คูปองหมดอายุแล้ว | กรอกรหัสคูปองที่หมดอายุ แล้วกด Apply | code: "EXPIRED2025" | ระบบปฏิเสธคูปอง พร้อมแสดงข้อความ "รหัสคูปองนี้หมดอายุการใช้งานแล้ว" | ☐ / ☐ |
+| CUS-011 | สั่งซื้อสินค้าสำเร็จและรับ Authenticity TAG | มีสินค้าในตะกร้า เข้าสู่ระบบแล้ว | 1. กด Proceed to Checkout<br/>2. กรอกที่อยู่จัดส่งและเลือกวิธีชำระเงิน<br/>3. กด Place Order | ที่อยู่จัดส่งครบถ้วน | สร้าง `Order` และ `OrderItem` สำเร็จ ปล่อยล็อกสต็อกชั่วคราวและตัดสต็อกจริง พร้อมสร้าง `Authenticity TAG` | ☐ / ☐ |
+| CUS-012 | สั่งซื้อล่วงหน้า (Pre-Order) สำเร็จ | สินค้าเป็น `isPreorder: true` | ดำเนินการสั่งซื้อสินค้าที่เป็นรุ่น Pre-Order จนจบขั้นตอน Checkout | สินค้า Pre-Order ที่กำหนดวันจัดส่ง | คำสั่งซื้อถูกสร้างสำเร็จ โดยมีการบันทึกสถานะ `isPreorder: true` และแสดงวันที่คาดว่าจะจัดส่งให้ลูกค้าทราบ | ☐ / ☐ |
+| CUS-013 | ตรวจสอบรหัสรับประกันสินค้าแท้ (Verify TAG) | มีรหัส TAG ที่ออกระบบแล้ว | 1. ไปที่หน้า Verify TAG (`/verify`)<br/>2. กรอก Public Code ของสินค้า<br/>3. กด Verify | Public Code ของสินค้าที่ซื้อสำเร็จ | ระบบแสดงข้อความยืนยัน "สินค้าลิขสิทธิ์แท้ (Verified Authentic)" พร้อมชื่อสินค้า แบรนด์ และวันที่ออกรหัส | ☐ / ☐ |
+| CUS-014 | ตรวจสอบ TAG ด้วยรหัสปลอม *(Negative)* | - | กรอก Public Code ที่ไม่มีอยู่จริงในระบบ แล้วกด Verify | Public Code: "FAKE-TAG-9999" | ระบบแสดงข้อความแจ้งเตือน "ไม่พบข้อมูลรหัสรับประกัน หรือรหัสไม่ถูกต้อง (Invalid TAG)" | ☐ / ☐ |
+| CUS-015 | ติดตามสถานะคำสั่งซื้อและประวัติการซื้อ | มีประวัติคำสั่งซื้อในระบบ | ไปที่หน้า "คำสั่งซื้อของฉัน" (`/profile/orders`) และเลือกดูคำสั่งซื้อ | order_number ของตนเอง | แสดงรายการคำสั่งซื้อ สถานะปัจจุบัน (เช่น Pending, Confirmed, Shipped) และรายการสินค้าครบถ้วน | ☐ / ☐ |
+| CUS-016 | เขียนรีวิวและให้คะแนนสินค้าที่เคยซื้อ | สำเร็จคำสั่งซื้อสินค้านั้นแล้ว | ไปที่หน้ารายละเอียดสินค้า กดเขียนรีวิว ให้คะแนน 5 ดาว พร้อมความคิดเห็น กด Submit | rating: 5, comment: "ของแท้ส่งไวมาก งานพรีเมียมสุดๆ" | บันทึกข้อมูลรีวิวลง `reviews` และแสดงความคิดเห็นของลูกค้าใต้สินค้านั้นทันที | ☐ / ☐ |
+
+---
+
+### 17.2 Admin (ผู้ดูแลระบบ)
+
+| รหัส | รายการทดสอบ | Precondition | ขั้นตอนการทดสอบ | Test Data | ผลที่คาดหวัง (Expected Result) | ผ่าน/ไม่ผ่าน |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| ADM-001 | เพิ่มสินค้าใหม่และผูกสัญญาลิขสิทธิ์สำเร็จ | เข้าสู่ระบบด้วยสิทธิ์ `admin` | 1. ไปที่ Catalog -> Add Product<br/>2. กรอกชื่อ รายละเอียด เลือกแบรนด์ หมวดหมู่ และ License Contract<br/>3. กด Save | ข้อมูลสินค้าครบ พร้อมผูก License Contract ID | บันทึกข้อมูลสินค้าลง `products` และแสดงในตาราง Catalog สถานะ `active` | ☐ / ☐ |
+| ADM-002 | เพิ่มรูปแบบสินค้าย่อย (Variants/SKU) สำเร็จ | มีสินค้าหลักในระบบ | เปิดสินค้า กด Add Variant กรอก SKU, Size, Color, Price และ Stock กด Save | SKU: "F1-CAP-RED-L", Price: 1590, Stock: 20 | บันทึกลง `product_variants` และอัปเดตสต็อกรวมของสินค้าหลักเรียบร้อย | ☐ / ☐ |
+| ADM-003 | ปรับสต็อกสินค้าและตรวจสอบ Stock Movements | มี Variant ในระบบ | 1. เข้าหน้า Inventory เลือก Variant<br/>2. ปรับเพิ่มสต็อก +15 เลือกประเภท `receive`<br/>3. ใส่หมายเหตุ แล้วกด Save | delta: +15, type: receive, note: "รับสินค้าล็อตใหม่จากโรงงาน" | สต็อกของ Variant เพิ่มขึ้น +15 และมีการบันทึกประวัติลง `stock_movements` ครบถ้วน | ☐ / ☐ |
+| ADM-004 | จัดการสัญญาลิขสิทธิ์และอัตราส่วนแบ่ง | เข้าสู่ระบบด้วยสิทธิ์ `admin` | ไปที่ Licensing -> Add Contract กรอกชื่อผู้ถือสิทธิ์ เลขที่อ้างอิง อัตราส่วนแบ่ง และวันเริ่ม/หมดอายุ กด Save | holder: "Formula 1 Merch Ltd.", rate: 12.50%, starts: 2026-01-01, expires: 2026-12-31 | บันทึกสัญญาระบบ `license_contracts` และพร้อมให้ผูกกับสินค้าในระบบ | ☐ / ☐ |
+| ADM-005 | ตรวจสอบคำสั่งซื้อและอัปเดตสถานะจัดส่ง | มีคำสั่งซื้อสถานะ `paid` (ชำระเงินแล้ว) | 1. เข้าหน้า Orders เปิดรายละเอียดคำสั่งซื้อ<br/>2. เปลี่ยนสถานะเป็น `shipped`<br/>3. กด Update Status | order_number ที่ต้องการปรับสถานะ | สถานะคำสั่งซื้อในระบบเปลี่ยนเป็น `shipped` และแสดงการอัปเดตให้ลูกค้าเห็นในหน้าติดตามออเดอร์ | ☐ / ☐ |
+| ADM-006 | ยกเลิกคำสั่งซื้อและคืนสต็อกอัตโนมัติ | มีคำสั่งซื้อสถานะ `paid` | เลือกคำสั่งซื้อ จากนั้นกดเปลี่ยนสถานะเป็น `cancelled` และยืนยันการยกเลิก | order_number ที่ต้องการยกเลิก | คำสั่งซื้อเปลี่ยนเป็น `cancelled`, ระบบคืนสต็อกกลับเข้า `product_variants` (`movement_type: return`) และปรับ Royalty เป็น `reversed` | ☐ / ☐ |
+| ADM-007 | สร้างคูปองส่วนลดและกำหนดโควต้า | เข้าสู่ระบบด้วยสิทธิ์ `admin` | ไปที่ Coupons -> Add Coupon กรอกรหัส ส่วนลด เปอร์เซ็นต์ ขั้นต่ำ และโควต้าใช้งานสูงสุด กด Save | code: "SUPERF1", discount: 15%, max_uses: 100, expires: ในอีก 30 วัน | คูปองถูกสร้างในตาราง `coupons` สถานะ `active` และลูกค้าสามารถนำไปใช้ลดราคาได้จริง | ☐ / ☐ |
+| ADM-008 | ตรวจสอบรายงานยอดขายและ Royalty Reports | มีธุรกรรมสั่งซื้อในระบบ | เปิดหน้า Dashboard และเข้าไปที่เมนู Royalty Reports เลือกช่วงเวลาและผู้ถือสิทธิ์ | เลือกช่วงเวลาปัจจุบัน | ระบบแสดงสรุปยอดขายรวม (`gross_amount`) และยอดส่วนแบ่ง (`royalty_amount`) คำนวณถูกต้องตาม Snapshot | ☐ / ☐ |
+
+---
+
+### 17.3 License Holder & Security/Authorization (การตรวจสอบสิทธิ์และคู่ค้า)
+
+| รหัส | รายการทดสอบ | Precondition | ขั้นตอนการทดสอบ | Test Data | ผลที่คาดหวัง (Expected Result) | ผ่าน/ไม่ผ่าน |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| SEC-001 | ตรวจสอบหน้า Royalty สำหรับ License Holder | เข้าสู่ระบบด้วยสิทธิ์ `license_holder` | เข้าสู่หน้า Partner Dashboard (`/partner/royalties`) เพื่อตรวจสอบรายงานส่วนแบ่งลิขสิทธิ์ | บัญชีผู้ถือครองลิขสิทธิ์ | ระบบแสดงเฉพาะรายงานยอดขายและส่วนแบ่งลิขสิทธิ์ที่เชื่อมโยงกับแบรนด์/สัญญาของตนเอง (Read-Only) | ☐ / ☐ |
+| SEC-002 | ลูกค้าทั่วไปพยายามเข้าถึง Admin Console *(Negative)* | เข้าสู่ระบบด้วยสิทธิ์ `customer` | พยายามพิมพ์ URL เข้าสู่ระบบหลังบ้านโดยตรง (เช่น `/admin` หรือ `/admin/catalog`) | URL หน้าแอดมิน | Role Guard ของ Next.js ปฏิเสธการเข้าถึง (Redirect กลับหน้าหลัก หรือแสดง 403 Forbidden) | ☐ / ☐ |
+| SEC-003 | การตรวจสอบ RLS Policies บน Supabase | เชื่อมต่อ Supabase Cloud DB | ใช้ Client Token ของ Customer A พยายาม Query ข้อมูลคำสั่งซื้อของ Customer B โดยตรงผ่าน Supabase SDK | Customer ID ของผู้ใช้อื่น | Row Level Security (RLS) ของ Supabase บล็อกการ Query และคืนค่าเฉพาะออเดอร์ของ Customer A เท่านั้น | ☐ / ☐ |
+| SEC-004 | ตรวจสอบการทำงานโหมด Demo fallback | ไม่มีการตั้งค่า Supabase Keys ใน `.env.local` | เปิดใช้งานระบบด้วยคำสั่ง `npm run dev` และทำการเข้าสู่ระบบ/สั่งซื้อสินค้าในโหมด Local | - | Repository Adapter ตรวจพบว่าไม่มี Key และสลับการทำงานไปใช้ `DemoRepository` (LocalStorage) อย่างราบรื่น | ☐ / ☐ |
+
+---
+
+### 17.4 Integration / End-to-End Test Flows (การทดสอบกระบวนการทำงานร่วมกัน)
+
+| รหัส | รายการทดสอบ | Precondition | ขั้นตอนการทดสอบ | ผลที่คาดหวัง (Expected Result) | ผ่าน/ไม่ผ่าน |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| INT-001 | **End-to-End Order Fulfillment & TAG Creation**: ตะกร้า -> ชำระเงิน -> ออก TAG -> คำนวณ Royalty | ลูกค้าเข้าสู่ระบบ มีสินค้าผูกกับ License Contract และมีสต็อกเพียงพอ | 1. ลูกค้าเพิ่มสินค้าลงตะกร้า (สต็อกถูก `reserve`)<br/>2. ลูกค้าใช้คูปอง และยืนยัน Place Order<br/>3. Admin ตรวจสอบออเดอร์ในหลังบ้าน<br/>4. ลูกค้านำรหัส TAG ไปตรวจสอบในหน้า Verify | 1. สต็อกถูกหักออกถาวร (`sale`)<br/>2. `Order` สถานะ `paid` ถูกสร้างขึ้น<br/>3. `Authenticity TAG` ถูกสร้าง (สถานะ `'issued'`) พร้อม Unique Code และ Verify ผ่านหน้าเว็บได้ทันที<br/>4. `Royalty Transaction` (สถานะ `'pending'`) ถูกคำนวณตาม Snapshot ปรากฏในรายงานหลังบ้าน | ☐ / ☐ |
+| INT-002 | **Temporary Stock Reservation Timeout**: ล็อกสต็อก 15 นาทีหมดอายุ -> คืนสต็อกเข้า Catalog | ลูกค้าเพิ่มสินค้า Limited Edition ลงตะกร้าจนสต็อกในระบบหมด | 1. ลูกค้าปล่อยตะกร้าทิ้งไว้จนครบเวลาจอง `reservedUntil` (หรือจำลองเวลาผ่านไป 15 นาที)<br/>2. ลูกค้าอีกคนพยายามเข้าชมสินค้านั้นในหน้า Catalog | สต็อกสินค้าที่ถูกจองไว้ถูกปล่อยกลับคืนสู่ Catalog (`release`) อัตโนมัติ ลูกค้าคนอื่นสามารถกดเพิ่มสินค้าลงตะกร้าได้ตามปกติ | ☐ / ☐ |
+| INT-003 | **Order Cancellation & Royalty Rollback**: ยกเลิกออเดอร์ -> คืนสต็อก -> ยกเลิกส่วนแบ่งลิขสิทธิ์ | มีคำสั่งซื้อที่สำเร็จแล้ว และสร้าง Royalty Transaction แล้ว | Admin เข้าหน้า Orders และเปลี่ยนสถานะคำสั่งซื้อเป็น `cancelled` | 1. สถานะออเดอร์เปลี่ยนเป็น `cancelled`<br/>2. สต็อกสินค้าเพิ่มกลับเข้า `product_variants` (`return`)<br/>3. สถานะ `royalty_transactions` ปรับเป็น `reversed` ไม่ถูกนำไปรวมในยอดนำจ่าย | ☐ / ☐ |
+| INT-004 | **Snapshot Price & Royalty Integrity**: เปลี่ยนราคาสินค้าหลังขาย -> ตรวจสอบประวัติออเดอร์เดิม | มีออเดอร์เดิมที่ซื้อสินค้าในราคา 1,590 บาท (Royalty Rate 10%) | Admin เข้าหน้า Catalog ปรับราคาสินค้านั้นเพิ่มเป็น 1,990 บาท และเปลี่ยน Royalty Rate ในสัญญาเป็น 15% จากนั้นตรวจสอบออเดอร์เดิม | ออเดอร์และ Royalty Transaction ในออเดอร์เดิมยังคงคำนวณจากราคา Snapshot 1,590 บาท และ Royalty 10% อย่างถูกต้อง ไม่ถูกเปลี่ยนแปลงตามราคาใหม่ | ☐ / ☐ |
+
+---
+
+### 17.5 สรุปจำนวน Test Case
+
+| หมวดหมู่ | จำนวนเคสทั้งหมด | Positive Cases | Negative / Security Cases |
+| :--- | :---: | :---: | :---: |
+| **Customer (ลูกค้าทั่วไป)** | 16 | 12 | 4 |
+| **Admin (ผู้ดูแลระบบ)** | 8 | 8 | 0 |
+| **License Holder & Security/Authorization** | 4 | 2 | 2 |
+| **Integration / End-to-End Flows** | 4 | 4 | 0 |
+| **รวมทั้งสิ้น** | **32** | **26** | **6** |
+
+---
+
+## ภาคผนวก คำสำคัญและฟีเจอร์เด่นของระบบ AllThingsMerch
+
+1. **Authenticity TAG**: รหัสรับประกันสินค้าลิขสิทธิ์แท้ (Unique Public Code & Serial Number) ออกให้สินค้าทุกชิ้นที่ซื้อจากทางร้าน
+2. **Verify TAG System**: หน้าระบบสาธารณะสำหรับตรวจสอบยืนยันความแท้ของสินค้าลิขสิทธิ์
+3. **Temporary Stock Reservation**: กลไกการล็อกและจองสต็อกสินค้าชั่วคราว 15 นาทีทันทีที่เพิ่มลงตะกร้า
+4. **Royalty Snapshot & Payout**: กลไกบันทึกและคำนวณส่วนแบ่งรายได้ลิขสิทธิ์ตาม Snapshot ราคา ณ เวลาสั่งซื้อ
+5. **Dual-Mode Repository**: สถาปัตยกรรมที่รองรับทั้งการทำงานแบบ Local Demo และ Supabase Cloud Database
 
 ---
 
 © 2026 AllThingsMerch Development Team  
-Document version 1.3 Revised SADS Draft
+Document Version 2.0 – Revised SADS & Full Architecture Specification
