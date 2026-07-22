@@ -141,7 +141,7 @@ export default function CheckoutPage() {
           <ShieldAlert className="w-5 h-5 text-black shrink-0" />
           <div className="text-xs">
             <span className="font-bold text-black uppercase tracking-wider block">
-              LIVE SUPABASE CHECKOUT
+              OFFICIAL LICENSED CHECKOUT
             </span>
             <span className="text-neutral-600">
               Verified order processing with real-time stock deduction and 1-to-1 serial TAG generation.
@@ -303,7 +303,7 @@ export default function CheckoutPage() {
             className="w-full py-4 rounded-xl bg-black text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-neutral-800 transition-colors"
           >
             <Lock className="w-4 h-4" />
-            <span>Place Live Order ({formatTHB(totalAmount)})</span>
+            <span>Place Order ({formatTHB(totalAmount)})</span>
           </button>
         </form>
 

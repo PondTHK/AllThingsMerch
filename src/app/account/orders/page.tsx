@@ -28,7 +28,7 @@ export default async function AccountOrdersPage() {
           <Package className="w-10 h-10 mx-auto text-neutral-400" />
           <h3 className="text-base font-bold text-black">No Orders Recorded Yet</h3>
           <p className="text-xs text-neutral-600 max-w-sm mx-auto">
-            You haven&apos;t completed any merchandise orders. Browse our catalog and checkout in Demo mode to generate live Authenticity TAGs.
+            You haven&apos;t completed any merchandise orders. Browse our catalog and place an order to receive your 1-to-1 verified Authenticity TAGs.
           </p>
           <div>
             <Link
@@ -52,11 +52,6 @@ export default async function AccountOrdersPage() {
                     <span className="font-mono font-bold text-black text-base">
                       {order.orderNumber}
                     </span>
-                    {order.isDemoOrder && (
-                      <span className="px-2 py-0.5 rounded bg-black text-white text-[10px] font-bold uppercase tracking-wider">
-                        DEMO ORDER
-                      </span>
-                    )}
                   </div>
                   <span className="text-xs text-neutral-500">
                     Placed on {new Date(order.createdAt).toLocaleDateString()} &bull; {order.items.reduce((s, i) => s + i.quantity, 0)} Items

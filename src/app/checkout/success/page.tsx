@@ -173,8 +173,8 @@ function OrderSuccessContent() {
             <span className="font-bold uppercase tracking-wider text-neutral-500 block mb-1">
               Payment &amp; Delivery Status
             </span>
-            <div className="text-neutral-600">Simulated Method: <span className="font-bold text-black uppercase">{order.paymentMethod}</span></div>
-            <div className="text-neutral-600">Fulfillment Status: <span className="font-bold text-black">Complete (Demo)</span></div>
+            <div className="text-neutral-600">Payment Method: <span className="font-bold text-black uppercase">{order.paymentMethod}</span></div>
+            <div className="text-neutral-600">Fulfillment Status: <span className="font-bold text-black">Processing</span></div>
           </div>
         </div>
 
