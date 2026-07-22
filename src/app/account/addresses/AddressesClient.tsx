@@ -248,7 +248,7 @@ export function AddressesClient({ initialAddresses }: { initialAddresses: SavedA
       {addresses.length === 0 && !showForm ? (
         <div className="p-12 text-center border border-dashed border-border rounded-2xl bg-surface transition-colors">
           <p className="text-muted text-sm font-medium transition-colors">
-            You don't have any saved addresses yet.
+            You don&apos;t have any saved addresses yet.
           </p>
         </div>
       ) : (

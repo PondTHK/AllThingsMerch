@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { updateTagStatusAction } from './actions';
 
 export interface TagDto {
   id: string;
@@ -25,9 +24,8 @@ interface TagsClientProps {
 
 export function TagsClient({ initialTags, currentPage, totalPages, totalCount }: TagsClientProps) {
   const router = useRouter();
-  const [tags, setTags] = useState<TagDto[]>(initialTags);
+  const tags = initialTags;
   const [searchQuery, setSearchQuery] = useState('');
-  const [isUpdating, setIsUpdating] = useState(false);
 
   const filteredTags = tags.filter((t) => {
     const q = searchQuery.toLowerCase();
@@ -38,19 +36,6 @@ export function TagsClient({ initialTags, currentPage, totalPages, totalCount }:
       t.sku?.toLowerCase().includes(q)
     );
   });
-
-  const updateStatus = async (tagId: string, newStatus: string) => {
-    setIsUpdating(true);
-    const previousTags = [...tags];
-    setTags((prev) => prev.map((t) => (t.id === tagId ? { ...t, status: newStatus } : t)));
-
-    const result = await updateTagStatusAction(tagId, newStatus);
-    if (!result.success) {
-      alert(result.error || 'Failed to update TAG status.');
-      setTags(previousTags);
-    }
-    setIsUpdating(false);
-  };
 
   return (
     <div className="space-y-8">
@@ -92,15 +77,6 @@ export function TagsClient({ initialTags, currentPage, totalPages, totalCount }:
                   SKU: <span className="font-mono">{tag.sku || 'N/A'}</span> &bull; Issued: {new Date(tag.issuedAt).toLocaleDateString()}
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-500">Status:</span>
-                <select value={tag.status} onChange={(e) => updateStatus(tag.id, e.target.value)} disabled={isUpdating}
-                  className="px-3 py-1.5 rounded-xl bg-black text-white text-xs font-bold uppercase tracking-wider focus:outline-none disabled:opacity-50">
-                  <option value="active">Active</option>
-                  <option value="revoked">Revoked</option>
-                  <option value="flagged">Flagged</option>
-                </select>
-              </div>
             </div>
           ))}
         </div>
@@ -110,9 +86,9 @@ export function TagsClient({ initialTags, currentPage, totalPages, totalCount }:
         <div className="flex items-center justify-between border-t border-neutral-200 pt-4">
           <p className="text-xs text-neutral-500">Showing page {currentPage} of {totalPages} ({totalCount} total TAGs)</p>
           <div className="flex items-center gap-2">
-            <button onClick={() => router.push(`/admin/tags?page=${currentPage - 1}`)} disabled={currentPage <= 1 || isUpdating}
+            <button onClick={() => router.push(`/admin/tags?page=${currentPage - 1}`)} disabled={currentPage <= 1}
               className="px-3 py-1.5 rounded-xl border border-neutral-300 bg-white text-xs font-bold disabled:opacity-50 hover:bg-neutral-50">Previous</button>
-            <button onClick={() => router.push(`/admin/tags?page=${currentPage + 1}`)} disabled={currentPage >= totalPages || isUpdating}
+            <button onClick={() => router.push(`/admin/tags?page=${currentPage + 1}`)} disabled={currentPage >= totalPages}
               className="px-3 py-1.5 rounded-xl border border-neutral-300 bg-white text-xs font-bold disabled:opacity-50 hover:bg-neutral-50">Next</button>
           </div>
         </div>
