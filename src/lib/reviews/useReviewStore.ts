@@ -20,7 +20,7 @@ const INITIAL_REVIEWS: Review[] = [
     comment: 'ผ้าดีมากครับ ลิขสิทธิ์แท้แน่นอน สแกนเช็ค TAG ผ่านฉลุย ทรงสวย ใส่สบาย สมราคา Oracle Red Bull Racing ของแท้ 100%!',
     status: 'published',
     createdAt: '2026-07-10T08:30:00Z',
-    userName: 'Thanakhon Demo Collector',
+    userName: 'Demo Collector',
     productName: 'Red Bull Racing 2026 Team Polo',
   },
   {

@@ -69,7 +69,7 @@ export default function AccountProfilePage() {
             type="text"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            placeholder="089-123-4567"
+            placeholder="0XX-XXX-XXXX"
             className="w-full px-4 py-3 rounded-xl bg-background border border-border text-sm font-medium text-foreground focus:outline-none focus:border-foreground transition-colors"
           />
         </div>

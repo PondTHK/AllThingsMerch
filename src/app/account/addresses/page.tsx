@@ -11,13 +11,13 @@ export default function AccountAddressesPage() {
   const setDefaultAddress = useAuthStore((state) => state.setDefaultAddress);
 
   const [showForm, setShowForm] = useState(false);
-  const [label, setLabel] = useState('Office Address');
-  const [fullName, setFullName] = useState('Thanakhon Collector');
-  const [email, setEmail] = useState('collector@allthingsmerch.demo');
-  const [phone, setPhone] = useState('089-123-4567');
+  const [label, setLabel] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [street, setStreet] = useState('');
-  const [city, setCity] = useState('Bangkok');
-  const [postalCode, setPostalCode] = useState('10110');
+  const [city, setCity] = useState('');
+  const [postalCode, setPostalCode] = useState('');
   const [isDefault, setIsDefault] = useState(false);
 
   const handleCreate = (e: React.FormEvent) => {

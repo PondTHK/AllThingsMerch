@@ -18,19 +18,7 @@ export interface AuthState {
   setDefaultAddress: (id: string) => void;
 }
 
-const DEFAULT_DEMO_ADDRESSES: SavedAddress[] = [
-  {
-    id: 'addr-demo-1',
-    label: 'Primary Bangkok Residence',
-    fullName: 'Thanakhon Demo Collector',
-    email: 'collector@allthingsmerch.demo',
-    phone: '089-123-4567',
-    street: '999 Sukhumvit Road, Khlong Toei',
-    city: 'Bangkok',
-    postalCode: '10110',
-    isDefault: true,
-  },
-];
+const DEFAULT_DEMO_ADDRESSES: SavedAddress[] = [];
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -67,8 +55,7 @@ export const useAuthStore = create<AuthState>()(
           user: {
             id: 'demo-collector-01',
             email: 'collector@allthingsmerch.demo',
-            fullName: 'Thanakhon Demo Collector',
-            phone: '089-123-4567',
+            fullName: 'Demo Collector',
             role: 'customer',
             createdAt: '2026-06-01T10:00:00Z',
           },

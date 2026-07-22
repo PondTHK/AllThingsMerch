@@ -37,12 +37,12 @@ export default function CheckoutPage() {
     return item.reservedUntil < min ? item.reservedUntil : min;
   }, null);
 
-  const [fullName, setFullName] = useState('Thanakhon Demo Collector');
-  const [email, setEmail] = useState('collector@allthingsmerch.demo');
-  const [phone, setPhone] = useState('089-123-4567');
-  const [street, setStreet] = useState('999 Sukhumvit Road, Khlong Toei');
-  const [city, setCity] = useState('Bangkok');
-  const [postalCode, setPostalCode] = useState('10110');
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [street, setStreet] = useState('');
+  const [city, setCity] = useState('');
+  const [postalCode, setPostalCode] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId>('credit-card');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -265,14 +265,14 @@ export default function CheckoutPage() {
           {/* Payment Method */}
           <div className="space-y-4">
             <h2 className="text-lg font-black uppercase tracking-wider text-foreground border-b border-border pb-3 transition-colors">
-              2. Simulated Payment Method
+              2. Payment Method
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {[
-                { id: 'credit-card', label: 'Credit / Debit Card (Mock)' },
-                { id: 'promptpay', label: 'PromptPay QR (Mock)' },
-                { id: 'cod', label: 'Cash on Delivery (Mock)' },
+                { id: 'credit-card', label: 'Credit / Debit Card' },
+                { id: 'promptpay', label: 'PromptPay QR' },
+                { id: 'cod', label: 'Cash on Delivery' },
               ].map((pm) => (
                 <button
                   key={pm.id}
@@ -465,7 +465,7 @@ export default function CheckoutPage() {
                 <span>1-to-1 Serial Registration</span>
               </div>
               <p>
-                Upon mock completion, encrypted Authenticity TAG verification codes will be assigned to every fulfilled line item.
+                Upon order completion, encrypted Authenticity TAG verification codes will be assigned to every fulfilled line item.
               </p>
             </div>
           </div>
