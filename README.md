@@ -387,8 +387,6 @@ graph TD
    - **Inventory & Stock Movements Log**: ตารางตรวจสอบประวัติการย้ายสต็อกทุกรายการ (Reserve, Release, Sale, Return)
    - **Contract & Royalty Manager**: หน้าจัดการผู้ถือลิขสิทธิ์และสัญญา พร้อมตารางแสดงรายงานยอด Royalty Transactions ที่คำนวณอัตโนมัติ
 
-3. **Partner Dashboard (สำหรับผู้ถือครองลิขสิทธิ์)**
-   - **Royalty Read-Only View**: หน้าจอแสดงยอดขายสินค้าและยอดเงินส่วนแบ่งเฉพาะแบรนด์หรือลิขสิทธิ์ของคู่ค้านั้นๆ
 
 > **ลิงก์ต้นแบบและดีไซน์อ้างอิง**: สามารถดูรายละเอียดการออกแบบและโครงสร้างหน้าจอทั้งหมดของโปรเจกต์ได้ในเอกสาร SADS (`ALLTHINGSMERCH_CODEX_SPEC.md`) และต้นแบบ UI บน Figma ของกลุ่ม AllThingsMerch
 
