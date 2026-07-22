@@ -145,7 +145,7 @@ export interface OrderItem {
 export interface Order {
   id: string;
   orderNumber: string;
-  status: 'pending' | 'processing' | 'fulfilled' | 'cancelled';
+  status: 'pending' | 'pending_payment' | 'paid' | 'processing' | 'shipped' | 'delivered' | 'fulfilled' | 'completed' | 'cancelled' | string;
   items: OrderItem[];
   subtotal: number;
   shippingFee: number;
