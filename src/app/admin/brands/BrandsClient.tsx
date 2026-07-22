@@ -46,12 +46,12 @@ export function BrandsClient({
     register,
     handleSubmit,
     setValue,
-    watch,
+
     reset,
     formState: { errors, isSubmitting },
   } = useForm<BrandFormValues>({ resolver: zodResolver(brandSchema) });
 
-  const nameValue = watch('name', '');
+
 
   const handleNameChange = (val: string) => {
     setValue('name', val);

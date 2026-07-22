@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Plus, Check, Trash2, Ticket } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Modal } from '@/components/admin/Modal';
@@ -65,7 +65,7 @@ export function CouponsClient({
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<CouponFormValues>({
@@ -73,7 +73,7 @@ export function CouponsClient({
     defaultValues: { discountType: 'percentage', discountValue: 10 },
   });
 
-  const discountType = watch('discountType');
+  const discountType = useWatch({ control, name: 'discountType' });
 
   const onSubmit = async (values: CouponFormValues) => {
     const result = await createCouponAction({

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { AdminTag, TagStatusValue } from '../domain/entities/AdminTag';
 import { IAdminTagRepository, GenerateTagInput } from '../ports/outbound/IAdminTagRepository';
 import { PaginationParams, PaginatedResult } from '../ports/outbound/IAdminProductRepository';

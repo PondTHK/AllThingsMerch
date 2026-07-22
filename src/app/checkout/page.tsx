@@ -4,9 +4,10 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useCartStore } from '@/lib/cart/useCartStore';
-import { useAdminStore } from '@/lib/admin/useAdminStore';
+
 import { useHydrated } from '@/lib/cart/useHydrated';
-import { fulfillMockOrder, validateAndRecalculateCart } from '@/lib/orders/mock-checkout';
+import { validateAndRecalculateCart } from '@/lib/orders/mock-checkout';
+import { placeOrderAction } from '@/app/checkout/actions';
 import { formatTHB } from '@/lib/money';
 import { getRepository } from '@/lib/repositories';
 import { CheckoutReservationBanner } from '@/components/CheckoutReservationBanner';
@@ -75,7 +76,7 @@ export default function CheckoutPage() {
     );
   }
 
-  const handleConfirmOrder = (e: React.FormEvent) => {
+  const handleConfirmOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsSubmitting(true);
@@ -85,63 +86,23 @@ export default function CheckoutPage() {
         throw new Error('Please fill out all required shipping address fields.');
       }
 
-      const order = fulfillMockOrder(
-        items,
-        {
-          fullName: fullName.trim(),
-          email: email.trim(),
-          phone: phone.trim(),
-          street: street.trim(),
-          city: city.trim(),
-          postalCode: postalCode.trim(),
-        },
-        paymentMethod,
-        appliedCoupon
-      );
+      const shippingAddress = {
+        fullName: fullName.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        street: street.trim(),
+        city: city.trim(),
+        postalCode: postalCode.trim(),
+      };
 
-      // 1. Validate stock for NON-LIMITED items (because they weren't reserved!)
-      const adminProducts = useAdminStore.getState().products;
-      for (const item of items) {
-        if (!item.isLimited) {
-          const adminVariant = adminProducts
-            .flatMap((p) => p.variants)
-            .find((v) => v.id === item.variantId);
-          const available = adminVariant ? adminVariant.stockQuantity : 0;
-          if (available < item.quantity) {
-            throw new Error(`Item ${item.productName} is out of stock. Please adjust your cart.`);
-          }
-        }
+      const result = await placeOrderAction(items, shippingAddress, paymentMethod, appliedCoupon?.code);
+
+      if (result.success && result.orderNumber) {
+        clearCartWithoutRelease();
+        router.push(`/checkout/success?orderNumber=${encodeURIComponent(result.orderNumber)}`);
       }
-
-      // Increment coupon use count if one was applied
-      if (appliedCoupon) {
-        getRepository().updateCoupon(appliedCoupon.id, {
-          currentGlobalUses: appliedCoupon.currentGlobalUses + 1,
-        }).catch(err => console.error('Failed to increment coupon use count:', err));
-      }
-
-      // Transition reservation to sale in Admin Store
-      items.forEach((item) => {
-        if (item.isLimited) {
-          // 1. Release the reservation (positive delta) since it was reserved
-          useAdminStore.getState().adjustVariantStock(item.variantId, item.quantity, 'release', 'cart');
-        }
-        
-        // 2. Log as permanent sale (negative delta) for ALL items
-        useAdminStore.getState().adjustVariantStock(
-          item.variantId,
-          -item.quantity,
-          'sale',
-          'order',
-          order.id,
-          `Order ${order.orderNumber} purchased`
-        );
-      });
-
-      clearCartWithoutRelease();
-      router.push(`/checkout/success?orderNumber=${encodeURIComponent(order.orderNumber)}`);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to complete mock checkout.';
+      const msg = err instanceof Error ? err.message : 'Failed to complete checkout.';
       setError(msg);
       setIsSubmitting(false);
     }
@@ -158,10 +119,10 @@ export default function CheckoutPage() {
           <ShieldAlert className="w-5 h-5 text-black shrink-0" />
           <div className="text-xs">
             <span className="font-bold text-black uppercase tracking-wider block">
-              DEMO MODE CHECKOUT
+              SECURE CHECKOUT
             </span>
             <span className="text-neutral-600">
-              No real financial charge will be processed. This simulates full verification, TAG assignment, and royalty snapshot capture.
+              Orders will be processed through the live database. Authenticity TAGs and Royalties are handled automatically.
             </span>
           </div>
         </div>
@@ -320,7 +281,7 @@ export default function CheckoutPage() {
             className="w-full py-4 rounded-xl bg-black text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-neutral-800 transition-colors"
           >
             <Lock className="w-4 h-4" />
-            <span>Confirm Mock Order ({formatTHB(verifiedCalculation.totalAmount)})</span>
+            <span>{isSubmitting ? 'Processing...' : `Confirm Order (${formatTHB(verifiedCalculation.totalAmount)})`}</span>
           </button>
         </form>
 
@@ -484,7 +445,7 @@ export default function CheckoutPage() {
                 <span>1-to-1 Serial Registration</span>
               </div>
               <p>
-                Upon mock completion, encrypted Authenticity TAG verification codes will be assigned to every fulfilled line item.
+                Upon completion, encrypted Authenticity TAG verification codes will be assigned to every fulfilled line item.
               </p>
             </div>
           </div>

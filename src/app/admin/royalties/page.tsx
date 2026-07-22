@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { getAdminServices } from '@/lib/admin/container';
@@ -14,7 +15,7 @@ export default async function AdminRoyaltiesPage() {
   // Fetch active contracts
   const contracts = await services.contracts.getActiveContracts();
 
-  let brandRevenue: Record<string, { brandName: string; totalRevenue: number; orderCount: number }> = {};
+  const brandRevenue: Record<string, { brandName: string; totalRevenue: number; orderCount: number }> = {};
 
   // ---------------------------------------------------------------------------
   // FAST PATH: Try to query the Database View first (O(1) payload size)

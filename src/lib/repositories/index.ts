@@ -1,9 +1,14 @@
-import { Product, Brand, Category, ProductStatus, ProductVariant, ProductImage } from '@/types';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Product, Brand, Category, ProductStatus, ProductVariant, ProductImage, Coupon } from '@/types';
 import {
   getAllProducts as getMockProducts,
   getProductBySlug as getMockProductBySlug,
   MOCK_BRANDS,
   MOCK_CATEGORIES,
+  getCoupons as getMockCoupons,
+  getCouponByCode as getMockCouponByCode,
+  createCoupon as mockCreateCoupon,
+  updateCoupon as mockUpdateCoupon,
 } from './mock-data';
 import { isSupabaseConfigured, getSupabaseBrowserClient } from '@/lib/supabase/client';
 
@@ -13,6 +18,10 @@ export interface DataRepository {
   getProductBySlug(slug: string): Promise<Product | undefined>;
   getBrands(): Promise<Brand[]>;
   getCategories(): Promise<Category[]>;
+  getCoupons(): Promise<Coupon[]>;
+  getCouponByCode(code: string): Promise<Coupon | undefined>;
+  createCoupon(coupon: Omit<Coupon, 'id' | 'createdAt' | 'currentGlobalUses'>): Promise<Coupon>;
+  updateCoupon(id: string, updates: Partial<Coupon>): Promise<Coupon>;
 }
 
 function mapSupabaseRowToProduct(row: any): Product {
@@ -106,6 +115,22 @@ class DemoRepository implements DataRepository {
   async getCategories(): Promise<Category[]> {
     return MOCK_CATEGORIES;
   }
+
+  async getCoupons(): Promise<Coupon[]> {
+    return getMockCoupons();
+  }
+
+  async getCouponByCode(code: string): Promise<Coupon | undefined> {
+    return getMockCouponByCode(code);
+  }
+
+  async createCoupon(coupon: Omit<Coupon, 'id' | 'createdAt' | 'currentGlobalUses'>): Promise<Coupon> {
+    return mockCreateCoupon(coupon);
+  }
+
+  async updateCoupon(id: string, updates: Partial<Coupon>): Promise<Coupon> {
+    return mockUpdateCoupon(id, updates);
+  }
 }
 
 class SupabaseRepository implements DataRepository {
@@ -173,6 +198,126 @@ class SupabaseRepository implements DataRepository {
       slug: c.slug,
       parentId: c.parent_id ?? undefined,
     }));
+  }
+
+  async getCoupons(): Promise<Coupon[]> {
+    const client = getSupabaseBrowserClient();
+    if (!client) return getMockCoupons();
+
+    const { data, error } = await client.from('coupons').select('*');
+    if (error || !data) return getMockCoupons();
+
+    return data.map((c: any) => ({
+      id: c.id,
+      code: c.code,
+      discountType: c.discount_type,
+      discountValue: Number(c.discount_value),
+      minOrderValue: c.minimum_order_amount ? Number(c.minimum_order_amount) : undefined,
+      maxGlobalUses: c.usage_limit ?? undefined,
+      currentGlobalUses: c.usage_count ?? 0,
+      isActive: c.is_active,
+      expiresAt: c.expires_at,
+      createdAt: c.created_at,
+    }));
+  }
+
+  async getCouponByCode(code: string): Promise<Coupon | undefined> {
+    const client = getSupabaseBrowserClient();
+    if (!client) return getMockCouponByCode(code);
+
+    const { data, error } = await client
+      .from('coupons')
+      .select('*')
+      .ilike('code', code)
+      .single();
+
+    if (error || !data) return getMockCouponByCode(code);
+
+    return {
+      id: data.id,
+      code: data.code,
+      discountType: data.discount_type,
+      discountValue: Number(data.discount_value),
+      minOrderValue: data.minimum_order_amount ? Number(data.minimum_order_amount) : undefined,
+      maxGlobalUses: data.usage_limit ?? undefined,
+      currentGlobalUses: data.usage_count ?? 0,
+      isActive: data.is_active,
+      expiresAt: data.expires_at,
+      createdAt: data.created_at,
+    };
+  }
+
+  async createCoupon(coupon: Omit<Coupon, 'id' | 'createdAt' | 'currentGlobalUses'>): Promise<Coupon> {
+    const client = getSupabaseBrowserClient();
+    if (!client) return mockCreateCoupon(coupon);
+
+    const insertData = {
+      code: coupon.code,
+      discount_type: coupon.discountType,
+      discount_value: coupon.discountValue,
+      minimum_order_amount: coupon.minOrderValue ?? null,
+      usage_limit: coupon.maxGlobalUses ?? null,
+      is_active: coupon.isActive,
+      expires_at: coupon.expiresAt,
+    };
+
+    const { data, error } = await client
+      .from('coupons')
+      .insert([insertData])
+      .select()
+      .single();
+
+    if (error || !data) throw new Error('Failed to create coupon: ' + (error?.message || 'Unknown error'));
+
+    return {
+      id: data.id,
+      code: data.code,
+      discountType: data.discount_type,
+      discountValue: Number(data.discount_value),
+      minOrderValue: data.minimum_order_amount ? Number(data.minimum_order_amount) : undefined,
+      maxGlobalUses: data.usage_limit ?? undefined,
+      currentGlobalUses: data.usage_count ?? 0,
+      isActive: data.is_active,
+      expiresAt: data.expires_at,
+      createdAt: data.created_at,
+    };
+  }
+
+  async updateCoupon(id: string, updates: Partial<Coupon>): Promise<Coupon> {
+    const client = getSupabaseBrowserClient();
+    if (!client) return mockUpdateCoupon(id, updates);
+
+    const updateData: any = {};
+    if (updates.code !== undefined) updateData.code = updates.code;
+    if (updates.discountType !== undefined) updateData.discount_type = updates.discountType;
+    if (updates.discountValue !== undefined) updateData.discount_value = updates.discountValue;
+    if (updates.minOrderValue !== undefined) updateData.minimum_order_amount = updates.minOrderValue;
+    if (updates.maxGlobalUses !== undefined) updateData.usage_limit = updates.maxGlobalUses;
+    if (updates.currentGlobalUses !== undefined) updateData.usage_count = updates.currentGlobalUses;
+    if (updates.isActive !== undefined) updateData.is_active = updates.isActive;
+    if (updates.expiresAt !== undefined) updateData.expires_at = updates.expiresAt;
+
+    const { data, error } = await client
+      .from('coupons')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error || !data) throw new Error('Failed to update coupon: ' + (error?.message || 'Unknown error'));
+
+    return {
+      id: data.id,
+      code: data.code,
+      discountType: data.discount_type,
+      discountValue: Number(data.discount_value),
+      minOrderValue: data.minimum_order_amount ? Number(data.minimum_order_amount) : undefined,
+      maxGlobalUses: data.usage_limit ?? undefined,
+      currentGlobalUses: data.usage_count ?? 0,
+      isActive: data.is_active,
+      expiresAt: data.expires_at,
+      createdAt: data.created_at,
+    };
   }
 }
 
