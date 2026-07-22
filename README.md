@@ -936,10 +936,8 @@ sequenceDiagram
     "slug": { "type": "varchar(255)", "constraints": ["UNIQUE", "NOT NULL"] },
     "description": { "type": "text", "constraints": ["NOT NULL"] },
     "status": { "type": "product_status", "constraints": ["NOT NULL", "DEFAULT 'active'"] },
-    "is_limited": { "type": "boolean", "constraints": ["NOT NULL", "DEFAULT false"], "note": "สินค้ารุ่นพิเศษ Limited Edition" },
     "is_preorder": { "type": "boolean", "constraints": ["NOT NULL", "DEFAULT false"] },
     "preorder_release_at": { "type": "timestamptz", "constraints": ["NULLABLE"], "note": "วันที่คาดว่าจะปล่อยสินค้า Pre-Order" },
-    "featured_image": { "type": "text", "constraints": ["NULLABLE"] },
     "created_at": { "type": "timestamptz", "constraints": ["NOT NULL", "DEFAULT now()"] },
     "updated_at": { "type": "timestamptz", "constraints": ["NOT NULL", "DEFAULT now()"] }
   },
@@ -1016,7 +1014,11 @@ sequenceDiagram
     "usage_limit": { "type": "integer", "constraints": ["NULLABLE"] },
     "starts_at": { "type": "timestamptz", "constraints": ["NOT NULL"] },
     "expires_at": { "type": "timestamptz", "constraints": ["NOT NULL"] },
-    "is_active": { "type": "boolean", "constraints": ["NOT NULL", "DEFAULT true"] }
+    "is_active": { "type": "boolean", "constraints": ["NOT NULL", "DEFAULT true"] },
+    "created_at": { "type": "timestamptz", "constraints": ["NOT NULL", "DEFAULT now()"] },
+    "updated_at": { "type": "timestamptz", "constraints": ["NOT NULL", "DEFAULT now()"] },
+    "usage_count": { "type": "integer", "constraints": ["NOT NULL", "DEFAULT 0", "CHECK (usage_count >= 0)"] },
+    "max_uses_per_user": { "type": "integer", "constraints": ["NULLABLE", "CHECK (max_uses_per_user >= 0)"] }
   },
   "relations": {
     "has_many": ["orders"]
@@ -1045,7 +1047,8 @@ sequenceDiagram
     "coupon_id": { "type": "uuid", "constraints": ["FOREIGN KEY -> coupons.id", "NULLABLE"] },
     "shipping_address": { "type": "jsonb", "constraints": ["NOT NULL"] },
     "created_at": { "type": "timestamptz", "constraints": ["NOT NULL", "DEFAULT now()"] },
-    "updated_at": { "type": "timestamptz", "constraints": ["NOT NULL", "DEFAULT now()"] }
+    "updated_at": { "type": "timestamptz", "constraints": ["NOT NULL", "DEFAULT now()"] },
+    "payment_method": { "type": "text", "constraints": ["NULLABLE"] }
   },
   "relations": {
     "belongs_to": ["users", "coupons"],
