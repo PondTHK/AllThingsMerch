@@ -41,16 +41,14 @@ export async function getUserOrdersAction(): Promise<Order[]> {
   const supabase = await getSupabaseServerClient();
   if (!supabase) return [];
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return [];
+  let userId = '00000000-0000-0000-0000-000000000000';
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) userId = user.id;
 
   const { data, error } = await supabase
     .from('orders')
     .select('*, order_items(*, authenticity_tags(*))')
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .order('created_at', { ascending: false });
 
   if (error || !data) {
@@ -65,16 +63,14 @@ export async function getUserOrderByNumberAction(orderNumber: string): Promise<O
   const supabase = await getSupabaseServerClient();
   if (!supabase) return null;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return null;
+  let userId = '00000000-0000-0000-0000-000000000000';
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) userId = user.id;
 
   const { data, error } = await supabase
     .from('orders')
     .select('*, order_items(*, authenticity_tags(*))')
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .eq('order_number', orderNumber)
     .single();
 

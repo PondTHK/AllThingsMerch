@@ -22,6 +22,7 @@ export default function ProductDetailPage() {
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>(undefined);
   const [quantity, setQuantity] = useState(1);
   const [addedMessage, setAddedMessage] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const addItem = useCartStore((s) => s.addItem);
 
   useEffect(() => {
@@ -77,11 +78,19 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = () => {
     if (!selectedVariant || selectedVariant.stockQuantity <= 0 || !product) return;
-    addItem(selectedVariant, product, quantity);
-    setAddedMessage(true);
-    setTimeout(() => {
-      setAddedMessage(false);
-    }, 3000);
+    try {
+      setErrorMessage('');
+      addItem(selectedVariant, product, quantity);
+      setAddedMessage(true);
+      setTimeout(() => {
+        setAddedMessage(false);
+      }, 3000);
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Failed to add to cart');
+      setTimeout(() => {
+        setErrorMessage('');
+      }, 3000);
+    }
   };
 
   const relatedProducts = allProducts
@@ -275,6 +284,12 @@ export default function ProductDetailPage() {
               <div className="p-3 rounded-xl bg-black text-white text-xs font-bold flex items-center justify-center gap-2">
                 <Check className="w-4 h-4" />
                 <span>Added to Shopping Cart ({quantity} item{quantity > 1 ? 's' : ''})</span>
+              </div>
+            )}
+
+            {errorMessage && (
+              <div className="p-3 rounded-xl bg-red-600 text-white text-xs font-bold flex items-center justify-center gap-2">
+                <span>{errorMessage}</span>
               </div>
             )}
           </div>

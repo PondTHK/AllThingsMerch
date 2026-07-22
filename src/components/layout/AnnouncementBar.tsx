@@ -3,6 +3,7 @@
 import React from 'react';
 import { usePathname } from 'next/navigation';
 import { ShieldCheck } from 'lucide-react';
+import { isSupabaseConfigured } from '@/lib/supabase/client';
 
 export function AnnouncementBar() {
   const pathname = usePathname();
@@ -21,9 +22,11 @@ export function AnnouncementBar() {
           <span className="hidden sm:inline">
             Free Nationwide Shipping on Orders over 3,000 THB
           </span>
-          <span className="px-2 py-0.5 rounded-full bg-neutral-900 text-neutral-300 text-[10px] font-semibold tracking-wider uppercase border border-neutral-700">
-            Demo Mode
-          </span>
+          {!isSupabaseConfigured() && (
+            <span className="px-2 py-0.5 rounded-full bg-neutral-900 text-neutral-300 text-[10px] font-semibold tracking-wider uppercase border border-neutral-700">
+              Demo Mode
+            </span>
+          )}
         </div>
       </div>
     </div>

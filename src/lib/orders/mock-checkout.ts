@@ -53,9 +53,20 @@ export function validateAndRecalculateCart(items: CartItem[], coupon?: Coupon | 
   for (const item of items) {
     const adminProducts = useAdminStore.getState().products;
     let product = adminProducts.find((p) => p.slug === item.productSlug);
-    if (!product) {
-      product = getProductBySlug(item.productSlug);
+    let variant = product?.variants.find((v) => v.id === item.variantId);
+
+    // If product or variant not found in adminStore (due to stale localStorage), fallback to codebase mock data
+    if (!product || !variant) {
+      const fallbackProduct = getProductBySlug(item.productSlug);
+      if (fallbackProduct) {
+        const fallbackVariant = fallbackProduct.variants.find((v) => v.id === item.variantId);
+        if (fallbackVariant) {
+          product = fallbackProduct;
+          variant = fallbackVariant;
+        }
+      }
     }
+
     if (!product) {
       return {
         verifiedItems: [],
@@ -68,7 +79,6 @@ export function validateAndRecalculateCart(items: CartItem[], coupon?: Coupon | 
       };
     }
 
-    const variant = product.variants.find((v) => v.id === item.variantId);
     if (!variant) {
       return {
         verifiedItems: [],

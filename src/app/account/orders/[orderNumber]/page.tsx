@@ -1,9 +1,9 @@
 'use client';
 
-import React, { use, useState } from 'react';
+import React, { use, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { getOrderHistory } from '@/lib/orders/mock-checkout';
-import { useHydrated } from '@/lib/cart/useHydrated';
+import { getUserOrderByNumberAction } from '@/app/account/orders/actions';
+import { Order, OrderItem } from '@/types';
 import { formatTHB } from '@/lib/money';
 import { ArrowLeft, ShieldCheck, ExternalLink, Star, AlertCircle } from 'lucide-react';
 import { useReviewStore } from '@/lib/reviews/useReviewStore';
@@ -15,9 +15,16 @@ export default function AccountOrderDetailPage({
   params: Promise<{ orderNumber: string }>;
 }) {
   const { orderNumber } = use(params);
-  const isHydrated = useHydrated();
-  const history = isHydrated ? getOrderHistory() : [];
-  const order = history.find((o) => o.orderNumber === orderNumber);
+  
+  const [order, setOrder] = useState<Order | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getUserOrderByNumberAction(orderNumber).then(data => {
+      setOrder(data);
+      setLoading(false);
+    });
+  }, [orderNumber]);
 
   const [activeReviewItem, setActiveReviewItem] = useState<OrderItem | null>(null);
   const [rating, setRating] = useState<number>(5);
@@ -57,7 +64,7 @@ export default function AccountOrderDetailPage({
     setActiveReviewItem(null);
   };
 
-  if (!isHydrated) {
+  if (loading) {
     return <div className="p-16 text-center text-neutral-500">Loading Order Details...</div>;
   }
 
@@ -66,7 +73,7 @@ export default function AccountOrderDetailPage({
       <div className="rounded-2xl bg-neutral-100 border border-neutral-200 p-12 text-center space-y-4">
         <h3 className="text-lg font-black text-black">Order Not Found</h3>
         <p className="text-xs text-neutral-600">
-          Order number <span className="font-mono font-bold">{orderNumber}</span> could not be located in your local order history.
+          Order number <span className="font-mono font-bold">{orderNumber}</span> could not be located in your order history.
         </p>
         <Link
           href="/account/orders"

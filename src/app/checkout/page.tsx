@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { useCartStore } from '@/lib/cart/useCartStore';
 
 import { useHydrated } from '@/lib/cart/useHydrated';
-import { validateAndRecalculateCart } from '@/lib/orders/mock-checkout';
 import { placeOrderAction } from '@/app/checkout/actions';
 import { formatTHB } from '@/lib/money';
 import { getRepository } from '@/lib/repositories';
@@ -57,14 +56,17 @@ export default function CheckoutPage() {
     return <div className="p-16 text-center text-neutral-500">Loading checkout...</div>;
   }
 
-  const verifiedCalculation = validateAndRecalculateCart(items, appliedCoupon);
+  const getSubtotal = useCartStore((s) => s.getSubtotal);
+  const getDiscountAmount = useCartStore((s) => s.getDiscountAmount);
+  const getShippingFee = useCartStore((s) => s.getShippingFee);
+  const getTotalAmount = useCartStore((s) => s.getTotalAmount);
 
-  if (items.length === 0 || !verifiedCalculation.isValid) {
+  if (items.length === 0) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-24 text-center space-y-6">
         <h1 className="text-3xl font-black text-black">Cannot Proceed to Checkout</h1>
         <p className="text-sm text-neutral-600">
-          {verifiedCalculation.errorMessage || 'Your shopping bag is empty.'}
+          Your shopping bag is empty.
         </p>
         <Link
           href="/products"
@@ -75,6 +77,11 @@ export default function CheckoutPage() {
       </div>
     );
   }
+
+  const subtotal = getSubtotal();
+  const discountAmount = getDiscountAmount();
+  const shippingFee = getShippingFee();
+  const totalAmount = getTotalAmount();
 
   const handleConfirmOrder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -281,7 +288,7 @@ export default function CheckoutPage() {
             className="w-full py-4 rounded-xl bg-black text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-neutral-800 transition-colors"
           >
             <Lock className="w-4 h-4" />
-            <span>{isSubmitting ? 'Processing...' : `Confirm Order (${formatTHB(verifiedCalculation.totalAmount)})`}</span>
+            <span>{isSubmitting ? 'Processing...' : `Confirm Order (${formatTHB(totalAmount)})`}</span>
           </button>
         </form>
 
@@ -293,12 +300,12 @@ export default function CheckoutPage() {
                 Verified Order Summary
               </h2>
               <span className="text-xs font-bold uppercase tracking-wider text-neutral-500">
-                {verifiedCalculation.verifiedItems.reduce((s, i) => s + i.quantity, 0)} Items
+                {items.reduce((s, i) => s + i.quantity, 0)} Items
               </span>
             </div>
 
             <div className="space-y-4 max-h-80 overflow-y-auto pr-2">
-              {verifiedCalculation.verifiedItems.map((item) => (
+              {items.map((item) => (
                 <div key={item.id} className="flex items-start justify-between gap-4 text-xs">
                   <div>
                     <div className="font-bold text-black flex items-center gap-2">
@@ -314,7 +321,7 @@ export default function CheckoutPage() {
                     </div>
                   </div>
                   <div className="font-bold text-black shrink-0">
-                    {formatTHB(item.totalPrice)}
+                    {formatTHB(item.unitPrice * item.quantity)}
                   </div>
                 </div>
               ))}
@@ -324,26 +331,26 @@ export default function CheckoutPage() {
               <div className="flex items-center justify-between text-neutral-600">
                 <span>Verified Subtotal</span>
                 <span className="font-bold text-black">
-                  {formatTHB(verifiedCalculation.subtotal)}
+                  {formatTHB(subtotal)}
                 </span>
               </div>
-              {verifiedCalculation.discountAmount > 0 && (
+              {discountAmount > 0 && (
                 <div className="flex items-center justify-between text-green-600">
                   <span className="flex items-center gap-1">
                     <Ticket className="w-3.5 h-3.5" />
                     Discount ({appliedCoupon?.code})
                   </span>
                   <span className="font-bold">
-                    -{formatTHB(verifiedCalculation.discountAmount)}
+                    -{formatTHB(discountAmount)}
                   </span>
                 </div>
               )}
               <div className="flex items-center justify-between text-neutral-600">
                 <span>Shipping Fee</span>
                 <span className="font-bold text-black">
-                  {verifiedCalculation.shippingFee === 0
+                  {shippingFee === 0
                     ? 'FREE'
-                    : formatTHB(verifiedCalculation.shippingFee)}
+                    : formatTHB(shippingFee)}
                 </span>
               </div>
             </div>
@@ -353,7 +360,7 @@ export default function CheckoutPage() {
                 Total Due
               </span>
               <span className="text-2xl font-black text-black">
-                {formatTHB(verifiedCalculation.totalAmount)}
+                {formatTHB(totalAmount)}
               </span>
             </div>
 
@@ -416,7 +423,7 @@ export default function CheckoutPage() {
                           if (coupon.maxGlobalUses !== undefined && coupon.currentGlobalUses >= coupon.maxGlobalUses) {
                             throw new Error('This coupon is fully claimed');
                           }
-                          if (coupon.minOrderValue && verifiedCalculation.subtotal < coupon.minOrderValue) {
+                          if (coupon.minOrderValue && subtotal < coupon.minOrderValue) {
                             throw new Error(`Minimum order of ${formatTHB(coupon.minOrderValue)} required`);
                           }
                           applyCoupon(coupon);
