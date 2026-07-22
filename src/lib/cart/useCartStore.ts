@@ -64,7 +64,7 @@ export const useCartStore = create<CartState>()(
         const adminProducts = useAdminStore.getState().products;
         const adminProduct = adminProducts.find(p => p.id === product.id);
         const adminVariant = adminProduct?.variants.find(v => v.id === variant.id);
-        const availableStock = adminVariant ? adminVariant.stockQuantity : 0;
+        const availableStock = adminVariant ? adminVariant.stockQuantity : (variant.stockQuantity ?? Infinity);
 
         if (availableStock < quantity) {
           throw new Error(`Insufficient stock. Only ${availableStock} item(s) left.`);
@@ -94,7 +94,7 @@ export const useCartStore = create<CartState>()(
         if (existingIndex > -1) {
           nextItems = existingItems.map((item, i) =>
             i === existingIndex
-              ? { ...item, quantity: item.quantity + quantity, reservedUntil }
+              ? { ...item, quantity: item.quantity + quantity, stockQuantity: variant.stockQuantity ?? item.stockQuantity, reservedUntil }
               : item
           );
         } else {
@@ -109,6 +109,7 @@ export const useCartStore = create<CartState>()(
             color: variant.color,
             unitPrice: variant.price,
             quantity,
+            stockQuantity: variant.stockQuantity,
             imageUrl: product.featuredImage,
             brandName: product.brand?.name || 'AllThingsMerch',
             isPreorder: product.isPreorder,
@@ -147,7 +148,7 @@ export const useCartStore = create<CartState>()(
           const adminVariant = adminProducts
             .flatMap((p) => p.variants)
             .find((v) => v.id === variantId);
-          const availableStock = adminVariant ? adminVariant.stockQuantity : 0;
+          const availableStock = adminVariant ? adminVariant.stockQuantity : (item.stockQuantity ?? Infinity);
 
           if (availableStock < diff) {
             throw new Error(`Insufficient stock. Only ${availableStock} additional item(s) left.`);

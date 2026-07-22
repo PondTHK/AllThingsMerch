@@ -30,55 +30,48 @@ function LoginContent() {
 
     setLoading(true);
     const client = getSupabaseBrowserClient();
-    if (client) {
-      const { data, error: signInError } = await client.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
-
-      if (signInError) {
-        setError(`Supabase Sign In Error: ${signInError.message}`);
-        setLoading(false);
-        return;
-      }
-
-      if (data.user) {
-        const role = (data.user.app_metadata?.role ||
-          data.user.user_metadata?.role ||
-          (email.includes('admin') ? 'admin' : 'customer')) as 'admin' | 'customer';
-        login({
-          id: data.user.id,
-          email: data.user.email || email.trim(),
-          fullName: data.user.user_metadata?.full_name || email.split('@')[0].toUpperCase(),
-          role,
-          createdAt: data.user.created_at || new Date().toISOString(),
-        });
-        setLoading(false);
-        router.push(role === 'admin' ? '/admin' : redirect);
-        return;
-      }
+    if (!client) {
+      setError('Supabase credentials are not configured. Real authentication required.');
+      setLoading(false);
+      return;
     }
 
-    // Only fallback to local mock storage if Supabase env is NOT configured
-    const role = email.includes('admin') ? 'admin' : 'customer';
-    login({
-      id: `usr-${Date.now()}`,
+    const { data, error: signInError } = await client.auth.signInWithPassword({
       email: email.trim(),
-      fullName: email.split('@')[0].toUpperCase(),
-      role,
-      createdAt: new Date().toISOString(),
+      password,
     });
 
-    setLoading(false);
-    router.push(role === 'admin' ? '/admin' : redirect);
+    if (signInError) {
+      setError(signInError.message);
+      setLoading(false);
+      return;
+    }
+
+    if (data.user) {
+      const role = (data.user.app_metadata?.role ||
+        data.user.user_metadata?.role ||
+        (email.includes('admin') ? 'admin' : 'customer')) as 'admin' | 'customer';
+      login({
+        id: data.user.id,
+        email: data.user.email || email.trim(),
+        fullName: data.user.user_metadata?.full_name || email.split('@')[0].toUpperCase(),
+        role,
+        createdAt: data.user.created_at || new Date().toISOString(),
+      });
+      setLoading(false);
+      router.push(role === 'admin' ? '/admin' : redirect);
+    } else {
+      setError('No user returned from Supabase sign in.');
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="max-w-xl mx-auto px-4 sm:px-6 py-16">
-      <div className="rounded-3xl bg-neutral-100 border border-neutral-200 p-8 sm:p-10 space-y-8">
-        <div className="text-center space-y-2 border-b border-neutral-300 pb-6">
-          <h1 className="text-3xl font-black text-black">Account Sign In</h1>
-          <p className="text-xs uppercase tracking-wider text-neutral-600">
+    <div className="max-w-xl mx-auto px-4 sm:px-6 py-16 transition-colors">
+      <div className="rounded-3xl bg-surface border border-border p-8 sm:p-10 space-y-8 transition-colors shadow-sm">
+        <div className="text-center space-y-2 border-b border-border pb-6 transition-colors">
+          <h1 className="text-3xl font-black text-foreground transition-colors">Account Sign In</h1>
+          <p className="text-xs uppercase tracking-wider text-muted transition-colors">
             Access Your Verified Orders, Saved Addresses &amp; Authenticity TAGs
           </p>
         </div>
@@ -86,7 +79,7 @@ function LoginContent() {
         {/* Standard Email/Password form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-muted mb-1 transition-colors">
               Email Address
             </label>
             <input
@@ -95,12 +88,12 @@ function LoginContent() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your.email@example.com"
-              className="w-full px-4 py-3 rounded-xl bg-white border border-neutral-300 text-sm font-medium text-black focus:outline-none focus:border-black"
+              className="w-full px-4 py-3 rounded-xl bg-background border border-border text-sm font-medium text-foreground focus:outline-none focus:border-foreground transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-muted mb-1 transition-colors">
               Password
             </label>
             <input
@@ -109,28 +102,29 @@ function LoginContent() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full px-4 py-3 rounded-xl bg-white border border-neutral-300 text-sm font-medium text-black focus:outline-none focus:border-black"
+              className="w-full px-4 py-3 rounded-xl bg-background border border-border text-sm font-medium text-foreground focus:outline-none focus:border-foreground transition-colors"
             />
           </div>
 
           {error && (
-            <div className="p-3 rounded-xl bg-neutral-200 border border-black text-xs font-bold text-black">
+            <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-xs font-bold text-rose-600 dark:text-rose-400">
               {error}
             </div>
           )}
 
           <button
             type="submit"
-            className="w-full py-4 rounded-xl bg-black text-white font-bold text-xs uppercase tracking-wider hover:bg-neutral-800 transition-colors flex items-center justify-center gap-2"
+            disabled={loading}
+            className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold text-xs uppercase tracking-wider hover:opacity-90 transition-opacity flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
           >
-            <span>Sign In</span>
+            <span>{loading ? 'Signing In...' : 'Sign In'}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
 
-        <div className="text-center pt-2 border-t border-neutral-300">
-          <span className="text-xs text-neutral-600">New Collector? </span>
-          <Link href="/register" className="text-xs font-bold text-black underline hover:text-neutral-600">
+        <div className="text-center pt-2 border-t border-border transition-colors">
+          <span className="text-xs text-muted transition-colors">New Collector? </span>
+          <Link href="/register" className="text-xs font-bold text-foreground underline hover:text-muted transition-colors">
             Create an Account
           </Link>
         </div>
@@ -141,7 +135,7 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="p-16 text-center text-neutral-500">Loading sign in...</div>}>
+    <Suspense fallback={<div className="p-16 text-center text-muted transition-colors font-bold">Loading sign in...</div>}>
       <LoginContent />
     </Suspense>
   );
