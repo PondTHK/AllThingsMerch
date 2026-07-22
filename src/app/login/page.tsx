@@ -50,7 +50,7 @@ function LoginContent() {
     if (data.user) {
       const role = (data.user.app_metadata?.role ||
         data.user.user_metadata?.role ||
-        (email.includes('admin') ? 'admin' : 'customer')) as 'admin' | 'customer';
+        'customer') as 'admin' | 'customer';
       login({
         id: data.user.id,
         email: data.user.email || email.trim(),

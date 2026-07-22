@@ -1,9 +1,10 @@
 import React from 'react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { ArrowLeft, ShieldAlert } from 'lucide-react';
+import { ShieldAlert } from 'lucide-react';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { NavSidebar } from './NavSidebar';
+import { AdminLogoutButton } from './AdminLogoutButton';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await getSupabaseServerClient();
@@ -18,7 +19,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect('/login');
   }
 
-  const role = user.app_metadata?.role || user.user_metadata?.role || (user.email?.includes('admin') ? 'admin' : 'customer');
+  const role = user.app_metadata?.role || user.user_metadata?.role || 'customer';
   
   if (role !== 'admin') {
     return (
@@ -65,13 +66,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </p>
           </div>
 
-          <Link
-            href="/"
-            className="px-4 py-2.5 rounded-xl border border-white/80 bg-white/50 backdrop-blur-md text-slate-700 font-medium text-sm hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2 shadow-sm"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Exit to Storefront</span>
-          </Link>
+          <AdminLogoutButton />
         </header>
 
         {/* Page Content */}

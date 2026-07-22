@@ -41,6 +41,18 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  const role = user?.app_metadata?.role || user?.user_metadata?.role || 'customer';
+  const isActualAdmin = (user && role === 'admin') || demoRoleCookie === 'admin';
+
+  if (isActualAdmin) {
+    const pathname = request.nextUrl.pathname;
+    if (!pathname.startsWith('/admin') && !pathname.startsWith('/api') && !pathname.startsWith('/_next') && pathname !== '/login') {
+      const url = request.nextUrl.clone();
+      url.pathname = '/admin';
+      return NextResponse.redirect(url);
+    }
+  }
+
   return supabaseResponse;
 }
 
