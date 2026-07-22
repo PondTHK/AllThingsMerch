@@ -98,3 +98,39 @@ export async function submitProductReviewAction(data: {
     productName: data.productName || newRow.order_items?.product_name || undefined,
   };
 }
+
+export async function getUserReviewsAction(): Promise<Review[]> {
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) return [];
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from('reviews')
+    .select('*, order_items(product_name)')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false });
+
+  if (error || !data) {
+    console.error('Failed to fetch user reviews:', error);
+    return [];
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return data.map((row: any) => ({
+    id: row.id,
+    productId: row.product_id,
+    userId: row.user_id,
+    orderItemId: row.order_item_id,
+    rating: Number(row.rating),
+    comment: row.comment || '',
+    status: (row.status || 'published') as 'pending' | 'published' | 'hidden',
+    createdAt: row.created_at,
+    userName: 'Verified Collector',
+    productName: row.order_items?.product_name || undefined,
+  }));
+}

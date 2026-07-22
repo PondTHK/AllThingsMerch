@@ -4,6 +4,7 @@ import { getUserOrdersAction } from './actions';
 import { formatTHB } from '@/lib/money';
 import { Package, ArrowRight, ShieldCheck } from 'lucide-react';
 import { OrderStatusBadge } from '@/components/orders/OrderStatusBadge';
+import { OrderReviewAction } from '@/components/orders/OrderReviewAction';
 
 export default async function AccountOrdersPage() {
   const orders = await getUserOrdersAction();
@@ -82,12 +83,22 @@ export default async function AccountOrdersPage() {
                       </span>
                     </div>
 
-                    {item.authenticityTagCode && (
-                      <div className="flex items-center gap-1.5 font-mono text-[11px] font-bold text-foreground bg-surface px-2.5 py-1 rounded-lg border border-border transition-colors">
-                        <ShieldCheck className="w-3.5 h-3.5 text-primary" />
-                        <span>{item.authenticityTagCode}</span>
+                    <div className="flex flex-col items-end gap-2 shrink-0">
+                      {item.authenticityTagCode && (
+                        <div className="flex items-center gap-1.5 font-mono text-[11px] font-bold text-foreground bg-surface px-2.5 py-1 rounded-lg border border-border transition-colors">
+                          <ShieldCheck className="w-3.5 h-3.5 text-primary" />
+                          <span>{item.authenticityTagCode}</span>
+                        </div>
+                      )}
+                      
+                      <div className="w-full sm:w-auto">
+                        <OrderReviewAction 
+                          item={item} 
+                          orderStatus={order.status} 
+                          customerName={order.shippingAddress.fullName || 'Verified Buyer'} 
+                        />
                       </div>
-                    )}
+                    </div>
                   </div>
                 ))}
               </div>

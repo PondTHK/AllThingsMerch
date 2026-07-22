@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/auth/useAuthStore';
 import { useHydrated } from '@/lib/cart/useHydrated';
-import { User, Package, MapPin, LogOut, ShieldCheck } from 'lucide-react';
+import { User, Package, MapPin, LogOut, ShieldCheck, Star } from 'lucide-react';
 
 export default function AccountLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -50,6 +50,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
     { label: 'Profile Overview', href: '/account', icon: User },
     { label: 'Order History & TAGs', href: '/account/orders', icon: Package },
     { label: 'Saved Addresses', href: '/account/addresses', icon: MapPin },
+    { label: 'My Reviews', href: '/account/reviews', icon: Star },
   ];
 
   const handleLogout = () => {

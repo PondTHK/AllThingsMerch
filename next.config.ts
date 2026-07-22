@@ -20,6 +20,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'img.sasom.co.th',
       },
+      {
+        protocol: 'https',
+        hostname: 'umusic.co.th',
+      },
     ],
   },
 };

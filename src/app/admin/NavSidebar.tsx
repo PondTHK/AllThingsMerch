@@ -13,6 +13,7 @@ import {
   FolderTree,
   Ticket,
   BarChart2,
+  MessageSquare,
 } from 'lucide-react';
 
 const navItems = [
@@ -20,6 +21,7 @@ const navItems = [
   { label: 'Catalog Products', href: '/admin/products', icon: Package },
   { label: 'Inventory & Stock', href: '/admin/inventory', icon: Layers },
   { label: 'Customer Orders', href: '/admin/orders', icon: ClipboardList },
+  { label: 'Product Reviews', href: '/admin/reviews', icon: MessageSquare },
   { label: 'Authenticity TAGs', href: '/admin/tags', icon: ShieldCheck },
   { label: 'Licensed Brands', href: '/admin/brands', icon: ShieldCheck },
   { label: 'Categories', href: '/admin/categories', icon: FolderTree },
