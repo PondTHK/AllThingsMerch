@@ -401,7 +401,7 @@ classDiagram
     %% ─── Authentication Layer ───
     class useAuthStore {
         +UserProfile user
-        +login(UserProfile user) void
+        +login(string id, string email, string fullName, string role) void
         +logout() void
         +updateProfile(string fullName, string phone) void
         +loginAsDemoCollector() void
