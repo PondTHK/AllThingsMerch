@@ -659,7 +659,7 @@ sequenceDiagram
     actor Customer as ลูกค้า (Customer Client)
     participant Cart as useCartStore
     participant Checkout as Checkout UI
-    participant Server as Mock Checkout Engine
+    participant Server as Checkout Server Actions
     participant Admin as useAdminStore (Catalog & Stock)
 
     %% 1. Cart Add and Stock Reservation
