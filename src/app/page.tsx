@@ -46,25 +46,25 @@ export default function HomePage() {
   });
 
   return (
-    <div className="flex flex-col min-h-screen bg-white text-black">
+    <div className="flex flex-col min-h-screen bg-background text-foreground transition-colors duration-300">
       {/* 1. HERO SECTION MATCHING PROTOTYPE */}
-      <section className="relative overflow-hidden border-b border-neutral-200 py-12 lg:py-20">
+      <section className="relative overflow-hidden border-b border-border py-12 lg:py-20 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative">
             {/* Left Column Text */}
             <div className="lg:col-span-6 space-y-6 z-10">
-              <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-black leading-none">
+              <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-foreground leading-none transition-colors">
                 Fuel Your <br />
                 Racing <br />
                 Passion
               </h1>
-              <p className="text-sm sm:text-base text-neutral-600 max-w-md leading-relaxed">
+              <p className="text-sm sm:text-base text-muted max-w-md leading-relaxed transition-colors">
                 Gear Up With Official Merchandise From Your Favorite Teams. Speed, Style, And Performance Standard.
               </p>
               <div>
                 <Link
                   href="/products?category=formula-1"
-                  className="inline-block px-8 py-3.5 bg-black text-white font-bold text-sm tracking-wide uppercase transition-colors hover:bg-neutral-800"
+                  className="inline-block px-8 py-3.5 bg-primary text-primary-foreground font-bold text-sm tracking-wide uppercase transition-all hover:opacity-90 shadow-md"
                 >
                   Shop Now
                 </Link>
@@ -73,14 +73,14 @@ export default function HomePage() {
 
             {/* Center Vertical Watermark Text matching prototype */}
             <div className="hidden lg:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none z-0">
-              <span className="text-[110px] font-black text-neutral-100 tracking-tighter rotate-[-90deg] inline-block">
+              <span className="text-[110px] font-black text-neutral-100 dark:text-neutral-900/40 tracking-tighter rotate-[-90deg] inline-block transition-colors">
                 REDBULL RACING
               </span>
             </div>
 
             {/* Right Column Featured Product Showcase */}
             <div className="lg:col-span-6 relative z-10">
-              <div className="max-w-md mx-auto bg-neutral-100 rounded-3xl p-8 sm:p-12 text-center border border-neutral-200 relative">
+              <div className="max-w-md mx-auto bg-surface rounded-3xl p-8 sm:p-12 text-center border border-border relative transition-colors shadow-sm">
                 <div className="relative aspect-square w-full mb-6">
                   <Image
                     src={allProducts[0]?.featuredImage || '/favicon.ico'}
@@ -90,10 +90,10 @@ export default function HomePage() {
                     className="object-contain"
                   />
                 </div>
-                <h3 className="font-bold text-black text-lg">
+                <h3 className="font-bold text-foreground text-lg transition-colors">
                   {allProducts[0]?.name || 'Red Bull Racing 2026 Team Polo'}
                 </h3>
-                <p className="text-neutral-600 font-semibold text-sm mt-1">
+                <p className="text-muted font-semibold text-sm mt-1 transition-colors">
                   {formatTHB(allProducts[0]?.minPrice || 3990)}
                 </p>
               </div>
@@ -103,9 +103,9 @@ export default function HomePage() {
       </section>
 
       {/* 2. BLACK BRAND LOGO STRIP MATCHING PROTOTYPE */}
-      <section className="bg-black text-white py-8 border-b border-neutral-900">
+      <section className="bg-neutral-950 text-white py-8 border-b border-border transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap items-center justify-between gap-6 text-xs sm:text-sm font-bold tracking-widest uppercase opacity-90">
+          <div className="flex flex-wrap items-center justify-between gap-6 text-xs sm:text-sm font-bold tracking-widest uppercase opacity-90 text-neutral-200">
             <span className="hover:opacity-100 transition-opacity">ORACLE RED BULL RACING</span>
             <span className="hover:opacity-100 transition-opacity">GMM GRAMMY</span>
             <span className="hover:opacity-100 transition-opacity">UNIVERSAL MUSIC THAILAND</span>
@@ -116,20 +116,20 @@ export default function HomePage() {
       </section>
 
       {/* 3. TRENDING MERCH / MOST POPULAR PRODUCTS MATCHING PROTOTYPE */}
-      <section className="py-16 sm:py-24 border-b border-neutral-200">
+      <section className="py-16 sm:py-24 border-b border-border transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 mb-10">
             <div>
-              <span className="text-xs uppercase font-bold tracking-widest text-neutral-500">
+              <span className="text-xs uppercase font-bold tracking-widest text-muted transition-colors">
                 -- Our Trending Merch --
               </span>
-              <h2 className="text-3xl sm:text-4xl font-black text-black mt-1">
+              <h2 className="text-3xl sm:text-4xl font-black text-foreground mt-1 transition-colors">
                 Most Popular Products
               </h2>
             </div>
             <Link
               href="/products"
-              className="px-6 py-2.5 bg-black text-white font-bold text-xs uppercase tracking-wider hover:bg-neutral-800 transition-colors"
+              className="px-6 py-2.5 bg-primary text-primary-foreground font-bold text-xs uppercase tracking-wider hover:opacity-90 transition-opacity"
             >
               Explore All
             </Link>
@@ -139,9 +139,9 @@ export default function HomePage() {
             {trendingProducts.map((product) => (
               <div
                 key={product.id}
-                className="rounded-2xl bg-neutral-100 border border-neutral-200 p-6 flex flex-col justify-between"
+                className="rounded-2xl bg-surface border border-border p-6 flex flex-col justify-between transition-colors shadow-sm"
               >
-                <div className="relative aspect-square w-full mb-4 overflow-hidden rounded-xl bg-white">
+                <div className="relative aspect-square w-full mb-4 overflow-hidden rounded-xl bg-neutral-100 dark:bg-neutral-900">
                   <Image
                     src={product.featuredImage}
                     alt={product.name}
@@ -151,14 +151,14 @@ export default function HomePage() {
                   />
                 </div>
 
-                <h3 className="font-bold text-black text-base line-clamp-1">{product.name}</h3>
+                <h3 className="font-bold text-foreground text-base line-clamp-1 transition-colors">{product.name}</h3>
                 <div className="mt-4 flex items-center justify-between">
-                  <span className="text-sm font-bold text-neutral-700">
+                  <span className="text-sm font-bold text-foreground transition-colors">
                     {formatTHB(product.minPrice)}
                   </span>
                   <Link
                     href={`/products/${product.slug}`}
-                    className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center hover:bg-neutral-800 transition-colors"
+                    className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:opacity-90 transition-all"
                   >
                     <ArrowRight className="w-4 h-4" />
                   </Link>
@@ -170,9 +170,9 @@ export default function HomePage() {
       </section>
 
       {/* 4. FULL-WIDTH DARK F1 HERO BANNER MATCHING PROTOTYPE */}
-      <section className="py-12 bg-white">
+      <section className="py-12 bg-background transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="rounded-3xl bg-black text-white p-8 sm:p-14 overflow-hidden relative">
+          <div className="rounded-3xl bg-neutral-950 dark:bg-neutral-900 text-white p-8 sm:p-14 overflow-hidden relative border border-border transition-colors shadow-lg">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               <div className="lg:col-span-6">
                 <div className="aspect-[16/9] relative rounded-2xl overflow-hidden border border-neutral-800 bg-neutral-900">
@@ -187,9 +187,9 @@ export default function HomePage() {
               </div>
 
               <div className="lg:col-span-6 space-y-4">
-                <h2 className="text-3xl sm:text-5xl font-black leading-tight">
+                <h2 className="text-3xl sm:text-5xl font-black leading-tight text-white">
                   Feel the Speed <br />
-                  <span className="text-red-600">Live The Legacy</span>
+                  <span className="text-red-500">Live The Legacy</span>
                 </h2>
                 <p className="text-sm sm:text-base text-neutral-300">
                   Official F1 Team Merch for true fans. 100% Authentic with verified serial tracking.
@@ -197,7 +197,7 @@ export default function HomePage() {
                 <div className="pt-2">
                   <Link
                     href="/products?category=formula-1"
-                    className="inline-block px-8 py-3.5 bg-white text-black font-bold text-sm uppercase tracking-wide hover:bg-neutral-200 transition-colors"
+                    className="inline-block px-8 py-3.5 bg-white text-black font-bold text-sm uppercase tracking-wide hover:bg-neutral-200 transition-colors shadow-sm"
                   >
                     Shop F1 Collection
                   </Link>
@@ -209,10 +209,10 @@ export default function HomePage() {
       </section>
 
       {/* 5. BEST SELLING SECTION WITH TABS MATCHING PROTOTYPE */}
-      <section className="py-16 sm:py-24 border-b border-neutral-200">
+      <section className="py-16 sm:py-24 border-b border-border transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
-            <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-wider text-black">
+            <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-wider text-foreground transition-colors">
               -- Best Selling --
             </h2>
 
@@ -229,10 +229,10 @@ export default function HomePage() {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id as TabId)}
-                  className={`px-6 py-2 text-xs font-bold uppercase tracking-wider border transition-colors ${
+                  className={`px-6 py-2 text-xs font-bold uppercase tracking-wider border rounded-xl transition-all ${
                     activeTab === tab.id
-                      ? 'bg-black text-white border-black'
-                      : 'bg-white text-black border-neutral-300 hover:border-black'
+                      ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                      : 'bg-surface text-foreground border-border hover:border-foreground'
                   }`}
                 >
                   {tab.label}
@@ -250,23 +250,23 @@ export default function HomePage() {
       </section>
 
       {/* 6. AUTHENTICITY TAG NOTICE (CLEAN MONOCHROME) */}
-      <section className="py-16 bg-neutral-100 border-b border-neutral-200">
+      <section className="py-16 bg-surface border-b border-border transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-black text-white text-xs font-bold uppercase tracking-wider">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-primary text-primary-foreground text-xs font-bold uppercase tracking-wider shadow-sm transition-colors">
               <ShieldCheck className="w-4 h-4" />
               <span>Authenticity Verification</span>
             </div>
-            <h3 className="text-2xl sm:text-3xl font-black text-black">
+            <h3 className="text-2xl sm:text-3xl font-black text-foreground transition-colors">
               1-to-1 Verified Serial TAG Included
             </h3>
-            <p className="text-sm text-neutral-600 leading-relaxed">
+            <p className="text-sm text-muted leading-relaxed transition-colors">
               Every item sold by AllThingsMerch carries a unique cryptographic code and serial number to confirm authenticity and track licensing royalty transparency.
             </p>
             <div className="pt-2">
               <Link
                 href="/verify"
-                className="inline-block px-6 py-3 bg-black text-white font-bold text-xs uppercase tracking-wider hover:bg-neutral-800 transition-colors"
+                className="inline-block px-6 py-3 rounded-xl bg-primary text-primary-foreground font-bold text-xs uppercase tracking-wider hover:opacity-90 transition-opacity shadow-sm"
               >
                 Verify Item Provenance
               </Link>

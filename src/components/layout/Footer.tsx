@@ -19,7 +19,7 @@ export function Footer() {
   if (pathname?.startsWith('/admin')) return null;
 
   return (
-    <footer className="bg-black text-white py-14 border-t border-neutral-900">
+    <footer className="bg-neutral-950 text-white py-14 border-t border-border transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 items-start">
           {/* Brand & Description */}
@@ -37,7 +37,7 @@ export function Footer() {
           {/* Newsletter Box matching prototype */}
           <div className="space-y-3">
             <span className="text-xs uppercase tracking-wider font-semibold text-neutral-300">
-              Subscribe to our news letter
+              Subscribe to our newsletter
             </span>
             <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2 max-w-md">
               <input
@@ -46,11 +46,11 @@ export function Footer() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter Email..."
                 required
-                className="flex-1 px-4 py-2.5 rounded-lg bg-white text-black placeholder:text-neutral-500 text-sm focus:outline-none"
+                className="flex-1 px-4 py-2.5 rounded-lg bg-neutral-900 border border-neutral-800 text-white placeholder:text-neutral-500 text-sm focus:outline-none focus:border-white transition-colors"
               />
               <button
                 type="submit"
-                className="px-5 py-2.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-bold uppercase tracking-wider transition-colors"
+                className="px-5 py-2.5 rounded-lg bg-white hover:bg-neutral-200 text-black text-xs font-bold uppercase tracking-wider transition-colors"
               >
                 Join
               </button>

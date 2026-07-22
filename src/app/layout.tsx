@@ -5,6 +5,7 @@ import { AnnouncementBar } from '@/components/layout/AnnouncementBar';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { SupabaseAuthProvider } from '@/components/providers/SupabaseAuthProvider';
+import { ThemeProvider } from '@/components/providers/ThemeProvider';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -31,14 +32,17 @@ export default function RootLayout({
     <html
       lang="th"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-white text-black selection:bg-black selection:text-white">
-        <SupabaseAuthProvider>
-          <AnnouncementBar />
-          <Header />
-          <main className="flex-1 flex flex-col">{children}</main>
-          <Footer />
-        </SupabaseAuthProvider>
+      <body className="min-h-full flex flex-col bg-background text-foreground selection:bg-foreground selection:text-background transition-colors duration-300">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <SupabaseAuthProvider>
+            <AnnouncementBar />
+            <Header />
+            <main className="flex-1 flex flex-col">{children}</main>
+            <Footer />
+          </SupabaseAuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
