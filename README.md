@@ -385,16 +385,11 @@ classDiagram
     %% ─── Authentication Layer ───
     class useAuthStore {
         +UserProfile user
-        +SavedAddress[] addresses
         +login(string id, string email, string fullName, string role) void
         +logout() void
         +updateProfile(string fullName, string phone) void
         +loginAsDemoCollector() void
         +loginAsDemoAdmin() void
-        +addAddress(string label, string fullName, string email, string phone, string street, string city, string postalCode, boolean isDefault) SavedAddress
-        +updateAddress(string id, string label, string street, boolean isDefault) void
-        +deleteAddress(string id) void
-        +setDefaultAddress(string id) void
     }
 
     class UserProfile {
@@ -410,7 +405,6 @@ classDiagram
         <<enumeration>>
         customer
         admin
-        license_holder
     }
 
     class SavedAddress {
@@ -426,10 +420,10 @@ classDiagram
     }
 
     useAuthStore "1" o-- "0..1" UserProfile : manages
-    useAuthStore "1" o-- "*" SavedAddress : manages
     UserProfile "1" --> "1" UserRole : has
+    UserProfile "1" --> "*" SavedAddress : has
 
-    note for useAuthStore "Role guard อยู่ที่ admin/layout.tsx\nif user.role !== admin → redirect"
+    note for useAuthStore "Role guard is enforced at admin/layout.tsx\nand page redirects."
 
     %% ─── Customer-Accessible Layer ───
     class useCartStore {
@@ -437,19 +431,20 @@ classDiagram
         +CartItem[] items
         +string cartReservedUntil
         +Coupon appliedCoupon
-        +addItem(string variantId, string productId, number quantity) void
+        +addItem(ProductVariant variant, Product product, number quantity) void
         +updateQuantity(string variantId, number quantity) void
         +removeItem(string variantId) void
         +clearCart() void
         +clearCartWithoutRelease() void
         +releaseExpiredReservation() void
-        +applyCoupon(string code, number discountValue, string discountType) void
+        +applyCoupon(Coupon coupon) void
         +removeCoupon() void
         +getTotalCount() number
         +getSubtotal() number
         +getShippingFee() number
         +getDiscountAmount() number
         +getTotalAmount() number
+        +syncWithDb() void
     }
 
     class CartItem {
@@ -496,7 +491,7 @@ classDiagram
         +syncOrdersFromStorage() void
         +addProduct(string name, string slug, string description, string brandId, string categoryId, number price, string sku, number stockQuantity, string featuredImage, boolean isLimited) Product
         +toggleProductStatus(string productId) void
-        +adjustVariantStock(string variantId, number deltaAmount, string movementType) void
+        +adjustVariantStock(string variantId, number deltaAmount, string movementType, string referenceType, string referenceId, string note) void
         +updateOrderStatus(string orderNumber, string status) void
         +addContract(string licenseHolderId, string holderName, string contractReference, number royaltyRate, string startsAt, string expiresAt) LicenseContract
     }
@@ -614,10 +609,9 @@ classDiagram
         +string status
     }
 
-    %% ─── Role-Based Access (ใครเข้าถึงอะไร) ───
+    %% ─── Role-Based Access ───
     UserProfile ..> useCartStore : customer accesses
     UserProfile ..> useAdminStore : admin accesses
-    UserProfile ..> LicenseContract : license_holder views
 
     %% ─── Store → Domain Relationships ───
     useCartStore "1" o-- "*" CartItem : manages
@@ -649,7 +643,7 @@ sequenceDiagram
     actor Customer as ลูกค้า (Customer Client)
     participant Cart as useCartStore
     participant Checkout as Checkout UI
-    participant Server as Mock Checkout Engine
+    participant Server as Checkout Server Actions
     participant Admin as useAdminStore (Catalog & Stock)
 
     %% 1. Cart Add and Stock Reservation

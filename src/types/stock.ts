@@ -1,7 +1,9 @@
+export type StockMovementType = 'receive' | 'reserve' | 'release' | 'sale' | 'return' | 'adjustment';
+
 export interface StockMovement {
   id: string;
   productVariantId: string;
-  movementType: 'receive' | 'reserve' | 'release' | 'sale' | 'return' | 'adjustment';
+  movementType: StockMovementType;
   quantity: number;
   referenceType?: string;
   referenceId?: string;
