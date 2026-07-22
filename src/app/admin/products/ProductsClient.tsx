@@ -127,9 +127,10 @@ export function ProductsClient({
       // Next.js router.refresh() is seamless anyway.
       router.refresh();
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating product:', error);
-      alert(error.message || 'Failed to create product.');
+      const err = error as { message?: string } | null;
+      alert(err?.message || 'Failed to create product.');
     } finally {
       setIsLoading(false);
     }

@@ -31,7 +31,9 @@ export default function AccountOrderDetailPage({
   useEffect(() => {
     let mounted = true;
     if (!orderNumber) {
-      setLoading(false);
+      queueMicrotask(() => {
+        if (mounted) setLoading(false);
+      });
       return;
     }
     getUserOrderByNumberAction(orderNumber)

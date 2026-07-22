@@ -16,12 +16,24 @@ export interface RoyaltyRowDto {
   expiresAt: string;
 }
 
-function CustomTooltip({ active, payload, label }: any) {
+interface TooltipPayload {
+  dataKey: string;
+  name: string;
+  value: number;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayload[];
+  label?: string;
+}
+
+function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-white border border-neutral-200 rounded-xl px-4 py-3 shadow-lg text-xs">
       <p className="font-bold text-black mb-1 truncate max-w-[160px]">{label}</p>
-      {payload.map((p: any) => (
+      {payload.map((p) => (
         <p key={p.dataKey} className="text-neutral-600">
           {p.name}: <span className="font-bold text-black">{formatTHB(p.value)}</span>
         </p>

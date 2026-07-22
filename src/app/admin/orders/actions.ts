@@ -20,8 +20,9 @@ export async function updateOrderStatusAction(orderId: string, newStatus: string
     
     revalidatePath('/admin/orders');
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to update order status:', error);
-    return { success: false, error: error.message || 'Failed to update order status' };
+    const err = error as { message?: string } | null;
+    return { success: false, error: err?.message || 'Failed to update order status' };
   }
 }

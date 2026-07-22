@@ -14,7 +14,7 @@ export default async function AdminRoyaltiesPage() {
   // Fetch active contracts
   const contracts = await services.contracts.getActiveContracts();
 
-  let brandRevenue: Record<string, { brandName: string; totalRevenue: number; orderCount: number }> = {};
+  const brandRevenue: Record<string, { brandName: string; totalRevenue: number; orderCount: number }> = {};
 
   // ---------------------------------------------------------------------------
   // FAST PATH: Try to query the Database View first (O(1) payload size)
@@ -27,7 +27,7 @@ export default async function AdminRoyaltiesPage() {
     // View exists! Use the pre-calculated data from SQL
     for (const row of viewData) {
       brandRevenue[row.brand_id] = {
-        brandName: row.brand_name,
+        brandName: row.brand_name || 'Unknown Brand',
         totalRevenue: Number(row.total_revenue),
         orderCount: Number(row.order_count)
       };
@@ -67,14 +67,14 @@ export default async function AdminRoyaltiesPage() {
 
     for (const order of rawOrders || []) {
       for (const item of order.order_items || []) {
-        const variant = item.product_variants as any;
+        const variant = item.product_variants as { products?: { brand_id?: string; brands?: { id?: string; name?: string } } } | null;
         const brand = variant?.products?.brands;
         const brandId = variant?.products?.brand_id;
         if (!brandId || !brand) continue;
 
         const lineTotal = (item.unit_price || 0) * (item.quantity || 1);
         if (!brandRevenue[brandId]) {
-          brandRevenue[brandId] = { brandName: brand.name, totalRevenue: 0, orderCount: 0 };
+          brandRevenue[brandId] = { brandName: brand.name || 'Unknown Brand', totalRevenue: 0, orderCount: 0 };
         }
         brandRevenue[brandId].totalRevenue += lineTotal;
         brandRevenue[brandId].orderCount += 1;

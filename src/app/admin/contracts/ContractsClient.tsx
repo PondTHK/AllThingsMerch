@@ -38,7 +38,7 @@ export interface ContractDto {
 }
 
 export function ContractsClient({ initialContracts }: { initialContracts: ContractDto[] }) {
-  const [contracts, setContracts] = useState<ContractDto[]>(initialContracts);
+  const [contracts] = useState<ContractDto[]>(initialContracts);
   const [showModal, setShowModal] = useState(false);
   const [createdMsg, setCreatedMsg] = useState(false);
 

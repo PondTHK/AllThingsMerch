@@ -2,7 +2,6 @@
 
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { getAdminServices } from '@/lib/admin/container';
-import { TagStatusValue } from '@/lib/admin/domain/entities/AdminTag';
 import { revalidatePath } from 'next/cache';
 
 async function initAdminServices() {
@@ -27,7 +26,8 @@ export async function updateTagStatusAction(tagId: string, newStatus: string) {
     }
     revalidatePath('/admin/tags');
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Failed to update TAG status' };
+  } catch (error: unknown) {
+    const err = error as { message?: string } | null;
+    return { success: false, error: err?.message || 'Failed to update TAG status' };
   }
 }
